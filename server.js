@@ -1,0 +1,265 @@
+const express = require('express');
+const cors = require('cors');
+const path = require('path');
+const { mask, unmask } = require('./privacyShield');
+
+const app = express();
+const PORT = process.env.PORT || 3000;
+
+// Enable CORS and JSON parsing
+app.use(cors());
+app.use(express.json({ limit: '10mb' }));
+
+// Serve static frontend files from 'public' directory
+app.use(express.static(path.join(__dirname, 'public')));
+
+// Default strong system prompt
+const DEFAULT_SYSTEM_PROMPT = `You are an elite, certified MikroTik network engineer and RouterOS (v6 and v7) expert. Your job is to analyze the user's issue and RouterOS configurations/logs, find any syntax errors, logical bugs, firewall misconfigurations, routing errors, or other issues, and provide corrections.
+
+You must return your output in three distinct sections, wrapped in the following markers:
+
+<<<EXPLANATION>>>
+Provide a clear, detailed, and professional explanation of what is broken, why it is broken, and how to fix it. Keep it concise but highly educational.
+<<<END_EXPLANATION>>>
+
+<<<CORRECTED_CONFIG>>>
+Provide the full corrected version of the pasted configuration or the relevant portion of it, fixing all bugs and syntax. Do not add any conversational text inside this block.
+<<<END_CORRECTED_CONFIG>>>
+
+<<<FIX_COMMANDS>>>
+Provide the exact, ready-to-run RouterOS CLI terminal commands to apply the fix. Ensure these commands are syntactically valid and safe to execute in the RouterOS terminal.
+<<<END_FIX_COMMANDS>>>
+
+Strict Instructions:
+1. You will see placeholders like [PRIV_IP_1], [PUB_IP_1], [MAC_1], [SECRET_1], [IFACE_1], [DOMAIN_1], [IDENTITY_1]. You MUST preserve these exact placeholders in your response's configuration and CLI commands (e.g. if the IP was [PRIV_IP_1], you must use [PRIV_IP_1] in your corrected config and commands). Do NOT invent or make up actual IP addresses or passwords to replace them. Keep them exactly as they are.
+2. Maintain RouterOS CLI syntax standards. For v7, routing commands can be different from v6; match the version in the config or support both if unsure.`;
+
+/**
+ * Proxy call to LLM providers
+ */
+async function callLLM({ provider, apiKey, baseUrl, model, systemPrompt, promptText }) {
+  let url = '';
+  let headers = { 'Content-Type': 'application/json' };
+  let body = {};
+
+  const activeSystemPrompt = systemPrompt || DEFAULT_SYSTEM_PROMPT;
+
+  if (provider === 'openai') {
+    url = 'https://api.openai.com/v1/chat/completions';
+    headers['Authorization'] = `Bearer ${apiKey}`;
+    body = {
+      model: model || 'gpt-4o-mini',
+      messages: [
+        { role: 'system', content: activeSystemPrompt },
+        { role: 'user', content: promptText }
+      ],
+      temperature: 0.2
+    };
+  } else if (provider === 'anthropic') {
+    url = 'https://api.anthropic.com/v1/messages';
+    headers['x-api-key'] = apiKey;
+    headers['anthropic-version'] = '2023-06-01';
+    body = {
+      model: model || 'claude-3-5-sonnet-20240620',
+      system: activeSystemPrompt,
+      messages: [{ role: 'user', content: promptText }],
+      max_tokens: 4000,
+      temperature: 0.2
+    };
+  } else if (provider === 'openrouter') {
+    url = 'https://openrouter.ai/api/v1/chat/completions';
+    headers['Authorization'] = `Bearer ${apiKey}`;
+    body = {
+      model: model || 'meta-llama/llama-3-8b-instruct:free',
+      messages: [
+        { role: 'system', content: activeSystemPrompt },
+        { role: 'user', content: promptText }
+      ],
+      temperature: 0.2
+    };
+  } else if (provider === 'ollama') {
+    const host = baseUrl || 'http://localhost:11434';
+    url = `${host}/api/chat`;
+    body = {
+      model: model || 'llama3',
+      messages: [
+        { role: 'system', content: activeSystemPrompt },
+        { role: 'user', content: promptText }
+      ],
+      stream: false,
+      options: {
+        temperature: 0.2
+      }
+    };
+  } else if (provider === 'custom') {
+    const host = baseUrl || 'http://localhost:11434';
+    url = host.endsWith('/chat/completions') ? host : `${host}/v1/chat/completions`;
+    if (apiKey) {
+      headers['Authorization'] = `Bearer ${apiKey}`;
+    }
+    body = {
+      model: model,
+      messages: [
+        { role: 'system', content: activeSystemPrompt },
+        { role: 'user', content: promptText }
+      ],
+      temperature: 0.2
+    };
+  } else {
+    throw new Error(`Unknown LLM provider: ${provider}`);
+  }
+
+  console.log(`[Proxy] Sending request to provider: ${provider}, URL: ${url}`);
+
+  const response = await fetch(url, {
+    method: 'POST',
+    headers: headers,
+    body: JSON.stringify(body)
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(`LLM provider (${provider}) returned status ${response.status}: ${errorText}`);
+  }
+
+  const data = await response.json();
+
+  if (provider === 'openai' || provider === 'openrouter' || provider === 'custom') {
+    if (!data.choices || !data.choices[0] || !data.choices[0].message) {
+      throw new Error(`Invalid response schema from ${provider}: ${JSON.stringify(data)}`);
+    }
+    return data.choices[0].message.content;
+  } else if (provider === 'anthropic') {
+    if (!data.content || !data.content[0]) {
+      throw new Error(`Invalid response schema from Anthropic: ${JSON.stringify(data)}`);
+    }
+    return data.content[0].text;
+  } else if (provider === 'ollama') {
+    if (!data.message) {
+      throw new Error(`Invalid response schema from Ollama: ${JSON.stringify(data)}`);
+    }
+    return data.message.content;
+  }
+}
+
+/**
+ * Parses response wrapped in <<<EXPLANATION>>> etc.
+ */
+function parseSections(response) {
+  let explanation = '';
+  let correctedConfig = '';
+  let fixCommands = '';
+
+  const expMatch = /<<<EXPLANATION>>>([\s\S]*?)<<<END_EXPLANATION>>>/i.exec(response);
+  if (expMatch) explanation = expMatch[1].trim();
+
+  const configMatch = /<<<CORRECTED_CONFIG>>>([\s\S]*?)<<<END_CORRECTED_CONFIG>>>/i.exec(response);
+  if (configMatch) correctedConfig = configMatch[1].trim();
+
+  const fixMatch = /<<<FIX_COMMANDS>>>([\s\S]*?)<<<END_FIX_COMMANDS>>>/i.exec(response);
+  if (fixMatch) fixCommands = fixMatch[1].trim();
+
+  // Fallback if formatting was ignored by LLM
+  if (!explanation && !correctedConfig && !fixCommands) {
+    explanation = response;
+  }
+
+  return { explanation, correctedConfig, fixCommands };
+}
+
+/**
+ * Endpoint: Chat & Analyze Configuration with Privacy Shield
+ */
+app.post('/api/chat', async (req, res) => {
+  try {
+    const {
+      pastedConfig,
+      chatMessage,
+      provider,
+      apiKey,
+      baseUrl,
+      model,
+      systemPrompt,
+      maskOptions
+    } = req.body;
+
+    if (!chatMessage && !pastedConfig) {
+      return res.status(400).json({ error: 'Either chatMessage or pastedConfig is required' });
+    }
+
+    // Combine user message and pasted config into a single cohesive layout for the LLM
+    const combinedInput = `[USER QUESTION/ISSUE]:\n${chatMessage || 'Please analyze this configuration for errors or potential improvements.'}\n\n[ROUTEROS CONFIG / LOGS / EXPORT]:\n\`\`\`\n${pastedConfig || '(No configuration pasted)'}\n\`\`\`\n`;
+
+    // Apply the Privacy Shield masking
+    console.log('[Privacy Shield] Masking user input...');
+    const { maskedText, mapping } = mask(combinedInput, maskOptions);
+
+    console.log('[Privacy Shield] Masking complete. Sending masked query to LLM.');
+
+    // Send to LLM Proxy
+    const llmRawResponse = await callLLM({
+      provider,
+      apiKey,
+      baseUrl,
+      model,
+      systemPrompt,
+      promptText: maskedText
+    });
+
+    console.log('[LLM] Response received. Restoring original values using Privacy Shield...');
+
+    // Restore the original data in the LLM's raw response
+    const unmaskedRawResponse = unmask(llmRawResponse, mapping);
+
+    // Parse the sections
+    const { explanation, correctedConfig, fixCommands } = parseSections(unmaskedRawResponse);
+
+    res.json({
+      success: true,
+      explanation,
+      correctedConfig,
+      fixCommands,
+      rawResponse: unmaskedRawResponse,
+      maskedRawResponse: llmRawResponse // sent for transparency/debug
+    });
+
+  } catch (error) {
+    console.error('[Error] Chat processing failed:', error);
+    res.status(500).json({ error: error.message || 'An error occurred during chat processing' });
+  }
+});
+
+/**
+ * Endpoint: Test Connection to Provider
+ */
+app.post('/api/test-connection', async (req, res) => {
+  try {
+    const { provider, apiKey, baseUrl, model } = req.body;
+
+    console.log(`[Connection Test] Testing connection to ${provider}...`);
+
+    const testPrompt = "Respond with exactly the word 'SUCCESS' and nothing else.";
+    const response = await callLLM({
+      provider,
+      apiKey,
+      baseUrl,
+      model,
+      systemPrompt: "You are a testing assistant. Follow instructions precisely.",
+      promptText: testPrompt
+    });
+
+    if (response.toUpperCase().includes('SUCCESS')) {
+      res.json({ success: true, message: 'Connection verified successfully!' });
+    } else {
+      res.json({ success: false, message: `Unexpected response: ${response}` });
+    }
+  } catch (error) {
+    console.error('[Connection Test Error]', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// Start server
+app.listen(PORT, () => {
+  console.log(`🚀 MikroTik Privacy Chatbot server is running at http://localhost:${PORT}`);
+});

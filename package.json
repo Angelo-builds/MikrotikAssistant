@@ -1,0 +1,15 @@
+{
+  "name": "mikrotik-privacy-chatbot",
+  "version": "1.0.0",
+  "description": "An AI chatbot assistant for RouterOS and MikroTik with extreme privacy shielding.",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "test": "node test.js"
+  },
+  "dependencies": {
+    "express": "^4.19.2",
+    "cors": "^2.8.5"
+  },
+  "private": true
+}

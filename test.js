@@ -1,0 +1,103 @@
+const { mask, unmask, isPrivateIPv4, isPrivateIPv6 } = require('./privacyShield');
+
+function runAllTests() {
+  console.log('=== STARTING INTEGRATION & UNIT TESTS ===');
+  let failures = 0;
+
+  function assert(condition, message) {
+    if (!condition) {
+      console.error(`❌ FAIL: ${message}`);
+      failures++;
+    } else {
+      console.log(`✅ PASS: ${message}`);
+    }
+  }
+
+  // Unit Test 1: Subnet Classifications
+  assert(isPrivateIPv4('192.168.88.1') === true, '192.168.88.1 should be private');
+  assert(isPrivateIPv4('10.0.0.1') === true, '10.0.0.1 should be private');
+  assert(isPrivateIPv4('172.16.5.20') === true, '172.16.5.20 should be private');
+  assert(isPrivateIPv4('8.8.8.8') === false, '8.8.8.8 should be public');
+  assert(isPrivateIPv4('203.0.113.1') === false, '203.0.113.1 should be public');
+
+  assert(isPrivateIPv6('fe80::1') === true, 'fe80::1 should be private/local');
+  assert(isPrivateIPv6('fc00::1') === true, 'fc00::1 should be private/local');
+  assert(isPrivateIPv6('2001:db8::1') === false, '2001:db8::1 should be public');
+
+  // Unit Test 2: Masking & Unmasking Pipeline with Mixed Input
+  const originalInput = `
+    # MikroTik Export
+    /system identity set name="Core-Router"
+    /ip address
+    add address=192.168.1.1/24 interface=bridge-local
+    add address=203.0.113.50/29 interface=ether1-wan
+    /interface wireless security-profiles
+    set [ find default=yes ] wpa2-pre-shared-key="SuperSecretPassword"
+    /ip cloud set ddns-enabled=yes ddns-update-interval=10m
+    # DDNS url: core-router.sn.mynetname.net
+  `;
+
+  const { maskedText, mapping } = mask(originalInput, {
+    maskIPs: true,
+    maskMACs: true,
+    maskSecrets: true,
+    maskInterfaces: true,
+    maskDomains: true,
+    maskIdentity: true
+  });
+
+  console.log('\n--- Masked Text Output ---\n', maskedText);
+  console.log('-------------------------\n');
+
+  assert(maskedText.includes('[IDENTITY_1]'), 'Should replace Core-Router identity');
+  assert(maskedText.includes('[PRIV_IP_1]'), 'Should replace private IP 192.168.1.1');
+  assert(maskedText.includes('[PUB_IP_1]'), 'Should replace public IP 203.0.113.50');
+  assert(maskedText.includes('[SECRET_1]'), 'Should replace wireless profile security secret');
+  assert(maskedText.includes('[DOMAIN_1]'), 'Should replace DDNS domain address');
+  assert(maskedText.includes('[IFACE_1]'), 'Should replace custom interface bridge-local');
+
+  // Verify de-anonymization restoration
+  const restored = unmask(maskedText, mapping);
+  assert(restored.trim() === originalInput.trim(), 'Restored configuration should match original input 100% exactly!');
+
+  // Unit Test 3: LLM Formatting & Response Simulation
+  const simulatedLlmResponse = `
+    <<<EXPLANATION>>>
+    I have updated the bridge-local IP address to use [PRIV_IP_1]/24 instead.
+    Also, your wireless password [SECRET_1] is fine, and we kept the interface [IFACE_1] name intact.
+    Your WAN IP [PUB_IP_1] is correct.
+    <<<END_EXPLANATION>>>
+
+    <<<CORRECTED_CONFIG>>>
+    /ip address
+    add address=[PRIV_IP_1]/24 interface=[IFACE_1]
+    add address=[PUB_IP_1]/29 interface=ether1
+    <<<END_CORRECTED_CONFIG>>>
+
+    <<<FIX_COMMANDS>>>
+    /ip address set [ find interface=[IFACE_1] ] address=[PRIV_IP_1]/24
+    <<<END_FIX_COMMANDS>>>
+  `;
+
+  const restoredLlmResponse = unmask(simulatedLlmResponse, mapping);
+  console.log('\n--- Restored LLM Output ---\n', restoredLlmResponse);
+  console.log('--------------------------\n');
+
+  assert(restoredLlmResponse.includes('192.168.1.1'), 'Restored explanation should contain original IP 192.168.1.1');
+  assert(restoredLlmResponse.includes('SuperSecretPassword'), 'Restored explanation should contain original password');
+  assert(restoredLlmResponse.includes('bridge-local'), 'Restored configuration should contain original interface name');
+  assert(restoredLlmResponse.includes('203.0.113.50'), 'Restored commands should contain original public IP');
+
+  console.log('\n=======================================');
+  if (failures === 0) {
+    console.log('🎉 ALL INTEGRATION & UNIT TESTS PASSED SUCCESSFULLY! 🎉');
+    console.log('=======================================\n');
+    process.exit(0);
+  } else {
+    console.error(`💥 ${failures} TESTS FAILED! 💥`);
+    console.log('=======================================\n');
+    process.exit(1);
+  }
+}
+
+runAllTests();
