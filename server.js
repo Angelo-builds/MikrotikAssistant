@@ -35,14 +35,30 @@ Strict Instructions:
 2. Maintain RouterOS CLI syntax standards. For v7, routing commands can be different from v6; match the version in the config or support both if unsure.`;
 
 /**
+ * Dynamic language prompt injector
+ */
+function getLocalizedSystemPrompt(baseSystemPrompt, language) {
+  const base = baseSystemPrompt || DEFAULT_SYSTEM_PROMPT;
+
+  if (language === 'it') {
+    return `${base}\n\nStrict Language Requirement:\nYou MUST output the content inside the <<<EXPLANATION>>> block entirely in Italian. However, keep standard RouterOS configuration syntax inside the <<<CORRECTED_CONFIG>>> and the <<<FIX_COMMANDS>>> blocks intact (retaining standard English commands like '/ip firewall', '/interface bridge', etc.).`;
+  } else if (language === 'en') {
+    return `${base}\n\nStrict Language Requirement:\nYou MUST output the content inside the <<<EXPLANATION>>> block entirely in English.`;
+  } else {
+    // Language: 'auto'
+    return `${base}\n\nStrict Language Requirement:\nYou MUST detect the language of the user's question or logs/comments, and output the content inside the <<<EXPLANATION>>> block entirely in that same language (e.g. if the user asks in Italian, respond in Italian inside the <<<EXPLANATION>>> block). However, always keep standard RouterOS configuration syntax inside the <<<CORRECTED_CONFIG>>> and the <<<FIX_COMMANDS>>> blocks intact (retaining standard English commands like '/ip firewall', '/interface bridge', etc.).`;
+  }
+}
+
+/**
  * Proxy call to LLM providers
  */
-async function callLLM({ provider, apiKey, baseUrl, model, systemPrompt, promptText }) {
+async function callLLM({ provider, apiKey, baseUrl, model, systemPrompt, promptText, language }) {
   let url = '';
   let headers = { 'Content-Type': 'application/json' };
   let body = {};
 
-  const activeSystemPrompt = systemPrompt || DEFAULT_SYSTEM_PROMPT;
+  const activeSystemPrompt = getLocalizedSystemPrompt(systemPrompt, language);
 
   if (provider === 'openai') {
     url = 'https://api.openai.com/v1/chat/completions';
@@ -180,6 +196,7 @@ app.post('/api/chat', async (req, res) => {
       baseUrl,
       model,
       systemPrompt,
+      language,
       maskOptions
     } = req.body;
 
@@ -203,7 +220,8 @@ app.post('/api/chat', async (req, res) => {
       baseUrl,
       model,
       systemPrompt,
-      promptText: maskedText
+      promptText: maskedText,
+      language: language || 'auto'
     });
 
     console.log('[LLM] Response received. Restoring original values using Privacy Shield...');

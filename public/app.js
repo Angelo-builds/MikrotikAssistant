@@ -1,8 +1,53 @@
 // Main frontend JS for MikroTik Privacy AI Chatbot Assistant
 
+// Professional UI Localization Dictionary
+const i18n = {
+  en: {
+    pasteConfig: 'Paste RouterOS Configuration or Log File',
+    clear: 'Clear',
+    chatMessage: 'Ask the Assistant / Describe the problem',
+    submit: 'Analyze & Fix',
+    submitting: 'Analyzing...',
+    welcomeTitle: 'Your Auditing Assistant is Ready',
+    welcomeDesc: 'Configure your preferred LLM provider in settings, paste your RouterOS /export, log files, or explain your problem, and click "Analyze & Fix".',
+    welcomePrivacy: '🛡️ Fully Privacy Guarded: Passwords, IPs, MACs, custom interface names, and identities never leave this machine.',
+    diffOriginal: 'Original Config (Redacted Display)',
+    diffCorrected: 'Corrected Config (Fully Restored)',
+    commandsTip: 'These are RouterOS terminal commands. Paste them directly into your MikroTik CLI window to apply the fix.',
+    commandsPlaceholder: '# Commands will appear here after analysis...',
+    commandsNoNeed: '# No specific terminal commands needed for this fix.',
+    copied: 'Copied!',
+    copyText: 'Copy Content',
+    settingsLabel: 'Settings',
+    placeholderPastedConfig: '# Paste your RouterOS /export config, logs or console errors here...\n# (All IP/MAC addresses, secrets, custom interfaces and identities will be stripped locally before sending to AI, and restored on response!)',
+    placeholderChatMessage: "Explain what is broken (e.g., 'My port forwarding is not working' or 'Why cannot I ping internal hosts?')"
+  },
+  it: {
+    pasteConfig: 'Incolla la Configurazione o i Log di RouterOS',
+    clear: 'Cancella',
+    chatMessage: 'Chiedi all\'Assistente / Descrivi il problema',
+    submit: 'Analizza e Correggi',
+    submitting: 'Analisi in corso...',
+    welcomeTitle: 'Il tuo Assistente per l\'Audit è Pronto',
+    welcomeDesc: 'Configura il tuo provider LLM preferito nelle impostazioni, incolla il tuo /export di RouterOS, i file di log o spiega il tuo problema e fai clic su "Analizza e Correggi".',
+    welcomePrivacy: '🛡️ Massima Privacy Garantita: password, IP, MAC, nomi di interfacce personalizzate e identità non lasciano mai questa macchina.',
+    diffOriginal: 'Config. Originale (Visualizzazione Oscurata)',
+    diffCorrected: 'Config. Corretta (Completamente Ripristinata)',
+    commandsTip: 'Questi sono comandi del terminale RouterOS. Incollali direttamente nella finestra CLI di MikroTik per applicare la correzione.',
+    commandsPlaceholder: '# I comandi appariranno qui dopo l\'analisi...',
+    commandsNoNeed: '# Nessun comando specifico del terminale è necessario per questa correzione.',
+    copied: 'Copiato!',
+    copyText: 'Copia Contenuto',
+    settingsLabel: 'Impostazioni',
+    placeholderPastedConfig: '# Incolla qui la configurazione /export di RouterOS, i log o gli errori della console...\n# (Tutti gli indirizzi IP/MAC, i segreti, le interfacce personalizzate e le identità saranno rimossi localmente prima dell\'invio all\'IA e ripristinati nella risposta!)',
+    placeholderChatMessage: "Spiega cosa non funziona (ad es., 'Il mio port forwarding non funziona' o 'Perché non riesco a pingare gli host interni?')"
+  }
+};
+
 // State Management
 const state = {
   activeTab: 'explanation', // 'explanation' | 'diff' | 'commands'
+  language: 'auto', // 'auto' | 'en' | 'it'
   settings: {
     provider: 'openai',
     model: 'gpt-4o-mini',
@@ -63,6 +108,20 @@ const els = {
   settingApiKey: document.getElementById('setting-apikey'),
   settingBaseurl: document.getElementById('setting-baseurl'),
   settingPrompt: document.getElementById('setting-prompt'),
+  settingLanguage: document.getElementById('setting-language'),
+
+  // Translatable Elements
+  uiLabelPasteConfig: document.getElementById('ui-label-paste-config'),
+  uiLabelClear: document.getElementById('ui-label-clear'),
+  uiLabelChatMessage: document.getElementById('ui-label-chat-message'),
+  uiLabelSubmit: document.getElementById('ui-label-submit'),
+  uiLabelWelcomeTitle: document.getElementById('ui-label-welcome-title'),
+  uiLabelWelcomeDesc: document.getElementById('ui-label-welcome-desc'),
+  uiLabelWelcomePrivacy: document.getElementById('ui-label-welcome-privacy'),
+  uiLabelDiffOriginal: document.getElementById('ui-label-diff-original'),
+  uiLabelDiffCorrected: document.getElementById('ui-label-diff-corrected'),
+  uiLabelCommandsTip: document.getElementById('ui-label-commands-tip'),
+  uiLabelSettings: document.getElementById('ui-label-settings'),
 
   // Settings Toggles
   maskIPs: document.getElementById('mask-ips'),
@@ -79,12 +138,43 @@ const els = {
   privacyCount: document.getElementById('privacy-count')
 };
 
+// Dynamic UI Translation / Localization Function
+function updateUILanguage() {
+  const currentLang = state.language === 'auto' ? 'en' : state.language;
+  const t = i18n[currentLang] || i18n.en;
+
+  if (els.uiLabelPasteConfig) els.uiLabelPasteConfig.childNodes[2].textContent = ` ${t.pasteConfig}`;
+  if (els.uiLabelClear) els.uiLabelClear.textContent = t.clear;
+  if (els.uiLabelChatMessage) els.uiLabelChatMessage.childNodes[2].textContent = ` ${t.chatMessage}`;
+  if (els.uiLabelSubmit) els.uiLabelSubmit.textContent = t.submit;
+  if (els.uiLabelWelcomeTitle) els.uiLabelWelcomeTitle.textContent = t.welcomeTitle;
+  if (els.uiLabelWelcomeDesc) els.uiLabelWelcomeDesc.innerHTML = t.welcomeDesc.replace('"Analyze & Fix"', `<strong class="text-brand-400">"${t.submit}"</strong>`);
+  if (els.uiLabelWelcomePrivacy) els.uiLabelWelcomePrivacy.textContent = t.welcomePrivacy;
+  if (els.uiLabelDiffOriginal) els.uiLabelDiffOriginal.textContent = t.diffOriginal;
+  if (els.uiLabelDiffCorrected) els.uiLabelDiffCorrected.textContent = t.diffCorrected;
+  if (els.uiLabelCommandsTip) els.uiLabelCommandsTip.childNodes[2].textContent = ` ${t.commandsTip}`;
+  if (els.uiLabelSettings) els.uiLabelSettings.textContent = t.settingsLabel;
+
+  // Placeholder updates
+  if (els.pastedConfig) els.pastedConfig.placeholder = t.placeholderPastedConfig;
+  if (els.chatMessage) els.chatMessage.placeholder = t.placeholderChatMessage;
+
+  // Copy button content
+  if (els.btnCopyText) els.btnCopyText.textContent = t.copyText;
+
+  // Commands empty state if not analyzed
+  if (!state.analysisResult && els.commandsBlock) {
+    els.commandsBlock.textContent = t.commandsPlaceholder;
+  }
+}
+
 // Initial setup on DOM Load
 document.addEventListener('DOMContentLoaded', () => {
   loadSettings();
   setupEventListeners();
   updatePrivacyShieldLabel();
   updateLLMStatusBadge();
+  updateUILanguage();
 });
 
 // Load Settings from LocalStorage
@@ -100,6 +190,15 @@ function loadSettings() {
   } else {
     // Sensible defaults based on provider
     updateModelDefaults(state.settings.provider);
+  }
+
+  // Load selected language if saved
+  const savedLang = localStorage.getItem('mikrotik_chatbot_language');
+  if (savedLang) {
+    state.language = savedLang;
+  }
+  if (els.settingLanguage) {
+    els.settingLanguage.value = state.language;
   }
 
   // Populate UI settings inputs
@@ -214,6 +313,15 @@ function setupEventListeners() {
 
   // Core Submit
   els.btnSubmit.addEventListener('click', submitChat);
+
+  // Language selection change
+  if (els.settingLanguage) {
+    els.settingLanguage.addEventListener('change', () => {
+      state.language = els.settingLanguage.value;
+      localStorage.setItem('mikrotik_chatbot_language', state.language);
+      updateUILanguage();
+    });
+  }
 }
 
 // Update Privacy Shield status subtitle/counts
@@ -345,11 +453,14 @@ function copyActiveTabContent() {
     textToCopy = state.analysisResult.correctedConfig || '';
   }
 
+  const currentLang = state.language === 'auto' ? 'en' : state.language;
+  const t = i18n[currentLang] || i18n.en;
+
   if (textToCopy) {
     navigator.clipboard.writeText(textToCopy).then(() => {
-      els.btnCopyText.textContent = 'Copied!';
+      els.btnCopyText.textContent = t.copied;
       setTimeout(() => {
-        els.btnCopyText.textContent = 'Copy Content';
+        els.btnCopyText.textContent = t.copyText;
       }, 2000);
     }).catch(err => {
       console.error('Clipboard copy failed', err);
@@ -364,7 +475,9 @@ function clearAll() {
   state.analysisResult = null;
   state.pastedConfigRaw = '';
   els.diffTableBody.innerHTML = '';
-  els.commandsBlock.textContent = '# Commands will appear here after analysis...';
+  const currentLang = state.language === 'auto' ? 'en' : state.language;
+  const t = i18n[currentLang] || i18n.en;
+  els.commandsBlock.textContent = t.commandsPlaceholder;
   els.contentExplanation.innerHTML = '';
   switchTab('explanation');
 }
@@ -562,13 +675,21 @@ async function submitChat() {
   const pastedVal = els.pastedConfig.value.trim();
   const chatVal = els.chatMessage.value.trim();
 
+  const currentLang = state.language === 'auto' ? 'en' : state.language;
+  const t = i18n[currentLang] || i18n.en;
+
   if (!pastedVal && !chatVal) {
-    alert('Please paste some RouterOS logs/configs or enter a question!');
+    if (state.language === 'it') {
+      alert('Incolla la configurazione/i log di RouterOS o inserisci una domanda!');
+    } else {
+      alert('Please paste some RouterOS logs/configs or enter a question!');
+    }
     return;
   }
 
   // Set visual loading state
   els.btnSubmit.disabled = true;
+  if (els.uiLabelSubmit) els.uiLabelSubmit.textContent = t.submitting;
   els.loadingSpinner.classList.remove('hidden');
 
   const maskOptions = {
@@ -588,6 +709,7 @@ async function submitChat() {
     baseUrl: state.settings.baseUrl,
     model: state.settings.model,
     systemPrompt: state.settings.prompt,
+    language: state.language,
     maskOptions
   };
 
@@ -618,16 +740,21 @@ async function submitChat() {
     renderDiff(originalDisplay, correctedDisplay);
 
     // 3. Populate CLI terminal commands
-    els.commandsBlock.textContent = data.fixCommands || '# No specific terminal commands needed for this fix.';
+    els.commandsBlock.textContent = data.fixCommands || t.commandsNoNeed;
 
     // Switch to Explanation view
     switchTab('explanation');
 
   } catch (err) {
     console.error('Submission failed', err);
-    alert(`Error: ${err.message}\n\nPlease check your LLM configuration and keys in Settings.`);
+    if (state.language === 'it') {
+      alert(`Errore: ${err.message}\n\nVerifica la configurazione del provider LLM e le chiavi nelle Impostazioni.`);
+    } else {
+      alert(`Error: ${err.message}\n\nPlease check your LLM configuration and keys in Settings.`);
+    }
   } finally {
     els.btnSubmit.disabled = false;
+    if (els.uiLabelSubmit) els.uiLabelSubmit.textContent = t.submit;
     els.loadingSpinner.classList.add('hidden');
   }
 }
