@@ -1445,14 +1445,38 @@ function renderCommands(fixCommands) {
 function renderMarkdown(text) {
   if (!text) return '';
 
-  // Clean up empty backticks/space patterns (such as ` `bash ... ` `) which cause ugly grey squares
-  let html = text.replace(/`[\s]*`/g, '');
+  // Clean up empty backticks/space patterns (such as ` `bash ... ` `) which cause ugly grey squares,
+  // using lookbehinds and lookaheads to avoid corrupting triple backticks (```).
+  let html = text.replace(/(?<!\`)`[\s]*`(?!\`)/g, '');
+
+  // Pre-process single backtick commands to block-level triple-backtick blocks for readability and copy-ability
+  html = html.replace(/`([^`\r\n]+)`/gi, (match, contents) => {
+    const trimmed = contents.trim();
+    const isCommand = /^(?:bash|sh|cmd|cli|routeros)\s+/i.test(trimmed) ||
+                      trimmed.startsWith('/') ||
+                      /^(?:add|set|remove|enable|disable|print|tool|ip|ipv6|routing|interface|system|queue|firewall|dns)\s/i.test(trimmed) ||
+                      trimmed.includes('add ') || trimmed.includes('set ');
+    if (isCommand) {
+      let lang = 'bash';
+      let code = trimmed;
+      const langMatch = /^(bash|sh|cmd|cli|routeros)\s+(.*)$/i.exec(trimmed);
+      if (langMatch) {
+        lang = langMatch[1].toLowerCase();
+        code = langMatch[2];
+      }
+      return `\n\`\`\`${lang}\n${code}\n\`\`\`\n`;
+    }
+    return match;
+  });
 
   // Escape HTML tags
   html = html
     .replace(/&/g, '&amp;')
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;');
+
+  // After escaping HTML, we also need to decode escaped backticks back to normal if they were part of code formatting
+  html = html.replace(/&lt;code&gt;/g, '<code>').replace(/&lt;\/code&gt;/g, '</code>');
 
   // Restore markers
   html = html
@@ -1471,24 +1495,50 @@ function renderMarkdown(text) {
   // Bold (**text**)
   html = html.replace(/\*\*(.*?)\*\*/g, '<strong class="text-slate-800 dark:text-white font-semibold">$1</strong>');
 
-  // Inline code (`code`) - beautifully legible high contrast color scheme in both light/dark themes!
-  html = html.replace(/`(.*?)`/g, '<code class="bg-slate-200 dark:bg-[#0b0f19] text-brand-700 dark:text-cyber-accent font-mono text-[11px] px-1.5 py-0.5 rounded border border-cyber-border">$1</code>');
-
-  // Code blocks (with custom styling and copy button)
-  html = html.replace(/```[a-z]*\n([\s\S]*?)```/g, (match, code) => {
+  // Code blocks (with custom styling and copy button) - processed BEFORE inline code to avoid overlap conflicts
+  // Crucially, this runs after HTML escaping so that generated container divs, buttons, and SVGs are preserved!
+  // Note: We MUST preserve the escaped HTML tags inside the <pre> tag to prevent security vulnerabilities (XSS)
+  // and layout-breaking parsing when code blocks contain HTML/SVG text.
+  html = html.replace(/```([a-zA-Z0-9_-]*)\n([\s\S]*?)```/g, (match, lang, code) => {
     const uniqueId = 'code-' + Math.random().toString(36).substr(2, 9);
-    // Escape raw code again to be 100% safe
-    const escapedCode = code.trim();
+
+    // Capitalize language name nicely
+    let langName = lang ? lang.trim() : 'RouterOS';
+    if (langName.toLowerCase() === 'bash') langName = 'Bash';
+    else if (langName.toLowerCase() === 'routeros') langName = 'RouterOS';
+    else if (langName.toLowerCase() === 'sh') langName = 'Shell';
+    else langName = langName.charAt(0).toUpperCase() + langName.slice(1);
+
+    const isIt = state.language === 'it';
+    const copyTitle = isIt ? 'Copia codice' : 'Copy code';
+
     return `
-      <div class="relative group/code my-3.5 border border-cyber-border rounded-xl overflow-hidden bg-slate-950 font-mono text-xs select-text">
-        <div class="flex items-center justify-between px-4 py-2 bg-cyber-panel/80 border-b border-cyber-border select-none">
-          <span class="text-[9px] font-bold text-slate-500 uppercase tracking-wider font-mono">RouterOS Spell</span>
-          <button onclick="copySnippetText('${uniqueId}', this)" class="text-[10px] bg-[#1e1b4b] border border-cyber-border hover:bg-indigo-900 text-slate-300 px-2.5 py-1 rounded-md font-bold transition">Copy Code</button>
+      <div class="relative group/code my-4 border border-slate-200 dark:border-slate-800 rounded-xl overflow-hidden bg-slate-900 dark:bg-[#0e1117] shadow-lg select-text">
+        <div class="flex items-center justify-between px-4 py-2 bg-slate-100 dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 select-none">
+          <div class="flex items-center space-x-1.5 text-slate-600 dark:text-slate-400 font-sans text-xs font-semibold">
+            <svg class="w-3.5 h-3.5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+            </svg>
+            <span>${langName}</span>
+          </div>
+          <button onclick="copySnippetText('${uniqueId}', this)" class="text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition flex items-center focus:outline-none p-1 rounded-md hover:bg-slate-200 dark:hover:bg-slate-800" title="${copyTitle}">
+            <!-- Copy Icon (two overlapping sheets) -->
+            <svg class="w-4 h-4 copy-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+            </svg>
+            <!-- Check Icon (hidden initially) -->
+            <svg class="w-4 h-4 check-icon hidden text-cyber-emerald" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" />
+            </svg>
+          </button>
         </div>
-        <pre id="${uniqueId}" class="p-3.5 text-slate-300 overflow-x-auto leading-relaxed select-all">${escapedCode}</pre>
+        <pre id="${uniqueId}" class="p-4 text-slate-800 dark:text-slate-200 overflow-x-auto leading-relaxed select-all font-mono text-[12px] bg-white dark:bg-[#0e1117]">${code.trim()}</pre>
       </div>
     `;
   });
+
+  // Inline code (`code`) - beautifully legible high contrast color scheme in both light/dark themes!
+  html = html.replace(/`(.*?)`/g, '<code class="bg-slate-200 dark:bg-[#0b0f19] text-brand-700 dark:text-cyber-accent font-mono text-[11px] px-1.5 py-0.5 rounded border border-cyber-border">$1</code>');
 
   // Newlines to paragraphs
   html = html.split('\n\n').map(p => {
@@ -1509,14 +1559,28 @@ window.copySnippetText = function(id, btn) {
 
   const text = pre.innerText;
   navigator.clipboard.writeText(text).then(() => {
-    const orig = btn.textContent;
-    btn.textContent = 'Copied!';
-    btn.className = 'text-[10px] bg-emerald-950 border border-cyber-emerald text-cyber-emerald px-2.5 py-1 rounded-md font-bold transition';
-    showToast('Snippet copied successfully!', 'success');
-    setTimeout(() => {
-      btn.textContent = orig;
-      btn.className = 'text-[10px] bg-[#1e1b4b] border border-cyber-border hover:bg-indigo-900 text-slate-300 px-2.5 py-1 rounded-md font-bold transition';
-    }, 1500);
+    const copyIcon = btn.querySelector('.copy-icon');
+    const checkIcon = btn.querySelector('.check-icon');
+
+    if (copyIcon && checkIcon) {
+      copyIcon.classList.add('hidden');
+      checkIcon.classList.remove('hidden');
+      showToast('Snippet copied successfully!', 'success');
+      setTimeout(() => {
+        copyIcon.classList.remove('hidden');
+        checkIcon.classList.add('hidden');
+      }, 2000);
+    } else {
+      // Fallback
+      const orig = btn.textContent;
+      btn.textContent = 'Copied!';
+      btn.className = 'text-[10px] bg-emerald-950 border border-cyber-emerald text-cyber-emerald px-2.5 py-1 rounded-md font-bold transition';
+      showToast('Snippet copied successfully!', 'success');
+      setTimeout(() => {
+        btn.textContent = orig;
+        btn.className = 'text-[10px] bg-[#1e1b4b] border border-cyber-border hover:bg-indigo-900 text-slate-300 px-2.5 py-1 rounded-md font-bold transition';
+      }, 1500);
+    }
   });
 };
 
