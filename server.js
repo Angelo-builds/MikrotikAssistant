@@ -18,10 +18,13 @@ const DEFAULT_SYSTEM_PROMPT = `You are Mik the Winbox Wizard (or Mik for short),
 
 In your explanations, you should adopt a helpful, friendly, and slightly humorous wizard persona—referring to configurations as "spells", firewalls as "protective wards", packets as "travelers", and routing tables as "ancient maps". Always greet the user with a fun wizard/MikroTik greeting, and naturally use your name ("Mik" or "Mik the Winbox Wizard") in your explanations! Keep it professional yet lighthearted.
 
+Additionally, under any point in your EXPLANATION where you suggest a fix or a configuration change, you MUST embed a copy/pasteable, ready-to-run RouterOS terminal CLI command right there in standard Markdown code blocks, so the user can easily copy and use it!
+
 You must return your output in three distinct sections, wrapped in the following markers:
 
 <<<EXPLANATION>>>
 Provide a clear, detailed, and professional explanation of what is broken, why it is broken, and how to fix it. Keep it concise but highly educational.
+Make sure that whenever you propose a fix, you print the corresponding CLI command directly below the explanation point in a copy-pasteable Markdown block (e.g., \`\`\`/ip firewall filter add ...\`\`\`).
 <<<END_EXPLANATION>>>
 
 <<<CORRECTED_CONFIG>>>
@@ -34,13 +37,30 @@ Provide the exact, ready-to-run RouterOS CLI terminal commands to apply the fix.
 
 Strict Instructions:
 1. You will see placeholders like [PRIV_IP_1], [PUB_IP_1], [MAC_1], [SECRET_1], [IFACE_1], [DOMAIN_1], [IDENTITY_1]. You MUST preserve these exact placeholders in your response's configuration and CLI commands (e.g. if the IP was [PRIV_IP_1], you must use [PRIV_IP_1] in your corrected config and commands). Do NOT invent or make up actual IP addresses or passwords to replace them. Keep them exactly as they are.
-2. Maintain RouterOS CLI syntax standards. For v7, routing commands can be different from v6; match the version in the config or support both if unsure.`;
+2. Maintain RouterOS CLI syntax standards. For v7, routing commands can be different from v6; match the version in the config or support both if unsure.
+3. Version and Hardware guidance: Pay attention to the specified RouterOS version and hardware model (if provided). If the version is not explicitly passed, try to infer it from the context/syntax (e.g. routing filters or BGP syntax differ significantly between v6 and v7). If the version/model is critical for determining the correct command and cannot be inferred, suppose the latest RouterOS version but mention to the user that they can select their specific version/model in the UI dropdown or ask them to clarify if needed. If it's not important, just output standard universal commands. Refer to official RouterOS Markdown style structures.`;
 
 /**
  * Dynamic language prompt injector that retains Mik's wizardly persona
  */
-function getLocalizedSystemPrompt(baseSystemPrompt, language) {
-  const base = baseSystemPrompt || DEFAULT_SYSTEM_PROMPT;
+function getLocalizedSystemPrompt(baseSystemPrompt, language, routerOsVersion, hardwareModel) {
+  let base = baseSystemPrompt || DEFAULT_SYSTEM_PROMPT;
+
+  // Add contextual injection for RouterOS Version and Hardware Model
+  let contextInjection = '';
+  if (routerOsVersion && routerOsVersion !== 'auto') {
+    contextInjection += `The user has explicitly specified RouterOS version: ${routerOsVersion}. Ensure all suggested spells (commands) match this version's precise syntax (especially routing filters, OSPF, and BGP if applicable).\n`;
+  } else {
+    contextInjection += `The RouterOS version is not explicitly set; try to detect if it is v6 or v7 from the input. If unsure and critical, suppose latest v7 but tell the user they can use the dropdown to specify, or ask them gently.\n`;
+  }
+
+  if (hardwareModel && hardwareModel !== 'auto') {
+    contextInjection += `The user is running on hardware model: ${hardwareModel}. Keep any architecture/model constraints in mind (e.g. WiFiWave2 support on modern ARM devices, interface names, switch chip features, etc.).\n`;
+  }
+
+  if (contextInjection) {
+    base = `${base}\n\n[CONTEXT INTEGRATION]:\n${contextInjection}`;
+  }
 
   if (language === 'it') {
     return `${base}\n\nStrict Language Requirement:\nYou MUST output the content inside the <<<EXPLANATION>>> block entirely in Italian, using your witty and slightly humorous wizard persona (e.g., call yourself "Mik il Mago di Winbox", call configurations "incantesimi", firewalls "barriere protettive", packets "viaggiatori", and routing tables "mappe antiche"). However, always keep standard RouterOS configuration syntax inside the <<<CORRECTED_CONFIG>>> and the <<<FIX_COMMANDS>>> blocks intact (retaining standard English commands like '/ip firewall', '/interface bridge', etc.).`;
@@ -55,12 +75,12 @@ function getLocalizedSystemPrompt(baseSystemPrompt, language) {
 /**
  * Proxy call to LLM providers
  */
-async function callLLM({ provider, apiKey, baseUrl, model, systemPrompt, promptText, language }) {
+async function callLLM({ provider, apiKey, baseUrl, model, systemPrompt, promptText, language, routerOsVersion, hardwareModel }) {
   let url = '';
   let headers = { 'Content-Type': 'application/json' };
   let body = {};
 
-  const activeSystemPrompt = getLocalizedSystemPrompt(systemPrompt, language);
+  const activeSystemPrompt = getLocalizedSystemPrompt(systemPrompt, language, routerOsVersion, hardwareModel);
 
   if (provider === 'openai') {
     url = 'https://api.openai.com/v1/chat/completions';
@@ -199,7 +219,9 @@ app.post('/api/chat', async (req, res) => {
       model,
       systemPrompt,
       language,
-      maskOptions
+      maskOptions,
+      routerOsVersion,
+      hardwareModel
     } = req.body;
 
     if (!chatMessage && !pastedConfig) {
@@ -223,7 +245,9 @@ app.post('/api/chat', async (req, res) => {
       model,
       systemPrompt,
       promptText: maskedText,
-      language: language || 'auto'
+      language: language || 'auto',
+      routerOsVersion,
+      hardwareModel
     });
 
     console.log('🔮 [Mik the Winbox Wizard] Response received! Breaking the masking spell to restore original values...');
