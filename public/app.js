@@ -86,7 +86,7 @@ const i18n = {
     settingsLabelPrivacyPipeline: 'De-identification Pipeline',
     settingsLabelPrivacyLocalTag: 'Runs Locally',
     settingsMaskIpsTitle: 'Mask IP Addresses',
-    settingsMaskIpsDesc: 'Scans IPv4/6; maps to [PRIV_IP_x] & [PUB_IP_x]',
+    settingsMaskIpsDesc: 'Scans IPv4/6; maps to placeholders',
     settingsMaskMacsTitle: 'Mask MAC Hardware ID',
     settingsMaskMacsDesc: 'Hides physical hex hardware interfaces',
     settingsMaskSecretsTitle: 'Mask Keys & Secrets',
@@ -238,7 +238,7 @@ const state = {
   currentFile: null,
   isAttachmentDrawerOpen: false,
   isSidebarOpen: true,         // Toggle Sidebar state
-  activeSidebarTab: 'context'   // 'context' | 'privacy' | 'settings'
+  activeSidebarTab: 'history'   // 'history' | 'context' | 'preferences'
 };
 
 // UI Elements Reference
@@ -258,17 +258,16 @@ const els = {
   btnToggleSidebar: document.getElementById('btn-toggle-sidebar'),
   btnCloseSidebar: document.getElementById('btn-close-sidebar'),
   sidebarControlCenter: document.getElementById('sidebar-control-center'),
-  historyBadge: document.getElementById('history-badge'),
 
   // Sidebar Tabs
+  sidebarTabHistory: document.getElementById('sidebar-tab-history'),
   sidebarTabContext: document.getElementById('sidebar-tab-context'),
-  sidebarTabPrivacy: document.getElementById('sidebar-tab-privacy'),
-  sidebarTabSettings: document.getElementById('sidebar-tab-settings'),
+  sidebarTabPreferences: document.getElementById('sidebar-tab-preferences'),
+  sidebarSectionHistory: document.getElementById('sidebar-section-history'),
   sidebarSectionContext: document.getElementById('sidebar-section-context'),
-  sidebarSectionPrivacy: document.getElementById('sidebar-section-privacy'),
-  sidebarSectionSettings: document.getElementById('sidebar-section-settings'),
+  sidebarSectionPreferences: document.getElementById('sidebar-section-preferences'),
 
-  // History Drawer
+  // History Controls
   btnClearHistory: document.getElementById('btn-clear-history'),
   searchHistory: document.getElementById('search-history'),
   historyItemsContainer: document.getElementById('history-items-container'),
@@ -347,16 +346,6 @@ const els = {
   llmStatusTextMobile: document.getElementById('llm-status-text-mobile'),
   privacyCount: document.getElementById('privacy-count'),
 
-  // Privacy Stepper Loader
-  privacyLoader: document.getElementById('privacy-loader'),
-  stepperProgressBar: document.getElementById('stepper-progress-bar'),
-  stepperPercentage: document.getElementById('stepper-percentage'),
-  stepperLogText: document.getElementById('stepper-log-text'),
-  stepMask: document.getElementById('step-mask'),
-  stepTransit: document.getElementById('step-transit'),
-  stepRestore: document.getElementById('step-restore'),
-  stepDiff: document.getElementById('step-diff'),
-
   // Toast container
   toastContainer: document.getElementById('toast-container'),
 
@@ -376,11 +365,6 @@ const els = {
   uiLabelDiffCorrected: document.getElementById('ui-label-diff-corrected'),
   uiLabelDiffUnifiedDesc: document.getElementById('ui-label-diff-unified-desc'),
   uiLabelCommandsTip: document.getElementById('ui-label-commands-tip'),
-  uiLoaderTitle: document.getElementById('ui-loader-title'),
-  uiLoaderStep1Title: document.getElementById('ui-loader-step1-title'),
-  uiLoaderStep2Title: document.getElementById('ui-loader-step2-title'),
-  uiLoaderStep3Title: document.getElementById('ui-loader-step3-title'),
-  uiLoaderStep4Title: document.getElementById('ui-loader-step4-title'),
   uiLabelLlmProvider: document.getElementById('ui-label-llm-provider'),
   uiLabelModelName: document.getElementById('ui-label-model-name'),
   uiLabelTestConnection: document.getElementById('ui-label-test-connection'),
@@ -412,14 +396,41 @@ document.addEventListener('DOMContentLoaded', () => {
   adjustTextAreaHeight();
   applyActiveTheme();
 
+  // Set default active tab
+  switchSidebarTab('history');
+
   // Set default Sidebar state based on screen size
-  if (window.innerWidth < 1024) {
-    state.isSidebarOpen = false;
-    els.sidebarControlCenter.classList.add('-translate-x-full');
+  renderSidebarState();
+});
+
+// RESPONSIVE COLLAPSIBLE SIDEBAR RENDERER
+function renderSidebarState() {
+  if (state.isSidebarOpen) {
+    els.sidebarControlCenter.classList.remove('w-0', 'border-r-0', '-translate-x-full');
+    els.sidebarControlCenter.classList.add('w-80', 'border-r');
+    if (window.innerWidth < 1024) {
+      els.sidebarControlCenter.classList.add('absolute', 'inset-y-0', 'left-0', 'translate-x-0');
+      els.sidebarControlCenter.classList.remove('relative');
+    } else {
+      els.sidebarControlCenter.classList.add('relative', 'translate-x-0');
+      els.sidebarControlCenter.classList.remove('absolute');
+    }
   } else {
-    state.isSidebarOpen = true;
-    els.sidebarControlCenter.classList.remove('-translate-x-full');
+    els.sidebarControlCenter.classList.remove('w-80', 'border-r', 'translate-x-0');
+    els.sidebarControlCenter.classList.add('w-0', 'border-r-0');
+    if (window.innerWidth < 1024) {
+      els.sidebarControlCenter.classList.add('absolute', 'inset-y-0', 'left-0', '-translate-x-full');
+      els.sidebarControlCenter.classList.remove('relative');
+    } else {
+      els.sidebarControlCenter.classList.add('relative', '-translate-x-full');
+      els.sidebarControlCenter.classList.remove('absolute');
+    }
   }
+}
+
+// Window resize handler to maintain responsive sidebar state elegantly
+window.addEventListener('resize', () => {
+  renderSidebarState();
 });
 
 // DYNAMIC UI TRANSLATION / LOCALIZATION
@@ -461,17 +472,6 @@ function updateUILanguage() {
   if (els.uiLabelCommandsTip) {
     els.uiLabelCommandsTip.textContent = t.commandsTip;
   }
-
-  // Stepper Loader
-  if (els.uiLoaderTitle) els.uiLoaderTitle.textContent = t.loaderTitle;
-  if (els.uiLoaderStep1Title) els.uiLoaderStep1Title.textContent = t.loaderStep1Title;
-  if (els.uiLoaderStep2Title) els.uiLoaderStep2Title.textContent = t.loaderStep2Title;
-  if (els.uiLoaderStep3Title) els.uiLoaderStep3Title.textContent = t.loaderStep3Title;
-  if (els.uiLoaderStep4Title) els.uiLoaderStep4Title.textContent = t.loaderStep4Title;
-
-  // Sidebar Config translation
-  if (els.sidebarTabSettings) els.sidebarTabSettings.textContent = t.settingsTabAi;
-  if (els.sidebarTabPrivacy) els.sidebarTabPrivacy.textContent = t.settingsTabPrivacy;
 
   // Fields
   if (els.uiLabelLlmProvider) els.uiLabelLlmProvider.textContent = t.settingsLabelLlmProvider;
@@ -712,16 +712,12 @@ function setupEventListeners() {
   // Toggle Sidebar
   els.btnToggleSidebar.addEventListener('click', () => {
     state.isSidebarOpen = !state.isSidebarOpen;
-    if (state.isSidebarOpen) {
-      els.sidebarControlCenter.classList.remove('-translate-x-full');
-    } else {
-      els.sidebarControlCenter.classList.add('-translate-x-full');
-    }
+    renderSidebarState();
   });
 
   els.btnCloseSidebar.addEventListener('click', () => {
     state.isSidebarOpen = false;
-    els.sidebarControlCenter.classList.add('-translate-x-full');
+    renderSidebarState();
   });
 
   // Language selector
@@ -731,10 +727,10 @@ function setupEventListeners() {
     updateUILanguage();
   });
 
-  // Sidebar Section switcher tabs
+  // Sidebar Section switcher tabs (Chaos-free groupings)
+  els.sidebarTabHistory.addEventListener('click', () => switchSidebarTab('history'));
   els.sidebarTabContext.addEventListener('click', () => switchSidebarTab('context'));
-  els.sidebarTabPrivacy.addEventListener('click', () => switchSidebarTab('privacy'));
-  els.sidebarTabSettings.addEventListener('click', () => switchSidebarTab('settings'));
+  els.sidebarTabPreferences.addEventListener('click', () => switchSidebarTab('preferences'));
 
   els.settingProvider.addEventListener('change', () => {
     updateModelDefaults(els.settingProvider.value);
@@ -744,7 +740,7 @@ function setupEventListeners() {
     saveSettings();
     if (window.innerWidth < 1024) {
       state.isSidebarOpen = false;
-      els.sidebarControlCenter.classList.add('-translate-x-full');
+      renderSidebarState();
     }
   });
 
@@ -841,23 +837,23 @@ function switchSidebarTab(tabId) {
   state.activeSidebarTab = tabId;
 
   // Reset tab button states
-  [els.sidebarTabContext, els.sidebarTabPrivacy, els.sidebarTabSettings].forEach(el => {
-    el.className = 'py-1.5 px-2 text-[10px] font-bold rounded-lg text-slate-500 hover:text-slate-900 dark:hover:text-white transition truncate text-center';
+  [els.sidebarTabHistory, els.sidebarTabContext, els.sidebarTabPreferences].forEach(el => {
+    el.className = 'py-1.5 px-1 text-[10px] font-bold rounded-lg text-slate-500 hover:text-slate-900 dark:hover:text-white transition truncate text-center';
   });
 
+  els.sidebarSectionHistory.classList.add('hidden');
   els.sidebarSectionContext.classList.add('hidden');
-  els.sidebarSectionPrivacy.classList.add('hidden');
-  els.sidebarSectionSettings.classList.add('hidden');
+  els.sidebarSectionPreferences.classList.add('hidden');
 
-  if (tabId === 'context') {
-    els.sidebarTabContext.className = 'py-1.5 px-2 text-[10px] font-bold rounded-lg bg-slate-800 dark:bg-slate-800/80 text-brand-500 dark:text-brand-400 border border-cyber-border hover:text-brand-500 transition truncate text-center';
+  if (tabId === 'history') {
+    els.sidebarTabHistory.className = 'py-1.5 px-1 text-[10px] font-bold rounded-lg bg-slate-200 dark:bg-slate-800/80 text-brand-600 dark:text-brand-400 border border-cyber-border hover:text-brand-500 transition truncate text-center';
+    els.sidebarSectionHistory.classList.remove('hidden');
+  } else if (tabId === 'context') {
+    els.sidebarTabContext.className = 'py-1.5 px-1 text-[10px] font-bold rounded-lg bg-slate-200 dark:bg-slate-800/80 text-brand-600 dark:text-brand-400 border border-cyber-border hover:text-brand-500 transition truncate text-center';
     els.sidebarSectionContext.classList.remove('hidden');
-  } else if (tabId === 'privacy') {
-    els.sidebarTabPrivacy.className = 'py-1.5 px-2 text-[10px] font-bold rounded-lg bg-slate-800 dark:bg-slate-800/80 text-brand-500 dark:text-brand-400 border border-cyber-border hover:text-brand-500 transition truncate text-center';
-    els.sidebarSectionPrivacy.classList.remove('hidden');
-  } else if (tabId === 'settings') {
-    els.sidebarTabSettings.className = 'py-1.5 px-2 text-[10px] font-bold rounded-lg bg-slate-800 dark:bg-slate-800/80 text-brand-500 dark:text-brand-400 border border-cyber-border hover:text-brand-500 transition truncate text-center';
-    els.sidebarSectionSettings.classList.remove('hidden');
+  } else if (tabId === 'preferences') {
+    els.sidebarTabPreferences.className = 'py-1.5 px-1 text-[10px] font-bold rounded-lg bg-slate-200 dark:bg-slate-800/80 text-brand-600 dark:text-brand-400 border border-cyber-border hover:text-brand-500 transition truncate text-center';
+    els.sidebarSectionPreferences.classList.remove('hidden');
   }
 }
 
@@ -911,6 +907,7 @@ function saveHistoryItem(item) {
   renderHistoryList();
 }
 
+// RENDER HISTORY LIST
 function renderHistoryList(filterQuery = '') {
   const currentLang = state.language === 'auto' ? 'en' : state.language;
   const t = i18n[currentLang] || i18n.en;
@@ -925,7 +922,7 @@ function renderHistoryList(filterQuery = '') {
   });
 
   if (state.history.length === 0) {
-    container.innerHTML = `<div class="text-center py-8 text-slate-500 text-xs">${t.historyEmpty}</div>`;
+    container.innerHTML = `<div id="ui-history-empty" class="text-center py-8 text-slate-500 text-xs">${t.historyEmpty}</div>`;
     return;
   }
 
@@ -999,7 +996,7 @@ function restoreHistoryItem(item) {
 
   if (window.innerWidth < 1024) {
     state.isSidebarOpen = false;
-    els.sidebarControlCenter.classList.add('-translate-x-full');
+    renderSidebarState();
   }
   showToast('Restored conversation from history!', 'success');
 }
@@ -1116,6 +1113,7 @@ function loadFirewallTemplate() {
   showToast(t.toastTemplateFirewall, 'success');
 }
 
+// TEMPLATE LOADING ROUTING
 function loadRoutingTemplate() {
   const currentLang = state.language === 'auto' ? 'en' : state.language;
   const t = i18n[currentLang] || i18n.en;
@@ -1143,6 +1141,7 @@ function switchDiffMode(modeId) {
   }
 }
 
+// SWITCH COMMAND MODE
 function switchCommandMode(modeId) {
   state.commandMode = modeId;
   els.commandViewModeChecklist.className = 'px-2.5 py-1 text-[10px] font-bold rounded text-slate-500 hover:text-white transition';
@@ -1220,7 +1219,7 @@ function renderDiff(originalText, correctedText) {
 
     alignedLines.forEach((row) => {
       const tr = document.createElement('tr');
-      tr.className = 'border-b border-slate-900/60 hover:bg-slate-900/40 text-slate-300';
+      tr.className = 'border-b border-slate-900/60 hover:bg-slate-900/40 text-slate-700 dark:text-slate-300';
 
       const tdLeft = document.createElement('td');
       tdLeft.className = 'w-1/2 p-2 whitespace-pre-wrap break-all select-text font-mono text-xs border-r border-slate-900';
@@ -1231,8 +1230,8 @@ function renderDiff(originalText, correctedText) {
       if (row.type === 'equal') {
         tdLeft.textContent = row.left;
         tdRight.textContent = row.right;
-        tdLeft.className += ' text-slate-600';
-        tdRight.className += ' text-slate-600';
+        tdLeft.className += ' text-slate-500 dark:text-slate-400';
+        tdRight.className += ' text-slate-500 dark:text-slate-400';
       } else if (row.type === 'delete') {
         tdLeft.className += ' diff-deleted text-cyber-red font-medium';
         tdLeft.textContent = row.left;
@@ -1339,7 +1338,7 @@ function renderCommands(fixCommands) {
         text.className += ' line-through opacity-40';
         item.className = 'p-3 bg-cyber-bg/40 border border-cyber-border rounded-xl flex items-center justify-between space-x-3 opacity-60 transition';
       } else {
-        text.className = 'text-xs text-slate-850 dark:text-slate-200 font-mono select-text break-all leading-normal';
+        text.className = 'text-xs text-slate-800 dark:text-slate-200 font-mono select-text break-all leading-normal';
         item.className = 'p-3 bg-cyber-bg border border-cyber-border rounded-xl flex items-center justify-between space-x-3 hover:border-slate-700 transition';
       }
     });
@@ -1397,8 +1396,8 @@ function renderMarkdown(text) {
   // Bold (**text**)
   html = html.replace(/\*\*(.*?)\*\*/g, '<strong class="text-slate-800 dark:text-white font-semibold">$1</strong>');
 
-  // Inline code (`code`)
-  html = html.replace(/`(.*?)`/g, '<code class="bg-slate-200 dark:bg-[#0b0f19] text-cyber-accent font-mono text-[11px] px-1.5 py-0.5 rounded border border-cyber-border">$1</code>');
+  // Inline code (`code`) - beautifully legible high contrast color scheme in both light/dark themes!
+  html = html.replace(/`(.*?)`/g, '<code class="bg-slate-200 dark:bg-[#0b0f19] text-brand-700 dark:text-cyber-accent font-mono text-[11px] px-1.5 py-0.5 rounded border border-cyber-border">$1</code>');
 
   // Code blocks (with custom styling and copy button)
   html = html.replace(/```[a-z]*\n([\s\S]*?)```/g, (match, code) => {
@@ -1422,7 +1421,7 @@ function renderMarkdown(text) {
     if (trimmed.startsWith('<h') || trimmed.startsWith('<u') || trimmed.startsWith('<div') || trimmed.startsWith('<li')) {
       return p;
     }
-    return `<p class="mb-3 text-slate-755 dark:text-slate-300 leading-relaxed">${p}</p>`;
+    return `<p class="mb-3 text-slate-700 dark:text-slate-300 leading-relaxed">${p}</p>`;
   }).join('');
 
   return html;
@@ -1526,25 +1525,129 @@ function scrollStreamToBottom() {
   els.chatMessagesStream.scrollTop = els.chatMessagesStream.scrollHeight;
 }
 
-// MULTI-STEP PROGRESSIVE PIPELINE SUBMISSION
+// MULTI-STEP PROGRESSIVE PIPELINE SUBMISSION (INLINE DIRECTLY INSIDE CHAT)
 async function runStepperAndSubmit(submitPayload) {
   const currentLang = state.language === 'auto' ? 'en' : state.language;
   const t = i18n[currentLang] || i18n.en;
 
-  // Render progressive stepper
-  els.privacyLoader.classList.remove('hidden');
-  updateStep(els.stepMask, 'active', t.loaderStep1DescActive);
-  updateStep(els.stepTransit, 'pending', t.loaderStep1DescPending);
-  updateStep(els.stepRestore, 'pending', t.loaderStep1DescPending);
-  updateStep(els.stepDiff, 'pending', t.loaderStep1DescPending);
+  // Construct and append the inline loader card directly inside the chat messages stream!
+  const loaderCard = document.createElement('div');
+  loaderCard.id = 'inline-loader-card';
+  loaderCard.className = 'flex flex-col space-y-3.5 items-start max-w-2xl mr-auto w-full select-none p-5 rounded-2xl bg-cyber-panel border border-brand-500/30 shadow-brand-glow animate-pulse';
 
-  setProgressBar(15, '15%');
+  loaderCard.innerHTML = `
+    <!-- Header -->
+    <div class="flex items-center space-x-2.5">
+      <div class="relative w-7 h-7 flex items-center justify-center shrink-0">
+        <div class="absolute inset-0 border-2 border-dashed border-brand-500/50 rounded-lg animate-[spin_4s_linear_infinite]"></div>
+        <div class="w-4 h-4 rounded-md bg-brand-500 text-white flex items-center justify-center border border-brand-100/10">
+          <svg class="w-2.5 h-2.5 text-white animate-spin" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+          </svg>
+        </div>
+      </div>
+      <div>
+        <h4 class="text-xs font-black text-slate-800 dark:text-white uppercase tracking-wider">${t.loaderTitle}</h4>
+        <p class="text-[9px] text-slate-500">Executing safe de-identification network audit...</p>
+      </div>
+    </div>
+
+    <!-- Progress Bar -->
+    <div class="w-full bg-cyber-bg rounded-full h-2.5 border border-cyber-border overflow-hidden relative">
+      <div id="inline-loader-progress-bar" class="bg-brand-500 h-full w-[15%] transition-all duration-300 shadow-cyber-glow"></div>
+    </div>
+    <div class="flex justify-between w-full text-[10px] font-bold text-slate-500">
+      <span id="inline-loader-log-text">${t.loaderStep1DescActive}</span>
+      <span id="inline-loader-percentage" class="text-brand-400 font-mono">15%</span>
+    </div>
+
+    <!-- Steps -->
+    <div class="w-full space-y-2 border-t border-cyber-border/40 pt-3 text-[11px] font-medium">
+      <div id="inline-step-mask" class="flex items-center justify-between text-slate-800 dark:text-slate-200">
+        <div class="flex items-center space-x-2.5">
+          <div class="step-indicator w-4 h-4 rounded-full border border-cyan-500/50 text-[9px] font-bold flex items-center justify-center bg-slate-950 text-cyber-accent pulse-ring-active shadow-cyber-glow">1</div>
+          <span>${t.loaderStep1Title}</span>
+        </div>
+        <span class="step-stat text-[10px] font-mono text-cyber-accent">Active</span>
+      </div>
+
+      <div id="inline-step-transit" class="flex items-center justify-between text-slate-400 dark:text-slate-600">
+        <div class="flex items-center space-x-2.5">
+          <div class="step-indicator w-4 h-4 rounded-full border border-slate-800 text-[9px] font-bold flex items-center justify-center bg-slate-950 text-slate-600">2</div>
+          <span>${t.loaderStep2Title}</span>
+        </div>
+        <span class="step-stat text-[10px] font-mono text-slate-600">Pending</span>
+      </div>
+
+      <div id="inline-step-restore" class="flex items-center justify-between text-slate-400 dark:text-slate-600">
+        <div class="flex items-center space-x-2.5">
+          <div class="step-indicator w-4 h-4 rounded-full border border-slate-800 text-[9px] font-bold flex items-center justify-center bg-slate-950 text-slate-600">3</div>
+          <span>${t.loaderStep3Title}</span>
+        </div>
+        <span class="step-stat text-[10px] font-mono text-slate-600">Pending</span>
+      </div>
+
+      <div id="inline-step-diff" class="flex items-center justify-between text-slate-400 dark:text-slate-600">
+        <div class="flex items-center space-x-2.5">
+          <div class="step-indicator w-4 h-4 rounded-full border border-slate-800 text-[9px] font-bold flex items-center justify-center bg-slate-950 text-slate-600">4</div>
+          <span>${t.loaderStep4Title}</span>
+        </div>
+        <span class="step-stat text-[10px] font-mono text-slate-600">Pending</span>
+      </div>
+    </div>
+  `;
+
+  // Append user message bubble first
+  appendUserMessage(submitPayload.chatMessage, state.pastedConfigRaw);
+
+  // Append inline loader card
+  els.chatMessagesStream.appendChild(loaderCard);
+  scrollStreamToBottom();
+
+  const inlineProgressBar = loaderCard.querySelector('#inline-loader-progress-bar');
+  const inlineLogText = loaderCard.querySelector('#inline-loader-log-text');
+  const inlinePercentage = loaderCard.querySelector('#inline-loader-percentage');
+  const inlineStepMask = loaderCard.querySelector('#inline-step-mask');
+  const inlineStepTransit = loaderCard.querySelector('#inline-step-transit');
+  const inlineStepRestore = loaderCard.querySelector('#inline-step-restore');
+  const inlineStepDiff = loaderCard.querySelector('#inline-step-diff');
+
+  function updateInlineStep(el, stepState, logMsg) {
+    const indicator = el.querySelector('.step-indicator');
+    const stat = el.querySelector('.step-stat');
+
+    if (inlineLogText) inlineLogText.textContent = logMsg;
+
+    if (stepState === 'active') {
+      el.className = 'flex items-center justify-between text-slate-800 dark:text-slate-200';
+      indicator.className = 'step-indicator w-4 h-4 rounded-full border border-cyan-500/50 text-[9px] font-bold flex items-center justify-center bg-slate-950 text-cyber-accent pulse-ring-active shadow-cyber-glow';
+      stat.textContent = 'Active';
+      stat.className = 'step-stat text-[10px] font-mono text-cyber-accent';
+    } else if (stepState === 'complete') {
+      el.className = 'flex items-center justify-between text-slate-500 dark:text-slate-400';
+      indicator.className = 'step-indicator w-4 h-4 rounded-full border border-emerald-500/50 text-[9px] font-bold flex items-center justify-center bg-slate-900 text-cyber-emerald';
+      indicator.innerHTML = '✓';
+      stat.textContent = 'Completed';
+      stat.className = 'step-stat text-[10px] font-mono text-cyber-emerald';
+    } else {
+      el.className = 'flex items-center justify-between text-slate-400 dark:text-slate-600';
+      indicator.className = 'step-indicator w-4 h-4 rounded-full border border-slate-800 text-[9px] font-bold flex items-center justify-center bg-slate-950 text-slate-600';
+      stat.textContent = 'Pending';
+      stat.className = 'step-stat text-[10px] font-mono text-slate-600';
+    }
+  }
+
+  function setInlineProgressBar(pct, text) {
+    if (inlineProgressBar) inlineProgressBar.style.width = pct + '%';
+    if (inlinePercentage) inlinePercentage.textContent = text;
+  }
 
   // Stage 1: Masking
   await delay(700);
-  updateStep(els.stepMask, 'complete', t.loaderStep1DescComplete);
-  updateStep(els.stepTransit, 'active', t.loaderStep2DescActive);
-  setProgressBar(40, '40%');
+  updateInlineStep(inlineStepMask, 'complete', t.loaderStep1DescComplete);
+  updateInlineStep(inlineStepTransit, 'active', t.loaderStep2DescActive);
+  setInlineProgressBar(40, '40%');
 
   // Stage 2: AI Transit & Call API
   let serverResponseData = null;
@@ -1572,28 +1675,31 @@ async function runStepperAndSubmit(submitPayload) {
   }
 
   if (serverError) {
-    els.privacyLoader.classList.add('hidden');
+    loaderCard.remove();
     showToast(serverError.message, 'error');
     alert(`Audit Failed: ${serverError.message}`);
     return;
   }
 
   // Stage 3: Restoration
-  updateStep(els.stepTransit, 'complete', t.loaderStep2DescComplete);
-  updateStep(els.stepRestore, 'active', t.loaderStep3DescActive);
-  setProgressBar(75, '75%');
+  updateInlineStep(inlineStepTransit, 'complete', t.loaderStep2DescComplete);
+  updateInlineStep(inlineStepRestore, 'active', t.loaderStep3DescActive);
+  setInlineProgressBar(75, '75%');
   await delay(600);
 
   // Stage 4: Formatting Diff
-  updateStep(els.stepRestore, 'complete', t.loaderStep3DescComplete);
-  updateStep(els.stepDiff, 'active', t.loaderStep4DescActive);
-  setProgressBar(95, '95%');
+  updateInlineStep(inlineStepRestore, 'complete', t.loaderStep3DescComplete);
+  updateInlineStep(inlineStepDiff, 'active', t.loaderStep4DescActive);
+  setInlineProgressBar(95, '95%');
   await delay(500);
 
   // Completed
-  setProgressBar(100, '100%');
-  updateStep(els.stepDiff, 'complete', t.loaderStep4DescComplete);
+  setInlineProgressBar(100, '100%');
+  updateInlineStep(inlineStepDiff, 'complete', t.loaderStep4DescComplete);
   await delay(300);
+
+  // Remove loader card and render actual response!
+  loaderCard.remove();
 
   // Load results into active state
   state.analysisResult = serverResponseData;
@@ -1601,12 +1707,10 @@ async function runStepperAndSubmit(submitPayload) {
   // Clear welcome panel
   els.panelWelcome.classList.add('hidden');
 
-  // Inject User bubble & assistant response
-  appendUserMessage(submitPayload.chatMessage, state.pastedConfigRaw);
+  // Inject assistant response
   appendAssistantResponse(serverResponseData);
 
-  // Hide loader
-  els.privacyLoader.classList.add('hidden');
+  // Show success toast
   showToast(t.toastPipelineComplete, 'success');
 
   // Clear attachment inputs after success to prepare next input cleanly
@@ -1631,36 +1735,6 @@ async function runStepperAndSubmit(submitPayload) {
   });
 }
 
-function updateStep(el, state, text) {
-  const indicator = el.querySelector('.step-indicator');
-  const stat = el.querySelector('.step-stat');
-
-  els.stepperLogText.textContent = text;
-
-  if (state === 'active') {
-    el.className = 'flex items-center justify-between text-slate-850 dark:text-slate-200';
-    indicator.className = 'step-indicator w-5 h-5 rounded-full border border-cyan-500/50 text-[10px] font-bold flex items-center justify-center bg-slate-950 text-cyber-accent pulse-ring-active shadow-cyber-glow';
-    stat.textContent = 'Active';
-    stat.className = 'step-stat text-[10px] font-mono text-cyber-accent';
-  } else if (state === 'complete') {
-    el.className = 'flex items-center justify-between text-slate-500 dark:text-slate-400';
-    indicator.className = 'step-indicator w-5 h-5 rounded-full border border-emerald-500/50 text-[10px] font-bold flex items-center justify-center bg-slate-900 text-cyber-emerald';
-    indicator.innerHTML = '✓';
-    stat.textContent = 'Completed';
-    stat.className = 'step-stat text-[10px] font-mono text-cyber-emerald';
-  } else {
-    el.className = 'flex items-center justify-between text-slate-400 dark:text-slate-600';
-    indicator.className = 'step-indicator w-5 h-5 rounded-full border border-slate-850 text-[10px] font-bold flex items-center justify-center bg-slate-950 text-slate-600';
-    stat.textContent = 'Pending';
-    stat.className = 'step-stat text-[10px] font-mono text-slate-600';
-  }
-}
-
-function setProgressBar(pct, text) {
-  els.stepperProgressBar.style.width = pct + '%';
-  els.stepperPercentage.textContent = text;
-}
-
 function delay(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
@@ -1669,9 +1743,6 @@ function delay(ms) {
 async function submitChat() {
   const pastedVal = els.pastedConfig.value.trim();
   const chatVal = els.chatMessage.value.trim();
-
-  const currentLang = state.language === 'auto' ? 'en' : state.language;
-  const t = i18n[currentLang] || i18n.en;
 
   if (!pastedVal && !chatVal) {
     showToast('Please attach a configuration or write a question!', 'error');
