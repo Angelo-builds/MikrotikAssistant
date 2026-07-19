@@ -635,6 +635,7 @@ const els = {
   btnSubmit: document.getElementById('btn-submit'),
   loadingSpinner: document.getElementById('loading-spinner'),
   submitIcon: document.getElementById('submit-icon'),
+  stopIcon: document.getElementById('stop-icon'),
 
   btnThemeToggle: document.getElementById('btn-theme-toggle'),
   themeSunIcon: document.getElementById('theme-sun-icon'),
@@ -1471,12 +1472,73 @@ function appendInlineErrorCard(errorMessage, retryCallback) {
   scrollStreamToBottom();
 }
 
+// Active abort controller for stop/cancel actions
+let activeAbortController = null;
+
+/**
+ * Centralized layout helper to manage submit button state.
+ * Supports send icon, stop icon, and perfect centering.
+ */
+function setButtonState(state) {
+  if (state === 'loading') {
+    els.btnSubmit.disabled = false; // Enabled so stop/cancel clicks work
+    els.submitIcon.classList.add('hidden');
+    els.loadingSpinner.classList.add('hidden');
+    els.stopIcon.classList.remove('hidden');
+  } else {
+    els.btnSubmit.disabled = false;
+    els.submitIcon.classList.remove('hidden');
+    els.loadingSpinner.classList.add('hidden');
+    els.stopIcon.classList.add('hidden');
+  }
+}
+
+/**
+ * Abortable custom delay helper that rejects immediately with AbortError if signaled.
+ */
+const delay = (ms, signal) => new Promise((resolve, reject) => {
+  if (signal && signal.aborted) {
+    return reject(new DOMException('Aborted', 'AbortError'));
+  }
+  const timer = setTimeout(() => {
+    if (signal) {
+      signal.removeEventListener('abort', onAbort);
+    }
+    resolve();
+  }, ms);
+  function onAbort() {
+    clearTimeout(timer);
+    reject(new DOMException('Aborted', 'AbortError'));
+  }
+  if (signal) {
+    signal.addEventListener('abort', onAbort);
+  }
+});
+
+/**
+ * Retries a failed or canceled submission, handling button states and abort tokens.
+ */
+async function retryChat(submitPayload) {
+  activeAbortController = new AbortController();
+  setButtonState('loading');
+  try {
+    await runStepperAndSubmit(submitPayload, activeAbortController.signal, true);
+  } catch (err) {
+    if (err.name === 'AbortError') {
+      showToast('Retry stopped.', 'info');
+    }
+  } finally {
+    activeAbortController = null;
+    setButtonState('send');
+  }
+}
+
 /**
  * ============================================================================
  * INTERACTIVE MULTI-STEP PIPELINE (runStepperAndSubmit)
  * ============================================================================
  */
-async function runStepperAndSubmit(submitPayload) {
+async function runStepperAndSubmit(submitPayload, signal, isRetry = false) {
   const t = LocalizationService.getTranslation();
 
   const loaderCard = document.createElement('div');
@@ -1503,11 +1565,11 @@ async function runStepperAndSubmit(submitPayload) {
 
     <!-- Progress Bar -->
     <div class="w-full bg-cyber-bg rounded-full h-2.5 border border-cyber-border overflow-hidden relative">
-      <div id="inline-loader-progress-bar" class="bg-brand-500 h-full w-[15%] transition-all duration-300 shadow-cyber-glow"></div>
+      <div id="inline-loader-progress-bar" class="bg-brand-500 h-full w-[0%] transition-all duration-300 shadow-cyber-glow"></div>
     </div>
     <div class="flex justify-between w-full text-[10px] font-bold text-slate-500">
       <span id="inline-loader-log-text">${t.loaderStep1DescActive}</span>
-      <span id="inline-loader-percentage" class="text-brand-400 font-mono">15%</span>
+      <span id="inline-loader-percentage" class="text-brand-400 font-mono">0%</span>
     </div>
 
     <!-- Steps -->
@@ -1546,8 +1608,10 @@ async function runStepperAndSubmit(submitPayload) {
     </div>
   `;
 
-  // Append User message
-  appendUserMessage(submitPayload.chatMessage, stateStore.get('pastedConfigRaw'));
+  // Append User message (Skip if retry as it already exists in message stream)
+  if (!isRetry) {
+    appendUserMessage(submitPayload.chatMessage, stateStore.get('pastedConfigRaw'));
+  }
 
   const activeContainer = els.chatMessagesContainer || els.chatMessagesStream;
   activeContainer.appendChild(loaderCard);
@@ -1585,32 +1649,50 @@ async function runStepperAndSubmit(submitPayload) {
     }
   }
 
+  let currentProgress = 0;
+  let targetProgress = 15;
+  let progressInterval = null;
+
   function setInlineProgressBar(pct, text) {
     if (inlineProgressBar) inlineProgressBar.style.width = pct + '%';
     if (inlinePercentage) inlinePercentage.textContent = text;
   }
 
-  // Delay helper
-  const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+  // Ticker to smoothly advance currentProgress towards targetProgress
+  progressInterval = setInterval(() => {
+    if (signal && signal.aborted) {
+      clearInterval(progressInterval);
+      return;
+    }
+    if (currentProgress < targetProgress) {
+      currentProgress += Math.min(1.5, targetProgress - currentProgress);
+      setInlineProgressBar(Math.round(currentProgress), `${Math.round(currentProgress)}%`);
+    } else if (targetProgress === 80) {
+      // Creep extremely slowly towards 80% during AI transit so it never freezes
+      currentProgress += (80 - currentProgress) * 0.025;
+      setInlineProgressBar(Math.round(currentProgress), `${Math.round(currentProgress)}%`);
+    }
+  }, 100);
 
-  // Stage 1: Masking
-  await delay(700);
-  updateInlineStep(inlineStepMask, 'complete', t.loaderStep1DescComplete);
-  updateInlineStep(inlineStepTransit, 'active', t.loaderStep2DescActive);
-  setInlineProgressBar(40, '40%');
-
-  // Stage 2: AI Transit & Call API
   let serverResponseData = null;
   let serverError = null;
 
   try {
+    // Stage 1: Masking
+    await delay(700, signal);
+    updateInlineStep(inlineStepMask, 'complete', t.loaderStep1DescComplete);
+    updateInlineStep(inlineStepTransit, 'active', t.loaderStep2DescActive);
+    targetProgress = 80;
+
+    // Stage 2: AI Transit & Call API
     const fetchPromise = fetch('/api/chat', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(submitPayload)
+      body: JSON.stringify(submitPayload),
+      signal: signal
     });
 
-    const timeoutPromise = delay(1200);
+    const timeoutPromise = delay(1200, signal);
     const [res] = await Promise.all([fetchPromise, timeoutPromise]);
 
     if (!res.ok) {
@@ -1619,35 +1701,42 @@ async function runStepperAndSubmit(submitPayload) {
     }
 
     serverResponseData = await res.json();
+
+    // Stage 3: Restoration
+    updateInlineStep(inlineStepTransit, 'complete', t.loaderStep2DescComplete);
+    updateInlineStep(inlineStepRestore, 'active', t.loaderStep3DescActive);
+    targetProgress = 95;
+    await delay(600, signal);
+
+    // Stage 4: Formatting Diff
+    updateInlineStep(inlineStepRestore, 'complete', t.loaderStep3DescComplete);
+    updateInlineStep(inlineStepDiff, 'active', t.loaderStep4DescActive);
+    targetProgress = 100;
+    await delay(500, signal);
+
+    // Completed
+    updateInlineStep(inlineStepDiff, 'complete', t.loaderStep4DescComplete);
+    await delay(300, signal);
+
   } catch (err) {
     serverError = err;
+  } finally {
+    if (progressInterval) {
+      clearInterval(progressInterval);
+    }
   }
 
   if (serverError) {
     loaderCard.remove();
+    if (serverError.name === 'AbortError') {
+      throw serverError;
+    }
     showToast(serverError.message, 'error');
     appendInlineErrorCard(serverError.message, () => {
-      runStepperAndSubmit(submitPayload);
+      retryChat(submitPayload);
     });
     return;
   }
-
-  // Stage 3: Restoration
-  updateInlineStep(inlineStepTransit, 'complete', t.loaderStep2DescComplete);
-  updateInlineStep(inlineStepRestore, 'active', t.loaderStep3DescActive);
-  setInlineProgressBar(75, '75%');
-  await delay(600);
-
-  // Stage 4: Formatting Diff
-  updateInlineStep(inlineStepRestore, 'complete', t.loaderStep3DescComplete);
-  updateInlineStep(inlineStepDiff, 'active', t.loaderStep4DescActive);
-  setInlineProgressBar(95, '95%');
-  await delay(500);
-
-  // Completed
-  setInlineProgressBar(100, '100%');
-  updateInlineStep(inlineStepDiff, 'complete', t.loaderStep4DescComplete);
-  await delay(300);
 
   // Remove loading card
   loaderCard.remove();
@@ -1700,6 +1789,11 @@ async function runStepperAndSubmit(submitPayload) {
  * ============================================================================
  */
 async function submitChat() {
+  if (activeAbortController) {
+    activeAbortController.abort();
+    return;
+  }
+
   const pastedVal = els.pastedConfig.value.trim();
   const chatVal = els.chatMessage.value.trim();
 
@@ -1708,9 +1802,26 @@ async function submitChat() {
     return;
   }
 
-  els.btnSubmit.disabled = true;
-  els.submitIcon.classList.add('hidden');
-  els.loadingSpinner.classList.remove('hidden');
+  // Save values for potential restoration
+  const savedChatMessage = els.chatMessage.value;
+  const savedPastedConfig = els.pastedConfig.value;
+  const savedCurrentFile = stateStore.get('currentFile');
+  const savedFileName = els.fileNameLabel.textContent;
+  const savedFileSize = els.fileSizeLabel.textContent;
+  const savedIsFileBarVisible = !els.fileInfoBar.classList.contains('hidden');
+
+  // Clear inputs immediately
+  els.chatMessage.value = '';
+  adjustTextAreaHeight();
+  els.pastedConfig.value = '';
+  els.pastedConfig.disabled = false;
+  stateStore.set('currentFile', null);
+  els.fileInfoBar.classList.add('hidden');
+  closeAttachmentDrawer();
+
+  // Setup active abort controller and button state
+  activeAbortController = new AbortController();
+  setButtonState('loading');
 
   stateStore.set('pastedConfigRaw', pastedVal);
 
@@ -1755,13 +1866,32 @@ async function submitChat() {
   };
 
   try {
-    await runStepperAndSubmit(body);
-    els.chatMessage.value = '';
-    adjustTextAreaHeight();
+    await runStepperAndSubmit(body, activeAbortController.signal, false);
+  } catch (err) {
+    if (err.name === 'AbortError') {
+      // Restore inputs on cancel/stop
+      if (savedChatMessage) {
+        els.chatMessage.value = savedChatMessage;
+        adjustTextAreaHeight();
+      }
+      if (savedPastedConfig) {
+        els.pastedConfig.value = savedPastedConfig;
+        els.pastedConfig.disabled = false;
+      }
+      if (savedCurrentFile) {
+        stateStore.set('currentFile', savedCurrentFile);
+      }
+      if (savedIsFileBarVisible) {
+        els.fileNameLabel.textContent = savedFileName;
+        els.fileSizeLabel.textContent = savedFileSize;
+        els.fileInfoBar.classList.remove('hidden');
+        openAttachmentDrawer();
+      }
+      showToast('Request stopped. Inputs restored!', 'info');
+    }
   } finally {
-    els.btnSubmit.disabled = false;
-    els.submitIcon.classList.remove('hidden');
-    els.loadingSpinner.classList.add('hidden');
+    activeAbortController = null;
+    setButtonState('send');
   }
 }
 
