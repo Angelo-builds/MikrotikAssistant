@@ -101,7 +101,7 @@ function runAllTests() {
 
   // Unit Test 5: Frontend renderMarkdown Utility Tests
   console.log('\n--- Unit Test 5: renderMarkdown ---\n');
-  const markdownSample = '### Wizard Spells\n* firewall filters protect\n**Mik the Wizard** is here.\nUse `ip route` always.';
+  const markdownSample = '### Wizard Spells\n* firewall filters protect\n**Mik the Wizard** is here.\nUse `the spell` always.';
   const markdownHtml = renderMarkdown(markdownSample);
 
   assert(markdownHtml.includes('ml-4 list-disc'), 'renderMarkdown should render bullet lists');

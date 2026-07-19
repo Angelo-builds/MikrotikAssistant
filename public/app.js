@@ -1868,3 +1868,37 @@ function setupEventListeners() {
 
   els.btnThemeToggle.addEventListener('click', toggleTheme);
 }
+
+/**
+ * Global function to handle copying code block snippets.
+ */
+window.copySnippetText = function(id, btn) {
+  const pre = document.getElementById(id);
+  if (!pre) return;
+
+  const text = pre.innerText;
+  navigator.clipboard.writeText(text).then(() => {
+    const copyIcon = btn.querySelector('.copy-icon');
+    const checkIcon = btn.querySelector('.check-icon');
+
+    if (copyIcon && checkIcon) {
+      copyIcon.classList.add('hidden');
+      checkIcon.classList.remove('hidden');
+      showToast('Snippet copied successfully!', 'success');
+      setTimeout(() => {
+        copyIcon.classList.remove('hidden');
+        checkIcon.classList.add('hidden');
+      }, 2000);
+    } else {
+      // Fallback
+      const orig = btn.textContent;
+      btn.textContent = 'Copied!';
+      btn.className = 'text-[10px] bg-emerald-950 border border-cyber-emerald text-cyber-emerald px-2.5 py-1 rounded-md font-bold transition';
+      showToast('Snippet copied successfully!', 'success');
+      setTimeout(() => {
+        btn.textContent = orig;
+        btn.className = 'text-[10px] bg-[#1e1b4b] border border-cyber-border hover:bg-indigo-900 text-slate-300 px-2.5 py-1 rounded-md font-bold transition';
+      }, 1500);
+    }
+  });
+};
