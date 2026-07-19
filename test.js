@@ -1,4 +1,5 @@
 const { mask, unmask, isPrivateIPv4, isPrivateIPv6 } = require('./privacyShield');
+const { computeLineDiff, renderMarkdown, debounce } = require('./public/utils');
 
 function runAllTests() {
   console.log('=== STARTING INTEGRATION & UNIT TESTS ===');
@@ -87,6 +88,26 @@ function runAllTests() {
   assert(restoredLlmResponse.includes('SuperSecretPassword'), 'Restored explanation should contain original password');
   assert(restoredLlmResponse.includes('bridge-local'), 'Restored configuration should contain original interface name');
   assert(restoredLlmResponse.includes('203.0.113.50'), 'Restored commands should contain original public IP');
+
+  // Unit Test 4: Frontend computeLineDiff Utility Tests
+  console.log('--- Unit Test 4: computeLineDiff ---\n');
+  const originalConfigDiffSample = '/ip firewall filter\nadd chain=input action=accept';
+  const correctedConfigDiffSample = '/ip firewall filter\nadd chain=input action=drop\nadd chain=forward action=accept';
+  const diffResult = computeLineDiff(originalConfigDiffSample, correctedConfigDiffSample);
+
+  assert(Array.isArray(diffResult), 'computeLineDiff should return an array');
+  assert(diffResult.some(r => r.type === 'modify'), 'computeLineDiff should align modifications');
+  assert(diffResult.some(r => r.type === 'insert'), 'computeLineDiff should identify insertions');
+
+  // Unit Test 5: Frontend renderMarkdown Utility Tests
+  console.log('\n--- Unit Test 5: renderMarkdown ---\n');
+  const markdownSample = '### Wizard Spells\n* firewall filters protect\n**Mik the Wizard** is here.\nUse `ip route` always.';
+  const markdownHtml = renderMarkdown(markdownSample);
+
+  assert(markdownHtml.includes('ml-4 list-disc'), 'renderMarkdown should render bullet lists');
+  assert(markdownHtml.includes('font-semibold'), 'renderMarkdown should render bold elements');
+  assert(markdownHtml.includes('font-mono text-[11px]'), 'renderMarkdown should render high-contrast inline code blocks');
+  assert(markdownHtml.includes('h5 class='), 'renderMarkdown should parse headers');
 
   console.log('\n=======================================');
   if (failures === 0) {

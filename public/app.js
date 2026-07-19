@@ -1,6 +1,197 @@
-// Main frontend JS for Mik the Winbox Wizard with Unified Chat Stream & Contextual dropdowns
+// Mik the Winbox Wizard — Modernized Production-Ready Chat & Audit Assistant
+// Built with robust architectural patterns, reactive state management, and optimized accessibility.
 
-// Professional UI Localization Dictionary
+/**
+ * ============================================================================
+ * STATE MANAGEMENT (WizardState)
+ * ============================================================================
+ */
+class WizardState {
+  constructor() {
+    this._subscribers = [];
+    this._state = {
+      diffMode: 'split',        // 'split' | 'unified'
+      commandMode: 'checklist', // 'checklist' | 'raw'
+      language: 'auto',         // 'auto' | 'en' | 'it'
+      theme: 'dark',            // 'dark' | 'light'
+      currentChatId: null,
+      settings: {
+        provider: 'openai',
+        model: 'gpt-4o-mini',
+        apiKey: '',
+        baseUrl: '',
+        prompt: '',
+        maskIPs: true,
+        maskMACs: true,
+        maskSecrets: true,
+        maskInterfaces: true,
+        maskDomains: true,
+        maskIdentity: true
+      },
+      analysisResult: null,
+      pastedConfigRaw: '',
+      history: [],
+      currentFile: null,
+      isAttachmentDrawerOpen: false,
+      isSidebarOpen: true,
+      activeSidebarTab: 'history'
+    };
+
+    this.loadFromStorage();
+  }
+
+  get(key) {
+    return this._state[key];
+  }
+
+  set(key, value) {
+    const prev = this._state[key];
+    this._state[key] = value;
+    if (JSON.stringify(prev) !== JSON.stringify(value)) {
+      this._notify(key, value, prev);
+    }
+  }
+
+  // Reactive Subscription Pattern
+  subscribe(key, callback) {
+    this._subscribers.push({ key, callback });
+  }
+
+  _notify(key, value, prevValue) {
+    this._subscribers.forEach(sub => {
+      if (sub.key === key || sub.key === '*') {
+        sub.callback(value, prevValue, key);
+      }
+    });
+  }
+
+  loadFromStorage() {
+    // Load Settings
+    const savedSettings = localStorage.getItem('mikrotik_chatbot_settings');
+    if (savedSettings) {
+      try {
+        this._state.settings = { ...this._state.settings, ...JSON.parse(savedSettings) };
+      } catch (e) {
+        console.error('Failed to parse saved settings:', e);
+      }
+    } else {
+      this.updateModelDefaults(this._state.settings.provider);
+    }
+
+    // Load Language
+    const savedLang = localStorage.getItem('mikrotik_chatbot_language');
+    this._state.language = savedLang || 'auto';
+
+    // Load Theme
+    const savedTheme = localStorage.getItem('mikrotik_chatbot_theme');
+    this._state.theme = savedTheme || 'dark';
+
+    // Load Session History
+    const savedHistory = localStorage.getItem('mikrotik_chatbot_history');
+    if (savedHistory) {
+      try {
+        this._state.history = JSON.parse(savedHistory);
+      } catch (e) {
+        console.error('Failed to parse chat history:', e);
+      }
+    }
+  }
+
+  saveSettings(newSettings) {
+    this._state.settings = { ...this._state.settings, ...newSettings };
+    localStorage.setItem('mikrotik_chatbot_settings', JSON.stringify(this._state.settings));
+    this._notify('settings', this._state.settings);
+  }
+
+  saveLanguage(lang) {
+    this._state.language = lang;
+    localStorage.setItem('mikrotik_chatbot_language', lang);
+    this._notify('language', lang);
+  }
+
+  saveTheme(theme) {
+    this._state.theme = theme;
+    localStorage.setItem('mikrotik_chatbot_theme', theme);
+    this._notify('theme', theme);
+  }
+
+  updateModelDefaults(provider) {
+    let model = '';
+    let baseUrl = '';
+    switch (provider) {
+      case 'openai':
+        model = 'gpt-4o-mini';
+        break;
+      case 'anthropic':
+        model = 'claude-3-5-sonnet-20240620';
+        break;
+      case 'openrouter':
+        model = 'meta-llama/llama-3-8b-instruct:free';
+        break;
+      case 'ollama':
+        model = 'llama3';
+        baseUrl = 'http://localhost:11434';
+        break;
+      case 'custom':
+        model = '';
+        baseUrl = 'http://localhost:11434';
+        break;
+    }
+    this._state.settings.model = model;
+    this._state.settings.baseUrl = baseUrl;
+  }
+}
+
+// Instantiate Global App State Single Source of Truth
+const stateStore = new WizardState();
+
+/**
+ * ============================================================================
+ * TOAST NOTIFICATION SERVICE (ToastService)
+ * ============================================================================
+ */
+class ToastService {
+  static show(message, type = 'info') {
+    const container = document.getElementById('toast-container');
+    if (!container) return;
+
+    const toast = document.createElement('div');
+    toast.className = 'p-3 rounded-xl border flex items-center space-x-2.5 shadow-xl transition-all duration-300 transform translate-y-2 opacity-0 pointer-events-auto select-text';
+
+    if (type === 'success') {
+      toast.className += ' bg-emerald-950/90 border-emerald-500/30 text-emerald-300 shadow-emerald-glow';
+      toast.innerHTML = `<span>🟢</span> <span class="text-xs font-semibold">${message}</span>`;
+    } else if (type === 'error') {
+      toast.className += ' bg-red-950/90 border-red-500/30 text-red-300';
+      toast.innerHTML = `<span>🔴</span> <span class="text-xs font-semibold">${message}</span>`;
+    } else {
+      toast.className += ' bg-slate-900/95 border-slate-800 text-slate-300';
+      toast.innerHTML = `<span>🔵</span> <span class="text-xs font-semibold">${message}</span>`;
+    }
+
+    container.appendChild(toast);
+
+    // Trigger Slide-up / Fade-in Reveal
+    setTimeout(() => {
+      toast.classList.remove('translate-y-2', 'opacity-0');
+    }, 10);
+
+    // Auto Dismiss Toast after 3.5 seconds
+    setTimeout(() => {
+      toast.classList.add('translate-y-2', 'opacity-0');
+      setTimeout(() => toast.remove(), 300);
+    }, 3500);
+  }
+}
+
+// Global short-hand helper compatible with legacy calls
+const showToast = (msg, type) => ToastService.show(msg, type);
+
+/**
+ * ============================================================================
+ * LOCALIZATION & TRANSLATION SERVICE (LocalizationService)
+ * ============================================================================
+ */
 const i18n = {
   en: {
     title: 'Mik the Winbox Wizard — MikroTik Privacy AI Chatbot Assistant',
@@ -214,37 +405,230 @@ const i18n = {
   }
 };
 
-// State Management
-const state = {
-  diffMode: 'split',        // 'split' | 'unified'
-  commandMode: 'checklist', // 'checklist' | 'raw'
-  language: 'auto',         // 'auto' | 'en' | 'it'
-  theme: 'dark',            // 'dark' | 'light'
-  currentChatId: null,      // Unique session identifier for current chat stream
-  settings: {
-    provider: 'openai',
-    model: 'gpt-4o-mini',
-    apiKey: '',
-    baseUrl: '',
-    prompt: '',
-    maskIPs: true,
-    maskMACs: true,
-    maskSecrets: true,
-    maskInterfaces: true,
-    maskDomains: true,
-    maskIdentity: true
-  },
-  // Active response data
-  analysisResult: null,
-  pastedConfigRaw: '',
-  history: [], // List of { id, title, timestamp, messages: [{ role, chatMessage, pastedConfig, result }], rosVersion, hardwareModel }
-  currentFile: null,
-  isAttachmentDrawerOpen: false,
-  isSidebarOpen: true,         // Toggle Sidebar state
-  activeSidebarTab: 'history'   // 'history' | 'context' | 'preferences'
-};
+class LocalizationService {
+  static getTranslation() {
+    const currentLang = stateStore.get('language') === 'auto' ? 'en' : stateStore.get('language');
+    return i18n[currentLang] || i18n.en;
+  }
 
-// UI Elements Reference
+  static updateUILanguage() {
+    const t = this.getTranslation();
+
+    // Headers & Main Titles
+    if (els.uiTitle) els.uiTitle.textContent = t.title;
+    if (els.uiHeaderTitle) els.uiHeaderTitle.textContent = t.headerTitle;
+    if (els.uiHeaderBadge) els.uiHeaderBadge.textContent = t.headerBadge;
+    if (els.uiHeaderDesc) els.uiHeaderDesc.textContent = t.headerDesc;
+
+    // Session History Sidebar
+    if (els.btnClearHistory) els.btnClearHistory.textContent = t.clearHistory;
+    if (els.searchHistory) els.searchHistory.placeholder = t.searchHistoryPlaceholder;
+    if (els.uiHistoryEmpty) els.uiHistoryEmpty.textContent = t.historyEmpty;
+
+    // Input elements
+    if (els.uiLabelPasteConfig) els.uiLabelPasteConfig.textContent = t.pasteConfigLabel;
+    if (els.pastedConfig) els.pastedConfig.placeholder = t.pastedConfigPlaceholder;
+    if (els.uiDragTitle) els.uiDragTitle.textContent = t.dragTitle;
+    if (els.uiDragDesc) els.uiDragDesc.textContent = t.dragDesc;
+    if (els.chatMessage) els.chatMessage.placeholder = t.chatMessagePlaceholder;
+
+    // Welcome Section
+    if (els.uiLabelWelcomeTitle) els.uiLabelWelcomeTitle.textContent = t.welcomeTitle;
+    if (els.uiLabelWelcomeDesc) els.uiLabelWelcomeDesc.innerHTML = t.welcomeDesc;
+    if (els.uiLabelWelcomePrivacy) els.uiLabelWelcomePrivacy.textContent = t.welcomePrivacy;
+
+    // Buttons
+    if (els.uiBtnNewChat) els.uiBtnNewChat.textContent = t.newChat;
+    if (els.uiBtnHeaderNewChat) els.uiBtnHeaderNewChat.textContent = t.newChat;
+
+    // Modals
+    if (els.uiLabelDiffOriginal) els.uiLabelDiffOriginal.textContent = t.diffOriginalHeader;
+    if (els.uiLabelDiffCorrected) els.uiLabelDiffCorrected.textContent = t.diffCorrectedHeader;
+    if (els.uiLabelDiffUnifiedDesc) els.uiLabelDiffUnifiedDesc.innerHTML = t.diffUnifiedDesc;
+    if (els.uiLabelCommandsTip) els.uiLabelCommandsTip.textContent = t.commandsTip;
+
+    // Form inputs & settings
+    if (els.uiLabelLlmProvider) els.uiLabelLlmProvider.textContent = t.settingsLabelLlmProvider;
+    if (els.uiLabelModelName) els.uiLabelModelName.textContent = t.settingsLabelModelName;
+    if (els.uiLabelTestConnection) els.uiLabelTestConnection.textContent = t.settingsBtnTestConnection;
+
+    // Masking Toggles Labels
+    if (els.uiMaskIpsTitle) els.uiMaskIpsTitle.textContent = t.settingsMaskIpsTitle;
+    if (els.uiMaskIpsDesc) els.uiMaskIpsDesc.textContent = t.settingsMaskIpsDesc;
+    if (els.uiMaskMacsTitle) els.uiMaskMacsTitle.textContent = t.settingsMaskMacsTitle;
+    if (els.uiMaskMacsDesc) els.uiMaskMacsDesc.textContent = t.settingsMaskMacsDesc;
+    if (els.uiMaskSecretsTitle) els.uiMaskSecretsTitle.textContent = t.settingsMaskSecretsTitle;
+    if (els.uiMaskSecretsDesc) els.uiMaskSecretsDesc.textContent = t.settingsMaskSecretsDesc;
+    if (els.uiMaskInterfacesTitle) els.uiMaskInterfacesTitle.textContent = t.settingsMaskInterfacesTitle;
+    if (els.uiMaskInterfacesDesc) els.uiMaskInterfacesDesc.textContent = t.settingsMaskInterfacesDesc;
+    if (els.uiMaskDomainsTitle) els.uiMaskDomainsTitle.textContent = t.settingsMaskDomainsTitle;
+    if (els.uiMaskDomainsDesc) els.uiMaskDomainsDesc.textContent = t.settingsMaskDomainsDesc;
+    if (els.uiMaskIdentityTitle) els.uiMaskIdentityTitle.textContent = t.settingsMaskIdentityTitle;
+    if (els.uiMaskIdentityDesc) els.uiMaskIdentityDesc.textContent = t.settingsMaskIdentityDesc;
+
+    if (els.uiLabelPromptOverride) els.uiLabelPromptOverride.textContent = t.settingsLabelPromptOverride;
+    if (els.settingPrompt) els.settingPrompt.placeholder = t.settingsPromptPlaceholder;
+    if (els.uiLabelSaveSettings) els.uiLabelSaveSettings.textContent = t.settingsBtnSave;
+
+    // Trigger stateful components update
+    updatePrivacyShieldLabel();
+    updateLLMStatusBadge();
+    HistoryManager.renderList();
+  }
+}
+
+/**
+ * ============================================================================
+ * CHAT SESSION HISTORY MANAGEMENT (HistoryManager)
+ * ============================================================================
+ */
+class HistoryManager {
+  static saveItem(item) {
+    const history = stateStore.get('history');
+    const activeChatId = stateStore.get('currentChatId');
+
+    if (activeChatId) {
+      const idx = history.findIndex(h => h.id === activeChatId);
+      if (idx !== -1) {
+        history[idx].messages.push(...item.messages);
+        history[idx].timestamp = item.timestamp;
+        // Bring active conversation card to top of the stack
+        const updated = history.splice(idx, 1)[0];
+        history.unshift(updated);
+        stateStore.set('history', history);
+        localStorage.setItem('mikrotik_chatbot_history', JSON.stringify(history));
+        this.renderList();
+        return;
+      }
+    }
+
+    stateStore.set('currentChatId', item.id);
+    history.unshift(item);
+    if (history.length > 25) {
+      history.pop();
+    }
+    stateStore.set('history', history);
+    localStorage.setItem('mikrotik_chatbot_history', JSON.stringify(history));
+    this.renderList();
+  }
+
+  static restoreItem(item) {
+    if (els.chatMessagesContainer) {
+      els.chatMessagesContainer.innerHTML = '';
+    }
+    els.panelWelcome.classList.add('hidden');
+
+    stateStore.set('currentChatId', item.id);
+    stateStore.set('pastedConfigRaw', '');
+
+    els.selectRosVersion.value = item.rosVersion || 'auto';
+    els.selectHardware.value = item.hardwareModel || 'auto';
+
+    if (item.messages && item.messages.length > 0) {
+      item.messages.forEach(msg => {
+        stateStore.set('analysisResult', msg.result);
+        stateStore.set('pastedConfigRaw', msg.pastedConfig);
+        appendUserMessage(msg.chatMessage, msg.pastedConfig);
+        appendAssistantResponse(msg.result);
+      });
+    }
+
+    if (window.innerWidth < 1024) {
+      stateStore.set('isSidebarOpen', false);
+      renderSidebarState();
+    }
+    showToast('Restored conversation history stream!', 'success');
+  }
+
+  static clearAll() {
+    const t = LocalizationService.getTranslation();
+    stateStore.set('history', []);
+    localStorage.removeItem('mikrotik_chatbot_history');
+    this.renderList();
+    showToast(t.historyWipeToast, 'success');
+  }
+
+  static renderList(filterQuery = '') {
+    const t = LocalizationService.getTranslation();
+    const container = els.historyItemsContainer;
+    if (!container) return;
+
+    container.innerHTML = '';
+    const history = stateStore.get('history');
+
+    const filtered = history.filter(item => {
+      const q = filterQuery.toLowerCase();
+      const matchInMessages = item.messages && item.messages.some(m =>
+        m.chatMessage && m.chatMessage.toLowerCase().includes(q)
+      );
+      return item.title.toLowerCase().includes(q) || matchInMessages;
+    });
+
+    if (history.length === 0) {
+      container.innerHTML = `<div id="ui-history-empty" class="text-center py-8 text-slate-500 text-xs font-medium">${t.historyEmpty}</div>`;
+      return;
+    }
+
+    if (filtered.length === 0) {
+      container.innerHTML = `<div class="text-center py-8 text-slate-500 text-xs font-medium">${t.historyQueryEmpty}</div>`;
+      return;
+    }
+
+    filtered.forEach((item) => {
+      const card = document.createElement('div');
+      card.className = 'group/item relative p-3 bg-cyber-bg border border-cyber-border rounded-xl transition-all duration-300 ease-out-apple cursor-pointer flex flex-col gap-1 hover:border-brand-500/30 hover:shadow-brand-glow active:scale-[0.98]';
+
+      const deleteBtn = document.createElement('button');
+      deleteBtn.className = 'absolute top-3 right-3 text-slate-500 hover:text-red-400 opacity-0 group-hover/item:opacity-100 transition p-1 hover:bg-red-500/10 rounded-md';
+      deleteBtn.setAttribute('aria-label', `Delete audit history item ${item.title}`);
+      deleteBtn.innerHTML = `<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>`;
+
+      deleteBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        let currentHistory = stateStore.get('history').filter(h => h.id !== item.id);
+        stateStore.set('history', currentHistory);
+        if (stateStore.get('currentChatId') === item.id) {
+          startNewChat();
+        }
+        localStorage.setItem('mikrotik_chatbot_history', JSON.stringify(currentHistory));
+        this.renderList(filterQuery);
+      });
+
+      const header = document.createElement('div');
+      header.className = 'flex items-center justify-between pr-5';
+
+      const title = document.createElement('span');
+      title.className = 'text-xs font-bold text-slate-800 dark:text-slate-200 truncate block max-w-[140px]';
+      title.textContent = item.title;
+
+      const time = document.createElement('span');
+      time.className = 'text-[9px] text-slate-500 font-mono';
+      time.textContent = item.timestamp;
+
+      header.appendChild(title);
+      header.appendChild(time);
+
+      const firstMsg = item.messages && item.messages[0] ? item.messages[0].chatMessage : '';
+
+      const desc = document.createElement('p');
+      desc.className = 'text-[10px] text-slate-500 dark:text-slate-400 line-clamp-1 leading-normal';
+      desc.textContent = firstMsg || t.historyNoDesc;
+
+      card.appendChild(header);
+      card.appendChild(desc);
+      card.appendChild(deleteBtn);
+
+      card.addEventListener('click', () => this.restoreItem(item));
+      container.appendChild(card);
+    });
+  }
+}
+
+/**
+ * ============================================================================
+ * UI DOM NODES DEFINITIONS & REFERENCES
+ * ============================================================================
+ */
 const els = {
   pastedConfig: document.getElementById('pasted-config'),
   chatMessage: document.getElementById('chat-message'),
@@ -252,17 +636,14 @@ const els = {
   loadingSpinner: document.getElementById('loading-spinner'),
   submitIcon: document.getElementById('submit-icon'),
 
-  // Theme Toggles
   btnThemeToggle: document.getElementById('btn-theme-toggle'),
   themeSunIcon: document.getElementById('theme-sun-icon'),
   themeMoonIcon: document.getElementById('theme-moon-icon'),
 
-  // Sidebar controls
   btnToggleSidebar: document.getElementById('btn-toggle-sidebar'),
   btnCloseSidebar: document.getElementById('btn-close-sidebar'),
   sidebarControlCenter: document.getElementById('sidebar-control-center'),
 
-  // Sidebar Tabs
   sidebarTabHistory: document.getElementById('sidebar-tab-history'),
   sidebarTabContext: document.getElementById('sidebar-tab-context'),
   sidebarTabPreferences: document.getElementById('sidebar-tab-preferences'),
@@ -270,12 +651,10 @@ const els = {
   sidebarSectionContext: document.getElementById('sidebar-section-context'),
   sidebarSectionPreferences: document.getElementById('sidebar-section-preferences'),
 
-  // History Controls
   btnClearHistory: document.getElementById('btn-clear-history'),
   searchHistory: document.getElementById('search-history'),
   historyItemsContainer: document.getElementById('history-items-container'),
 
-  // Drag and Drop Zone & Overlays
   dragDropZone: document.getElementById('drag-drop-zone'),
   globalDragOverlay: document.getElementById('global-drag-overlay'),
   fileInfoBar: document.getElementById('file-info-bar'),
@@ -284,32 +663,26 @@ const els = {
   btnRemoveFile: document.getElementById('btn-remove-file'),
   fileInput: document.getElementById('file-input'),
 
-  // Collapsible Attachment drawer
   attachmentDrawer: document.getElementById('attachment-drawer'),
   btnToggleDrawer: document.getElementById('btn-toggle-drawer'),
   btnClearAttachment: document.getElementById('btn-clear-attachment'),
 
-  // Chat message stream area
   chatMessagesStream: document.getElementById('chat-messages-stream'),
   chatMessagesContainer: document.getElementById('chat-messages-container'),
 
-  // New Chat Triggers
   btnNewChat: document.getElementById('btn-new-chat'),
   btnHeaderNewChat: document.getElementById('btn-header-new-chat'),
   uiBtnNewChat: document.getElementById('ui-btn-new-chat'),
   uiBtnHeaderNewChat: document.getElementById('ui-btn-header-new-chat'),
 
-  // Dropdown contexts
   selectRosVersion: document.getElementById('select-ros-version'),
   selectHardware: document.getElementById('select-hardware'),
 
-  // MODALS
   modalDiff: document.getElementById('modal-diff'),
   modalCommands: document.getElementById('modal-commands'),
   btnCloseDiff: document.getElementById('btn-close-diff'),
   btnCloseCommands: document.getElementById('btn-close-commands'),
 
-  // Modals Toggles & Content
   diffViewModeSplit: document.getElementById('diff-view-mode-split'),
   diffViewModeUnified: document.getElementById('diff-view-mode-unified'),
   diffTableBody: document.getElementById('diff-table-body'),
@@ -322,18 +695,15 @@ const els = {
   commandsRawContainer: document.getElementById('commands-raw-container'),
   commandsBlock: document.getElementById('commands-block'),
 
-  // Actions / Templates
   panelWelcome: document.getElementById('panel-welcome'),
   btnQuickFirewall: document.getElementById('btn-quick-firewall'),
   btnQuickRouting: document.getElementById('btn-quick-routing'),
 
-  // Sidebar configurations
   btnSaveSettings: document.getElementById('btn-save-settings'),
   btnTestConnection: document.getElementById('btn-test-connection'),
   testSpinner: document.getElementById('test-spinner'),
   testResult: document.getElementById('test-result'),
 
-  // Settings Fields
   settingProvider: document.getElementById('setting-provider'),
   settingModel: document.getElementById('setting-model'),
   settingApiKey: document.getElementById('setting-apikey'),
@@ -341,7 +711,6 @@ const els = {
   settingPrompt: document.getElementById('setting-prompt'),
   settingLanguage: document.getElementById('setting-language'),
 
-  // Settings Toggles
   maskIPs: document.getElementById('mask-ips'),
   maskMACs: document.getElementById('mask-macs'),
   maskSecrets: document.getElementById('mask-secrets'),
@@ -349,17 +718,14 @@ const els = {
   maskDomains: document.getElementById('mask-domains'),
   maskIdentity: document.getElementById('mask-identity'),
 
-  // Statuses
   llmStatusDot: document.getElementById('llm-status-dot'),
   llmStatusText: document.getElementById('llm-status-text'),
   llmStatusDotMobile: document.getElementById('llm-status-dot-mobile'),
   llmStatusTextMobile: document.getElementById('llm-status-text-mobile'),
   privacyCount: document.getElementById('privacy-count'),
 
-  // Toast container
   toastContainer: document.getElementById('toast-container'),
 
-  // Translatable Elements
   uiTitle: document.getElementById('ui-title'),
   uiHeaderTitle: document.getElementById('ui-header-title'),
   uiHeaderBadge: document.getElementById('ui-header-badge'),
@@ -394,28 +760,50 @@ const els = {
   uiLabelSaveSettings: document.getElementById('ui-label-save-settings')
 };
 
-// INITIAL SETUP
+/**
+ * ============================================================================
+ * INITIAL BOOTSTRAPPER
+ * ============================================================================
+ */
 document.addEventListener('DOMContentLoaded', () => {
-  loadSettings();
-  loadHistory();
+  // Bind settings fields from state
+  const settings = stateStore.get('settings');
+  els.settingProvider.value = settings.provider;
+  els.settingModel.value = settings.model || '';
+  els.settingApiKey.value = settings.apiKey || '';
+  els.settingBaseurl.value = settings.baseUrl || '';
+  els.settingPrompt.value = settings.prompt || '';
+
+  els.maskIPs.checked = settings.maskIPs;
+  els.maskMACs.checked = settings.maskMACs;
+  els.maskSecrets.checked = settings.maskSecrets;
+  els.maskInterfaces.checked = settings.maskInterfaces;
+  els.maskDomains.checked = settings.maskDomains;
+  els.maskIdentity.checked = settings.maskIdentity;
+
+  els.settingLanguage.value = stateStore.get('language');
+
+  // Trigger Services
+  LocalizationService.updateUILanguage();
+  HistoryManager.renderList();
   setupEventListeners();
   setupDragAndDrop();
-  updatePrivacyShieldLabel();
-  updateLLMStatusBadge();
-  updateUILanguage();
-  adjustTextAreaHeight();
   applyActiveTheme();
+  adjustTextAreaHeight();
 
-  // Set default active tab
+  // Active sidebar default
   switchSidebarTab('history');
-
-  // Set default Sidebar state based on screen size
   renderSidebarState();
 });
 
-// RESPONSIVE COLLAPSIBLE SIDEBAR RENDERER
+/**
+ * ============================================================================
+ * RESPONSIVE COLLAPSIBLE SIDEBAR RENDERER
+ * ============================================================================
+ */
 function renderSidebarState() {
-  if (state.isSidebarOpen) {
+  const isOpen = stateStore.get('isSidebarOpen');
+  if (isOpen) {
     els.sidebarControlCenter.classList.remove('w-0', 'border-r-0', '-translate-x-full');
     els.sidebarControlCenter.classList.add('w-80', 'border-r');
     if (window.innerWidth < 1024) {
@@ -438,105 +826,29 @@ function renderSidebarState() {
   }
 }
 
-// Window resize handler to maintain responsive sidebar state elegantly
 window.addEventListener('resize', () => {
   renderSidebarState();
 });
 
-// DYNAMIC UI TRANSLATION / LOCALIZATION
-function updateUILanguage() {
-  const currentLang = state.language === 'auto' ? 'en' : state.language;
-  const t = i18n[currentLang] || i18n.en;
-
-  // Title & Headers
-  if (els.uiTitle) els.uiTitle.textContent = t.title;
-  if (els.uiHeaderTitle) els.uiHeaderTitle.textContent = t.headerTitle;
-  if (els.uiHeaderBadge) els.uiHeaderBadge.textContent = t.headerBadge;
-  if (els.uiHeaderDesc) els.uiHeaderDesc.textContent = t.headerDesc;
-
-  // History Sidebar
-  if (els.btnClearHistory) els.btnClearHistory.textContent = t.clearHistory;
-  if (els.searchHistory) els.searchHistory.placeholder = t.searchHistoryPlaceholder;
-  if (els.uiHistoryEmpty) els.uiHistoryEmpty.textContent = t.historyEmpty;
-
-  // Left panel input
-  if (els.uiLabelPasteConfig) {
-    els.uiLabelPasteConfig.textContent = t.pasteConfigLabel;
-  }
-  if (els.pastedConfig) els.pastedConfig.placeholder = t.pastedConfigPlaceholder;
-  if (els.uiDragTitle) els.uiDragTitle.textContent = t.dragTitle;
-  if (els.uiDragDesc) els.uiDragDesc.textContent = t.dragDesc;
-  if (els.chatMessage) els.chatMessage.placeholder = t.chatMessagePlaceholder;
-
-  // Welcome panel
-  if (els.uiLabelWelcomeTitle) els.uiLabelWelcomeTitle.textContent = t.welcomeTitle;
-  if (els.uiLabelWelcomeDesc) els.uiLabelWelcomeDesc.innerHTML = t.welcomeDesc;
-  if (els.uiLabelWelcomePrivacy) els.uiLabelWelcomePrivacy.textContent = t.welcomePrivacy;
-
-  // New Chat buttons
-  if (els.uiBtnNewChat) els.uiBtnNewChat.textContent = t.newChat;
-  if (els.uiBtnHeaderNewChat) els.uiBtnHeaderNewChat.textContent = t.newChat;
-
-  // Diff Headers
-  if (els.uiLabelDiffOriginal) els.uiLabelDiffOriginal.textContent = t.diffOriginalHeader;
-  if (els.uiLabelDiffCorrected) els.uiLabelDiffCorrected.textContent = t.diffCorrectedHeader;
-  if (els.uiLabelDiffUnifiedDesc) els.uiLabelDiffUnifiedDesc.innerHTML = t.diffUnifiedDesc;
-
-  // Fix commands
-  if (els.uiLabelCommandsTip) {
-    els.uiLabelCommandsTip.textContent = t.commandsTip;
-  }
-
-  // Fields
-  if (els.uiLabelLlmProvider) els.uiLabelLlmProvider.textContent = t.settingsLabelLlmProvider;
-  if (els.uiLabelModelName) els.uiLabelModelName.textContent = t.settingsLabelModelName;
-  if (els.uiLabelTestConnection) els.uiLabelTestConnection.textContent = t.settingsBtnTestConnection;
-
-  // Pipeline Fields
-  if (els.uiMaskIpsTitle) els.uiMaskIpsTitle.textContent = t.settingsMaskIpsTitle;
-  if (els.uiMaskIpsDesc) els.uiMaskIpsDesc.textContent = t.settingsMaskIpsDesc;
-  if (els.uiMaskMacsTitle) els.uiMaskMacsTitle.textContent = t.settingsMaskMacsTitle;
-  if (els.uiMaskMacsDesc) els.uiMaskMacsDesc.textContent = t.settingsMaskMacsDesc;
-  if (els.uiMaskSecretsTitle) els.uiMaskSecretsTitle.textContent = t.settingsMaskSecretsTitle;
-  if (els.uiMaskSecretsDesc) els.uiMaskSecretsDesc.textContent = t.settingsMaskSecretsDesc;
-  if (els.uiMaskInterfacesTitle) els.uiMaskInterfacesTitle.textContent = t.settingsMaskInterfacesTitle;
-  if (els.uiMaskInterfacesDesc) els.uiMaskInterfacesDesc.textContent = t.settingsMaskInterfacesDesc;
-  if (els.uiMaskDomainsTitle) els.uiMaskDomainsTitle.textContent = t.settingsMaskDomainsTitle;
-  if (els.uiMaskDomainsDesc) els.uiMaskDomainsDesc.textContent = t.settingsMaskDomainsDesc;
-  if (els.uiMaskIdentityTitle) els.uiMaskIdentityTitle.textContent = t.settingsMaskIdentityTitle;
-  if (els.uiMaskIdentityDesc) els.uiMaskIdentityDesc.textContent = t.settingsMaskIdentityDesc;
-
-  // Prompt Fields
-  if (els.uiLabelPromptOverride) els.uiLabelPromptOverride.textContent = t.settingsLabelPromptOverride;
-  if (els.settingPrompt) els.settingPrompt.placeholder = t.settingsPromptPlaceholder;
-
-  // Save Settings button
-  if (els.uiLabelSaveSettings) els.uiLabelSaveSettings.textContent = t.settingsBtnSave;
-
-  // Dynamic status badges
-  updatePrivacyShieldLabel();
-  updateLLMStatusBadge();
-  renderHistoryList();
-}
-
-// START NEW CHAT SESSIONS
+/**
+ * ============================================================================
+ * STATE-SAVING PREFERENCE WRAPPERS
+ * ============================================================================
+ */
 function startNewChat() {
-  state.currentChatId = null;
-  state.analysisResult = null;
-  state.pastedConfigRaw = '';
+  stateStore.set('currentChatId', null);
+  stateStore.set('analysisResult', null);
+  stateStore.set('pastedConfigRaw', '');
 
-  // Reset UI
   if (els.chatMessagesContainer) {
     els.chatMessagesContainer.innerHTML = '';
   }
   els.panelWelcome.classList.remove('hidden');
 
-  // Clear inputs
   els.chatMessage.value = '';
   adjustTextAreaHeight();
 
-  // Clear file attachment
-  state.currentFile = null;
+  stateStore.set('currentFile', null);
   els.pastedConfig.value = '';
   els.fileInfoBar.classList.add('hidden');
   closeAttachmentDrawer();
@@ -544,318 +856,35 @@ function startNewChat() {
   showToast('Wizard session refreshed. Magic is ready!', 'success');
 }
 
-// LOAD SETTINGS
-function loadSettings() {
-  const saved = localStorage.getItem('mikrotik_chatbot_settings');
-  if (saved) {
-    try {
-      const parsed = JSON.parse(saved);
-      state.settings = { ...state.settings, ...parsed };
-    } catch (e) {
-      console.error('Error parsing settings', e);
-    }
-  } else {
-    updateModelDefaults(state.settings.provider);
-  }
-
-  const savedLang = localStorage.getItem('mikrotik_chatbot_language');
-  if (savedLang) {
-    state.language = savedLang;
-  } else {
-    state.language = 'auto';
-  }
-  els.settingLanguage.value = state.language;
-
-  const savedTheme = localStorage.getItem('mikrotik_chatbot_theme');
-  if (savedTheme) {
-    state.theme = savedTheme;
-  } else {
-    state.theme = 'dark';
-  }
-
-  // Populate Inputs
-  els.settingProvider.value = state.settings.provider;
-  els.settingModel.value = state.settings.model || '';
-  els.settingApiKey.value = state.settings.apiKey || '';
-  els.settingBaseurl.value = state.settings.baseUrl || '';
-  els.settingPrompt.value = state.settings.prompt || '';
-
-  // Populate Toggles
-  els.maskIPs.checked = state.settings.maskIPs;
-  els.maskMACs.checked = state.settings.maskMACs;
-  els.maskSecrets.checked = state.settings.maskSecrets;
-  els.maskInterfaces.checked = state.settings.maskInterfaces;
-  els.maskDomains.checked = state.settings.maskDomains;
-  els.maskIdentity.checked = state.settings.maskIdentity;
-}
-
-// SAVE SETTINGS
 function saveSettings() {
-  const currentLang = state.language === 'auto' ? 'en' : state.language;
-  const t = i18n[currentLang] || i18n.en;
+  const t = LocalizationService.getTranslation();
+  const updated = {
+    provider: els.settingProvider.value,
+    model: els.settingModel.value,
+    apiKey: els.settingApiKey.value,
+    baseUrl: els.settingBaseurl.value,
+    prompt: els.settingPrompt.value,
+    maskIPs: els.maskIPs.checked,
+    maskMACs: els.maskMACs.checked,
+    maskSecrets: els.maskSecrets.checked,
+    maskInterfaces: els.maskInterfaces.checked,
+    maskDomains: els.maskDomains.checked,
+    maskIdentity: els.maskIdentity.checked
+  };
 
-  state.settings.provider = els.settingProvider.value;
-  state.settings.model = els.settingModel.value;
-  state.settings.apiKey = els.settingApiKey.value;
-  state.settings.baseUrl = els.settingBaseurl.value;
-  state.settings.prompt = els.settingPrompt.value;
-
-  state.settings.maskIPs = els.maskIPs.checked;
-  state.settings.maskMACs = els.maskMACs.checked;
-  state.settings.maskSecrets = els.maskSecrets.checked;
-  state.settings.maskInterfaces = els.maskInterfaces.checked;
-  state.settings.maskDomains = els.maskDomains.checked;
-  state.settings.maskIdentity = els.maskIdentity.checked;
-
-  localStorage.setItem('mikrotik_chatbot_settings', JSON.stringify(state.settings));
+  stateStore.saveSettings(updated);
   updatePrivacyShieldLabel();
   updateLLMStatusBadge();
   showToast(t.toastSettingsSaved, 'success');
 }
 
-// UPDATE DEFAULTS
-function updateModelDefaults(provider) {
-  let model = '';
-  let baseUrl = '';
-  if (provider === 'openai') {
-    model = 'gpt-4o-mini';
-    baseUrl = '';
-  } else if (provider === 'anthropic') {
-    model = 'claude-3-5-sonnet-20240620';
-    baseUrl = '';
-  } else if (provider === 'openrouter') {
-    model = 'meta-llama/llama-3-8b-instruct:free';
-    baseUrl = '';
-  } else if (provider === 'ollama') {
-    model = 'llama3';
-    baseUrl = 'http://localhost:11434';
-  } else if (provider === 'custom') {
-    model = '';
-    baseUrl = 'http://localhost:11434';
-  }
-
-  els.settingModel.value = model;
-  els.settingBaseurl.value = baseUrl;
-}
-
-// TOAST NOTIFICATIONS
-function showToast(message, type = 'info') {
-  const toast = document.createElement('div');
-  toast.className = 'p-3 rounded-xl border flex items-center space-x-2.5 shadow-xl transition-all duration-300 transform translate-y-2 opacity-0 pointer-events-auto select-text';
-
-  if (type === 'success') {
-    toast.className += ' bg-emerald-950/90 border-emerald-500/30 text-emerald-300 shadow-emerald-glow';
-    toast.innerHTML = `<span>🟢</span> <span class="text-xs font-semibold">${message}</span>`;
-  } else if (type === 'error') {
-    toast.className += ' bg-red-950/90 border-red-500/30 text-red-300';
-    toast.innerHTML = `<span>🔴</span> <span class="text-xs font-semibold">${message}</span>`;
-  } else {
-    toast.className += ' bg-slate-900/95 border-slate-800 text-slate-300';
-    toast.innerHTML = `<span>🔵</span> <span class="text-xs font-semibold">${message}</span>`;
-  }
-
-  els.toastContainer.appendChild(toast);
-
-  // Trigger animation
-  setTimeout(() => {
-    toast.classList.remove('translate-y-2', 'opacity-0');
-  }, 10);
-
-  // Automatically remove toast
-  setTimeout(() => {
-    toast.classList.add('translate-y-2', 'opacity-0');
-    setTimeout(() => {
-      toast.remove();
-    }, 300);
-  }, 3500);
-}
-
-// DRAG AND DROP HANDLERS
-function setupDragAndDrop() {
-  const currentLang = state.language === 'auto' ? 'en' : state.language;
-  const t = i18n[currentLang] || i18n.en;
-
-  // Global window drag handlers to fade overlay in/out elegantly
-  window.addEventListener('dragenter', (e) => {
-    e.preventDefault();
-    els.globalDragOverlay.classList.remove('hidden');
-  });
-
-  els.globalDragOverlay.addEventListener('dragover', (e) => {
-    e.preventDefault();
-  });
-
-  els.globalDragOverlay.addEventListener('dragleave', (e) => {
-    e.preventDefault();
-    els.globalDragOverlay.classList.add('hidden');
-  });
-
-  window.addEventListener('drop', (e) => {
-    e.preventDefault();
-    els.globalDragOverlay.classList.add('hidden');
-  });
-
-  els.globalDragOverlay.addEventListener('drop', (e) => {
-    e.preventDefault();
-    els.globalDragOverlay.classList.add('hidden');
-
-    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
-      handleUploadedFile(e.dataTransfer.files[0]);
-    }
-  });
-
-  els.btnRemoveFile.addEventListener('click', () => {
-    state.currentFile = null;
-    els.pastedConfig.value = '';
-    els.pastedConfig.disabled = false;
-    els.fileInfoBar.classList.add('hidden');
-  });
-
-  els.fileInput.addEventListener('change', (e) => {
-    if (els.fileInput.files && els.fileInput.files.length > 0) {
-      handleUploadedFile(els.fileInput.files[0]);
-    }
-  });
-}
-
-function handleUploadedFile(file) {
-  const currentLang = state.language === 'auto' ? 'en' : state.language;
-  const t = i18n[currentLang] || i18n.en;
-
-  const validExtensions = ['.rsc', '.txt', '.log'];
-  const ext = file.name.substring(file.name.lastIndexOf('.')).toLowerCase();
-
-  if (!validExtensions.includes(ext) && file.type !== 'text/plain') {
-    showToast(t.toastFileUploadError, 'error');
-    return;
-  }
-
-  const reader = new FileReader();
-  reader.onload = (e) => {
-    state.currentFile = file;
-    els.pastedConfig.value = e.target.result;
-    els.pastedConfig.disabled = false;
-
-    els.fileNameLabel.textContent = file.name;
-    els.fileSizeLabel.textContent = (file.size / 1024).toFixed(1) + ' KB';
-
-    els.fileInfoBar.classList.remove('hidden');
-    openAttachmentDrawer();
-    showToast(t.toastFileUploadSuccess, 'success');
-  };
-  reader.readAsText(file);
-}
-
-// SETUP EVENT LISTENERS
-function setupEventListeners() {
-  // Toggle Sidebar
-  els.btnToggleSidebar.addEventListener('click', () => {
-    state.isSidebarOpen = !state.isSidebarOpen;
-    renderSidebarState();
-  });
-
-  els.btnCloseSidebar.addEventListener('click', () => {
-    state.isSidebarOpen = false;
-    renderSidebarState();
-  });
-
-  // Language selector
-  els.settingLanguage.addEventListener('change', () => {
-    state.language = els.settingLanguage.value;
-    localStorage.setItem('mikrotik_chatbot_language', state.language);
-    updateUILanguage();
-  });
-
-  // Sidebar Section switcher tabs (Chaos-free groupings)
-  els.sidebarTabHistory.addEventListener('click', () => switchSidebarTab('history'));
-  els.sidebarTabContext.addEventListener('click', () => switchSidebarTab('context'));
-  els.sidebarTabPreferences.addEventListener('click', () => switchSidebarTab('preferences'));
-
-  els.settingProvider.addEventListener('change', () => {
-    updateModelDefaults(els.settingProvider.value);
-  });
-
-  els.btnSaveSettings.addEventListener('click', () => {
-    saveSettings();
-    if (window.innerWidth < 1024) {
-      state.isSidebarOpen = false;
-      renderSidebarState();
-    }
-  });
-
-  // Test Connection
-  els.btnTestConnection.addEventListener('click', testConnection);
-
-  // Dynamic status indicators
-  [els.maskIPs, els.maskMACs, els.maskSecrets, els.maskInterfaces, els.maskDomains, els.maskIdentity].forEach(el => {
-    el.addEventListener('change', updatePrivacyShieldLabel);
-  });
-
-  // Collapsible Attachment Drawer trigger
-  els.btnToggleDrawer.addEventListener('click', toggleAttachmentDrawer);
-  els.btnClearAttachment.addEventListener('click', () => {
-    els.pastedConfig.value = '';
-    state.currentFile = null;
-    els.fileInfoBar.classList.add('hidden');
-    closeAttachmentDrawer();
-  });
-
-  // Modal closers
-  els.btnCloseDiff.addEventListener('click', () => els.modalDiff.classList.add('hidden'));
-  els.btnCloseCommands.addEventListener('click', () => els.modalCommands.classList.add('hidden'));
-
-  // Modals click-away
-  [els.modalDiff, els.modalCommands].forEach(modal => {
-    modal.addEventListener('click', (e) => {
-      if (e.target === modal) {
-        modal.classList.add('hidden');
-      }
-    });
-  });
-
-  // Diff view mode toggles inside modal
-  els.diffViewModeSplit.addEventListener('click', () => switchDiffMode('split'));
-  els.diffViewModeUnified.addEventListener('click', () => switchDiffMode('unified'));
-
-  // Commands checklist toggles inside modal
-  els.commandViewModeChecklist.addEventListener('click', () => switchCommandMode('checklist'));
-  els.commandViewModeRaw.addEventListener('click', () => switchCommandMode('raw'));
-
-  // Quick Action Welcome Panel triggers
-  els.btnQuickFirewall.addEventListener('click', loadFirewallTemplate);
-  els.btnQuickRouting.addEventListener('click', loadRoutingTemplate);
-
-  // Clear Session History button
-  els.btnClearHistory.addEventListener('click', clearHistory);
-
-  // New Chat triggers
-  els.btnNewChat.addEventListener('click', startNewChat);
-  els.btnHeaderNewChat.addEventListener('click', startNewChat);
-
-  // History filtering input
-  els.searchHistory.addEventListener('input', () => renderHistoryList(els.searchHistory.value));
-
-  // Chat message height auto adjustment
-  els.chatMessage.addEventListener('input', adjustTextAreaHeight);
-
-  // Submission
-  els.btnSubmit.addEventListener('click', submitChat);
-
-  // Enter key trigger for quick sending (Shift+Enter for new line)
-  els.chatMessage.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault();
-      submitChat();
-    }
-  });
-
-  // Theme Toggle Button
-  els.btnThemeToggle.addEventListener('click', toggleTheme);
-}
-
-// APPLY ACTIVE THEME
+/**
+ * ============================================================================
+ * ACCESSIBLE GENTLE THEME TOGGLERS
+ * ============================================================================
+ */
 function applyActiveTheme() {
-  const isLight = state.theme === 'light';
+  const isLight = stateStore.get('theme') === 'light';
   if (isLight) {
     document.documentElement.classList.add('light');
     document.documentElement.classList.remove('dark');
@@ -869,17 +898,17 @@ function applyActiveTheme() {
   }
 }
 
-// TOGGLE THEME
 function toggleTheme() {
-  state.theme = state.theme === 'dark' ? 'light' : 'dark';
-  localStorage.setItem('mikrotik_chatbot_theme', state.theme);
+  const currentTheme = stateStore.get('theme');
+  const nextTheme = currentTheme === 'dark' ? 'light' : 'dark';
+  stateStore.saveTheme(nextTheme);
   applyActiveTheme();
 }
 
 function switchSidebarTab(tabId) {
-  state.activeSidebarTab = tabId;
+  stateStore.set('activeSidebarTab', tabId);
 
-  // Reset tab button states
+  // Reset visual tab active/inactive states
   [els.sidebarTabHistory, els.sidebarTabContext, els.sidebarTabPreferences].forEach(el => {
     el.className = 'py-1.5 px-1 text-[10px] font-bold rounded-lg text-slate-500 hover:text-slate-900 dark:hover:text-white transition truncate text-center';
   });
@@ -888,21 +917,21 @@ function switchSidebarTab(tabId) {
   els.sidebarSectionContext.classList.add('hidden');
   els.sidebarSectionPreferences.classList.add('hidden');
 
-  if (tabId === 'history') {
-    els.sidebarTabHistory.className = 'py-1.5 px-1 text-[10px] font-bold rounded-lg bg-slate-200 dark:bg-slate-800/80 text-brand-600 dark:text-brand-400 border border-cyber-border hover:text-brand-500 transition truncate text-center';
-    els.sidebarSectionHistory.classList.remove('hidden');
-  } else if (tabId === 'context') {
-    els.sidebarTabContext.className = 'py-1.5 px-1 text-[10px] font-bold rounded-lg bg-slate-200 dark:bg-slate-800/80 text-brand-600 dark:text-brand-400 border border-cyber-border hover:text-brand-500 transition truncate text-center';
-    els.sidebarSectionContext.classList.remove('hidden');
-  } else if (tabId === 'preferences') {
-    els.sidebarTabPreferences.className = 'py-1.5 px-1 text-[10px] font-bold rounded-lg bg-slate-200 dark:bg-slate-800/80 text-brand-600 dark:text-brand-400 border border-cyber-border hover:text-brand-500 transition truncate text-center';
-    els.sidebarSectionPreferences.classList.remove('hidden');
-  }
+  const activeBtn = tabId === 'history' ? els.sidebarTabHistory : (tabId === 'context' ? els.sidebarTabContext : els.sidebarTabPreferences);
+  activeBtn.className = 'py-1.5 px-1 text-[10px] font-bold rounded-lg bg-slate-200 dark:bg-slate-800/80 text-brand-600 dark:text-brand-400 border border-cyber-border hover:text-brand-500 transition truncate text-center';
+
+  const activeSection = tabId === 'history' ? els.sidebarSectionHistory : (tabId === 'context' ? els.sidebarSectionContext : els.sidebarSectionPreferences);
+  activeSection.classList.remove('hidden');
 }
 
-// TOGGLE ATTACHMENT DRAWER
+/**
+ * ============================================================================
+ * RSC ATTACHMENTS & COLLAPSIBLE ATTACHMENTS DRAWER
+ * ============================================================================
+ */
 function toggleAttachmentDrawer() {
-  if (state.isAttachmentDrawerOpen) {
+  const isOpen = stateStore.get('isAttachmentDrawerOpen');
+  if (isOpen) {
     closeAttachmentDrawer();
   } else {
     openAttachmentDrawer();
@@ -910,184 +939,97 @@ function toggleAttachmentDrawer() {
 }
 
 function openAttachmentDrawer() {
-  state.isAttachmentDrawerOpen = true;
+  stateStore.set('isAttachmentDrawerOpen', true);
   els.attachmentDrawer.classList.remove('hidden');
   els.btnToggleDrawer.classList.add('bg-brand-500/10', 'text-brand-400');
 }
 
-// text area auto grow
+function closeAttachmentDrawer() {
+  stateStore.set('isAttachmentDrawerOpen', false);
+  els.attachmentDrawer.classList.add('hidden');
+  els.btnToggleDrawer.classList.remove('bg-brand-500/10', 'text-brand-400');
+}
+
 function adjustTextAreaHeight() {
   const textarea = els.chatMessage;
   textarea.style.height = '38px';
   textarea.style.height = Math.max(38, Math.min(textarea.scrollHeight, 128)) + 'px';
 }
 
-function closeAttachmentDrawer() {
-  state.isAttachmentDrawerOpen = false;
-  els.attachmentDrawer.classList.add('hidden');
-  els.btnToggleDrawer.classList.remove('bg-brand-500/10', 'text-brand-400');
-}
+function setupDragAndDrop() {
+  const t = LocalizationService.getTranslation();
 
-// LOCAL HISTORY PERSISTENCE
-function loadHistory() {
-  const saved = localStorage.getItem('mikrotik_chatbot_history');
-  if (saved) {
-    try {
-      state.history = JSON.parse(saved);
-    } catch (e) {
-      console.error('Error parsing history', e);
-    }
-  }
-  renderHistoryList();
-}
-
-function saveHistoryItem(item) {
-  // If we are currently continuing an existing chat session (state.currentChatId is set)
-  if (state.currentChatId) {
-    const existingIndex = state.history.findIndex(h => h.id === state.currentChatId);
-    if (existingIndex !== -1) {
-      // Append the latest message pair to the existing history log
-      state.history[existingIndex].messages.push(...item.messages);
-      state.history[existingIndex].timestamp = item.timestamp;
-      // Bring updated history card to top
-      const updatedCard = state.history.splice(existingIndex, 1)[0];
-      state.history.unshift(updatedCard);
-      localStorage.setItem('mikrotik_chatbot_history', JSON.stringify(state.history));
-      renderHistoryList();
-      return;
-    }
-  }
-
-  // Otherwise, start a brand new chat item
-  state.currentChatId = item.id;
-  state.history.unshift(item);
-  if (state.history.length > 25) {
-    state.history.pop();
-  }
-  localStorage.setItem('mikrotik_chatbot_history', JSON.stringify(state.history));
-  renderHistoryList();
-}
-
-// RENDER HISTORY LIST
-function renderHistoryList(filterQuery = '') {
-  const currentLang = state.language === 'auto' ? 'en' : state.language;
-  const t = i18n[currentLang] || i18n.en;
-
-  const container = els.historyItemsContainer;
-  container.innerHTML = '';
-
-  const filtered = state.history.filter(item => {
-    const q = filterQuery.toLowerCase();
-    const hasInMessages = item.messages && item.messages.some(m =>
-      (m.chatMessage && m.chatMessage.toLowerCase().includes(q))
-    );
-    return item.title.toLowerCase().includes(q) || hasInMessages;
+  window.addEventListener('dragenter', (e) => {
+    e.preventDefault();
+    els.globalDragOverlay.classList.remove('hidden');
   });
 
-  if (state.history.length === 0) {
-    container.innerHTML = `<div id="ui-history-empty" class="text-center py-8 text-slate-500 text-xs">${t.historyEmpty}</div>`;
-    return;
-  }
+  els.globalDragOverlay.addEventListener('dragover', (e) => e.preventDefault());
+  els.globalDragOverlay.addEventListener('dragleave', (e) => {
+    e.preventDefault();
+    els.globalDragOverlay.classList.add('hidden');
+  });
 
-  if (filtered.length === 0) {
-    container.innerHTML = `<div class="text-center py-8 text-slate-500 text-xs">${t.historyQueryEmpty}</div>`;
-    return;
-  }
+  window.addEventListener('drop', (e) => {
+    e.preventDefault();
+    els.globalDragOverlay.classList.add('hidden');
+  });
 
-  filtered.forEach((item) => {
-    const card = document.createElement('div');
-    card.className = 'group/item relative p-3 bg-cyber-bg border border-cyber-border rounded-xl transition-all duration-300 ease-out-apple cursor-pointer flex flex-col gap-1 hover:border-brand-500/30 hover:shadow-brand-glow active:scale-[0.98]';
+  els.globalDragOverlay.addEventListener('drop', (e) => {
+    e.preventDefault();
+    els.globalDragOverlay.classList.add('hidden');
+    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+      handleUploadedFile(e.dataTransfer.files[0]);
+    }
+  });
 
-    const deleteBtn = document.createElement('button');
-    deleteBtn.className = 'absolute top-3 right-3 text-slate-500 hover:text-red-400 opacity-0 group-hover/item:opacity-100 transition p-1 hover:bg-red-500/10 rounded-md';
-    deleteBtn.innerHTML = `<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>`;
+  els.btnRemoveFile.addEventListener('click', () => {
+    stateStore.set('currentFile', null);
+    els.pastedConfig.value = '';
+    els.pastedConfig.disabled = false;
+    els.fileInfoBar.classList.add('hidden');
+  });
 
-    deleteBtn.addEventListener('click', (e) => {
-      e.stopPropagation();
-      state.history = state.history.filter(h => h.id !== item.id);
-      if (state.currentChatId === item.id) {
-        startNewChat();
-      }
-      localStorage.setItem('mikrotik_chatbot_history', JSON.stringify(state.history));
-      renderHistoryList(filterQuery);
-    });
-
-    const header = document.createElement('div');
-    header.className = 'flex items-center justify-between pr-5';
-
-    const title = document.createElement('span');
-    title.className = 'text-xs font-bold text-slate-800 dark:text-slate-200 truncate block max-w-[140px]';
-    title.textContent = item.title;
-
-    const time = document.createElement('span');
-    time.className = 'text-[9px] text-slate-500 font-mono';
-    time.textContent = item.timestamp;
-
-    header.appendChild(title);
-    header.appendChild(time);
-
-    // Grab first message description
-    const firstMsg = item.messages && item.messages[0] ? item.messages[0].chatMessage : '';
-
-    const desc = document.createElement('p');
-    desc.className = 'text-[10px] text-slate-500 dark:text-slate-400 line-clamp-1 leading-normal';
-    desc.textContent = firstMsg || t.historyNoDesc;
-
-    card.appendChild(header);
-    card.appendChild(desc);
-    card.appendChild(deleteBtn);
-
-    card.addEventListener('click', () => {
-      restoreHistoryItem(item);
-    });
-
-    container.appendChild(card);
+  els.fileInput.addEventListener('change', () => {
+    if (els.fileInput.files && els.fileInput.files.length > 0) {
+      handleUploadedFile(els.fileInput.files[0]);
+    }
   });
 }
 
-function restoreHistoryItem(item) {
-  // Clear chat stream and restore a single conversation step
-  if (els.chatMessagesContainer) {
-    els.chatMessagesContainer.innerHTML = '';
-  }
-  els.panelWelcome.classList.add('hidden');
+function handleUploadedFile(file) {
+  const t = LocalizationService.getTranslation();
+  const validExtensions = ['.rsc', '.txt', '.log'];
+  const ext = file.name.substring(file.name.lastIndexOf('.')).toLowerCase();
 
-  state.currentChatId = item.id;
-
-  // Set selectors
-  els.selectRosVersion.value = item.rosVersion || 'auto';
-  els.selectHardware.value = item.hardwareModel || 'auto';
-
-  if (item.messages && item.messages.length > 0) {
-    item.messages.forEach(msg => {
-      state.analysisResult = msg.result;
-      state.pastedConfigRaw = msg.pastedConfig;
-      appendUserMessage(msg.chatMessage, msg.pastedConfig);
-      appendAssistantResponse(msg.result);
-    });
+  if (!validExtensions.includes(ext) && file.type !== 'text/plain') {
+    showToast(t.toastFileUploadError, 'error');
+    return;
   }
 
-  if (window.innerWidth < 1024) {
-    state.isSidebarOpen = false;
-    renderSidebarState();
-  }
-  showToast('Restored conversation history stream!', 'success');
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    stateStore.set('currentFile', file);
+    els.pastedConfig.value = e.target.result;
+    els.pastedConfig.disabled = false;
+
+    els.fileNameLabel.textContent = file.name;
+    els.fileSizeLabel.textContent = (file.size / 1024).toFixed(1) + ' KB';
+
+    els.fileInfoBar.classList.remove('hidden');
+    openAttachmentDrawer();
+    showToast(t.toastFileUploadSuccess, 'success');
+  };
+  reader.readAsText(file);
 }
 
-function clearHistory() {
-  const currentLang = state.language === 'auto' ? 'en' : state.language;
-  const t = i18n[currentLang] || i18n.en;
-
-  state.history = [];
-  localStorage.removeItem('mikrotik_chatbot_history');
-  renderHistoryList();
-  showToast(t.historyWipeToast, 'success');
-}
-
+/**
+ * ============================================================================
+ * SYSTEM STATUS BADGES & PRIVATE CHECKS
+ * ============================================================================
+ */
 function updatePrivacyShieldLabel() {
-  const currentLang = state.language === 'auto' ? 'en' : state.language;
-  const t = i18n[currentLang] || i18n.en;
-
+  const t = LocalizationService.getTranslation();
   let activeCount = 0;
   if (els.maskIPs.checked) activeCount++;
   if (els.maskMACs.checked) activeCount++;
@@ -1100,8 +1042,9 @@ function updatePrivacyShieldLabel() {
 }
 
 function updateLLMStatusBadge() {
-  const prov = state.settings.provider;
-  const hasKey = !!state.settings.apiKey;
+  const settings = stateStore.get('settings');
+  const prov = settings.provider;
+  const hasKey = !!settings.apiKey;
 
   let activeText = '';
   let isActive = false;
@@ -1117,7 +1060,6 @@ function updateLLMStatusBadge() {
     isActive = false;
   }
 
-  // Desktop badge update
   if (isActive) {
     els.llmStatusDot.className = 'w-2.5 h-2.5 bg-cyber-emerald rounded-full animate-pulse shadow-emerald-glow';
     els.llmStatusText.textContent = activeText;
@@ -1137,15 +1079,17 @@ function updateLLMStatusBadge() {
   }
 }
 
-// SIMULATE CONNECTION TEST
+/**
+ * ============================================================================
+ * BACKEND API CONVERGENCE (Connection test, templates, modals rendering)
+ * ============================================================================
+ */
 async function testConnection() {
   const prov = els.settingProvider.value;
   const key = els.settingApiKey.value;
   const model = els.settingModel.value;
   const base = els.settingBaseurl.value;
-
-  const currentLang = state.language === 'auto' ? 'en' : state.language;
-  const t = i18n[currentLang] || i18n.en;
+  const t = LocalizationService.getTranslation();
 
   els.testSpinner.classList.remove('hidden');
   els.testResult.textContent = '';
@@ -1175,31 +1119,24 @@ async function testConnection() {
   }
 }
 
-// TEMPLATE LOADING
 function loadFirewallTemplate() {
-  const currentLang = state.language === 'auto' ? 'en' : state.language;
-  const t = i18n[currentLang] || i18n.en;
-
+  const t = LocalizationService.getTranslation();
   els.pastedConfig.value = `/ip firewall filter\nadd action=accept chain=input comment="defconf: accept established,related" connection-state=established,related\nadd action=drop chain=input comment="defconf: drop invalid" connection-state=invalid\nadd action=accept chain=input protocol=icmp\nadd action=drop chain=input comment="defconf: drop WAN access" in-interface-list=WAN\nadd action=accept chain=forward comment="defconf: accept in-interface=ether1" in-interface=ether1`;
   els.chatMessage.value = "Audita le mie regole di firewall. Ci sono vulnerabilità o porte non protette?";
   openAttachmentDrawer();
   showToast(t.toastTemplateFirewall, 'success');
 }
 
-// TEMPLATE LOADING ROUTING
 function loadRoutingTemplate() {
-  const currentLang = state.language === 'auto' ? 'en' : state.language;
-  const t = i18n[currentLang] || i18n.en;
-
+  const t = LocalizationService.getTranslation();
   els.pastedConfig.value = `/ip route\nadd dst-address=0.0.0.0/0 gateway=192.168.88.1 routing-table=main\n/ip dns\nset allow-remote-requests=yes servers=8.8.8.8,1.1.1.1`;
   els.chatMessage.value = "Why cannot users connect to local addresses, and how should static gateway routes be defined securely?";
   openAttachmentDrawer();
   showToast(t.toastTemplateRouting, 'success');
 }
 
-// TOGGLE MODAL VIEWS & RENDERING DIFF / COMMANDS
 function switchDiffMode(modeId) {
-  state.diffMode = modeId;
+  stateStore.set('diffMode', modeId);
   els.diffViewModeSplit.className = 'px-2.5 py-1 text-[10px] font-bold rounded text-slate-500 hover:text-white transition';
   els.diffViewModeUnified.className = 'px-2.5 py-1 text-[10px] font-bold rounded text-slate-500 hover:text-white transition';
 
@@ -1209,14 +1146,15 @@ function switchDiffMode(modeId) {
     els.diffViewModeUnified.className = 'px-2.5 py-1 text-[10px] font-bold rounded bg-slate-800 text-cyber-accent border border-cyber-border transition';
   }
 
-  if (state.analysisResult) {
-    renderDiff(state.pastedConfigRaw, state.analysisResult.correctedConfig || '');
+  const analysis = stateStore.get('analysisResult');
+  const pasted = stateStore.get('pastedConfigRaw');
+  if (analysis) {
+    renderDiff(pasted, analysis.correctedConfig || '');
   }
 }
 
-// SWITCH COMMAND MODE
 function switchCommandMode(modeId) {
-  state.commandMode = modeId;
+  stateStore.set('commandMode', modeId);
   els.commandViewModeChecklist.className = 'px-2.5 py-1 text-[10px] font-bold rounded text-slate-500 hover:text-white transition';
   els.commandViewModeRaw.className = 'px-2.5 py-1 text-[10px] font-bold rounded text-slate-500 hover:text-white transition';
 
@@ -1231,62 +1169,19 @@ function switchCommandMode(modeId) {
   }
 }
 
-// LIGHTWEIGHT LINE DIFF ENGINE
-function computeLineDiff(originalText, correctedText) {
-  const leftLines = originalText.split('\n');
-  const rightLines = correctedText.split('\n');
-
-  const alignedLines = [];
-  let i = 0, j = 0;
-
-  while (i < leftLines.length || j < rightLines.length) {
-    const leftLine = leftLines[i] !== undefined ? leftLines[i] : null;
-    const rightLine = rightLines[j] !== undefined ? rightLines[j] : null;
-
-    if (leftLine === rightLine) {
-      if (leftLine !== null) {
-        alignedLines.push({ type: 'equal', left: leftLine, right: rightLine });
-      }
-      i++; j++;
-    } else {
-      const leftLookahead = leftLines[i + 1] !== undefined ? leftLines[i + 1] : null;
-      const rightLookahead = rightLines[j + 1] !== undefined ? rightLines[j + 1] : null;
-
-      if (leftLine !== null && rightLine !== null && leftLine.trim() !== '' && rightLine.trim() !== '' &&
-          (leftLine.substring(0, 8) === rightLine.substring(0, 8) || leftLine.includes('interface') && rightLine.includes('interface'))) {
-        alignedLines.push({ type: 'modify', left: leftLine, right: rightLine });
-        i++; j++;
-      } else if (leftLine !== null && rightLookahead === leftLine) {
-        alignedLines.push({ type: 'insert', left: '', right: rightLine });
-        j++;
-      } else if (rightLine !== null && leftLookahead === rightLine) {
-        alignedLines.push({ type: 'delete', left: leftLine, right: '' });
-        i++;
-      } else {
-        if (leftLine !== null && rightLine !== null) {
-          alignedLines.push({ type: 'modify', left: leftLine, right: rightLine });
-          i++; j++;
-        } else if (leftLine !== null) {
-          alignedLines.push({ type: 'delete', left: leftLine, right: '' });
-          i++;
-        } else if (rightLine !== null) {
-          alignedLines.push({ type: 'insert', left: '', right: rightLine });
-          j++;
-        }
-      }
-    }
-  }
-
-  return alignedLines;
-}
-
+/**
+ * ============================================================================
+ * MODALS VISUAL DIFF & CHECKLIST RENDERING (Leveraging global public/utils.js)
+ * ============================================================================
+ */
 function renderDiff(originalText, correctedText) {
   const tbody = els.diffTableBody;
   tbody.innerHTML = '';
 
-  const alignedLines = computeLineDiff(originalText, correctedText);
+  const alignedLines = window.computeLineDiff(originalText, correctedText);
+  const mode = stateStore.get('diffMode');
 
-  if (state.diffMode === 'split') {
+  if (mode === 'split') {
     els.diffSplitHeaders.classList.remove('hidden');
     els.diffUnifiedHeader.classList.add('hidden');
 
@@ -1329,31 +1224,28 @@ function renderDiff(originalText, correctedText) {
     els.diffUnifiedHeader.classList.remove('hidden');
 
     alignedLines.forEach((row) => {
+      const tr = document.createElement('tr');
+      tr.className = 'border-b border-slate-900 hover:bg-slate-900/40';
+      const td = document.createElement('td');
+      td.className = 'p-2 whitespace-pre-wrap break-all select-text font-mono text-xs';
+
       if (row.type === 'equal') {
-        const tr = document.createElement('tr');
-        tr.className = 'border-b border-slate-900 hover:bg-slate-900/40 text-slate-500';
-        const td = document.createElement('td');
-        td.className = 'p-2 whitespace-pre-wrap break-all select-text font-mono text-xs';
+        tr.className += ' text-slate-500';
         td.textContent = `  ${row.left}`;
         tr.appendChild(td);
         tbody.appendChild(tr);
       } else if (row.type === 'delete') {
-        const tr = document.createElement('tr');
-        tr.className = 'border-b border-slate-900 hover:bg-slate-900/40';
-        const td = document.createElement('td');
-        td.className = 'p-2 whitespace-pre-wrap break-all select-text font-mono text-xs diff-deleted text-cyber-red font-medium';
+        td.className += ' diff-deleted text-cyber-red font-medium';
         td.textContent = `- ${row.left}`;
         tr.appendChild(td);
         tbody.appendChild(tr);
       } else if (row.type === 'insert') {
-        const tr = document.createElement('tr');
-        tr.className = 'border-b border-slate-900 hover:bg-slate-900/40';
-        const td = document.createElement('td');
-        td.className = 'p-2 whitespace-pre-wrap break-all select-text font-mono text-xs diff-inserted text-cyber-emerald font-medium';
+        td.className += ' diff-inserted text-cyber-emerald font-medium';
         td.textContent = `+ ${row.right}`;
         tr.appendChild(td);
         tbody.appendChild(tr);
       } else if (row.type === 'modify') {
+        // Red line followed by green line
         const trDel = document.createElement('tr');
         trDel.className = 'border-b border-slate-900 hover:bg-slate-900/40';
         const tdDel = document.createElement('td');
@@ -1375,9 +1267,7 @@ function renderDiff(originalText, correctedText) {
 }
 
 function renderCommands(fixCommands) {
-  const currentLang = state.language === 'auto' ? 'en' : state.language;
-  const t = i18n[currentLang] || i18n.en;
-
+  const t = LocalizationService.getTranslation();
   els.commandsBlock.textContent = fixCommands || t.commandsRawNoNeed;
 
   const container = els.commandsChecklistContainer;
@@ -1441,86 +1331,11 @@ function renderCommands(fixCommands) {
   });
 }
 
-// MARKDOWN RENDERING FOR EXPLANATIONS IN CHAT BUBBLE
-function renderMarkdown(text) {
-  if (!text) return '';
-
-  // Clean up empty backticks/space patterns (such as ` `bash ... ` `) which cause ugly grey squares
-  let html = text.replace(/`[\s]*`/g, '');
-
-  // Escape HTML tags
-  html = html
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;');
-
-  // Restore markers
-  html = html
-    .replace(/&lt;&lt;&lt;EXPLANATION&gt;&gt;&gt;/g, '')
-    .replace(/&lt;&lt;&lt;END_EXPLANATION&gt;&gt;&gt;/g, '');
-
-  // Bullet lists
-  html = html.replace(/^\s*[\-\*]\s+(.*)$/gm, '<li class="ml-4 list-disc text-slate-700 dark:text-slate-300">$1</li>');
-  html = html.replace(/(<li.*<\/li>)/gs, '<ul class="my-2 space-y-1.5">$1</ul>');
-
-  // Headers (###, ##, #)
-  html = html.replace(/^### (.*$)/gim, '<h5 class="text-xs font-black text-slate-800 dark:text-white mt-4 mb-2 uppercase tracking-wide">$1</h5>');
-  html = html.replace(/^## (.*$)/gim, '<h4 class="text-sm font-bold text-slate-800 dark:text-white mt-5 mb-2 border-b border-cyber-border pb-1.5">$1</h4>');
-  html = html.replace(/^# (.*$)/gim, '<h3 class="text-base font-bold text-cyber-accent mt-6 mb-3">$1</h3>');
-
-  // Bold (**text**)
-  html = html.replace(/\*\*(.*?)\*\*/g, '<strong class="text-slate-800 dark:text-white font-semibold">$1</strong>');
-
-  // Inline code (`code`) - beautifully legible high contrast color scheme in both light/dark themes!
-  html = html.replace(/`(.*?)`/g, '<code class="bg-slate-200 dark:bg-[#0b0f19] text-brand-700 dark:text-cyber-accent font-mono text-[11px] px-1.5 py-0.5 rounded border border-cyber-border">$1</code>');
-
-  // Code blocks (with custom styling and copy button)
-  html = html.replace(/```[a-z]*\n([\s\S]*?)```/g, (match, code) => {
-    const uniqueId = 'code-' + Math.random().toString(36).substr(2, 9);
-    // Escape raw code again to be 100% safe
-    const escapedCode = code.trim();
-    return `
-      <div class="relative group/code my-3.5 border border-cyber-border rounded-xl overflow-hidden bg-slate-950 font-mono text-xs select-text">
-        <div class="flex items-center justify-between px-4 py-2 bg-cyber-panel/80 border-b border-cyber-border select-none">
-          <span class="text-[9px] font-bold text-slate-500 uppercase tracking-wider font-mono">RouterOS Spell</span>
-          <button onclick="copySnippetText('${uniqueId}', this)" class="text-[10px] bg-[#1e1b4b] border border-cyber-border hover:bg-indigo-900 text-slate-300 px-2.5 py-1 rounded-md font-bold transition">Copy Code</button>
-        </div>
-        <pre id="${uniqueId}" class="p-3.5 text-slate-300 overflow-x-auto leading-relaxed select-all">${escapedCode}</pre>
-      </div>
-    `;
-  });
-
-  // Newlines to paragraphs
-  html = html.split('\n\n').map(p => {
-    const trimmed = p.trim();
-    if (trimmed.startsWith('<h') || trimmed.startsWith('<u') || trimmed.startsWith('<div') || trimmed.startsWith('<li')) {
-      return p;
-    }
-    return `<p class="mb-3 text-slate-700 dark:text-slate-300 leading-relaxed">${p}</p>`;
-  }).join('');
-
-  return html;
-}
-
-// Snippet copying logic exposed globally
-window.copySnippetText = function(id, btn) {
-  const pre = document.getElementById(id);
-  if (!pre) return;
-
-  const text = pre.innerText;
-  navigator.clipboard.writeText(text).then(() => {
-    const orig = btn.textContent;
-    btn.textContent = 'Copied!';
-    btn.className = 'text-[10px] bg-emerald-950 border border-cyber-emerald text-cyber-emerald px-2.5 py-1 rounded-md font-bold transition';
-    showToast('Snippet copied successfully!', 'success');
-    setTimeout(() => {
-      btn.textContent = orig;
-      btn.className = 'text-[10px] bg-[#1e1b4b] border border-cyber-border hover:bg-indigo-900 text-slate-300 px-2.5 py-1 rounded-md font-bold transition';
-    }, 1500);
-  });
-};
-
-// APPEND USER BUBBLE
+/**
+ * ============================================================================
+ * CONVERSATION STREAM LAYOUT BUILDERS (Bubble appending)
+ * ============================================================================
+ */
 function appendUserMessage(messageText, pastedConfigText) {
   const container = els.chatMessagesContainer || els.chatMessagesStream;
   const bubble = document.createElement('div');
@@ -1552,20 +1367,18 @@ function appendUserMessage(messageText, pastedConfigText) {
   scrollStreamToBottom();
 }
 
-// APPEND ASSISTANT RESPONSE
 function appendAssistantResponse(result) {
   const container = els.chatMessagesContainer || els.chatMessagesStream;
   const wrapper = document.createElement('div');
   wrapper.className = 'flex flex-col space-y-2.5 items-start max-w-3xl mr-auto w-full select-text animate-apple-reveal';
 
-  const explanationHtml = renderMarkdown(result.explanation || 'No explanation returned.');
+  const explanationHtml = window.renderMarkdown(result.explanation || 'No explanation returned.');
+  const pasted = stateStore.get('pastedConfigRaw');
 
-  // Determine if Config Diff is necessary
   const hasDiff = result.correctedConfig && result.correctedConfig.trim().length > 0 &&
-                  state.pastedConfigRaw && state.pastedConfigRaw.trim().length > 0 &&
-                  result.correctedConfig.trim() !== state.pastedConfigRaw.trim();
+                  pasted && pasted.trim().length > 0 &&
+                  result.correctedConfig.trim() !== pasted.trim();
 
-  // Determine if Fix Checklist is necessary
   const rawLines = result.fixCommands ? result.fixCommands.split('\n') : [];
   const hasCommands = rawLines.map(line => line.trim()).some(line => line.length > 0 && !line.startsWith('#'));
 
@@ -1599,11 +1412,10 @@ function appendAssistantResponse(result) {
     </div>
   `;
 
-  // Bind the buttons inside the bubble if present
   const btnDiff = wrapper.querySelector('#btn-show-diff-overlay');
   if (btnDiff) {
     btnDiff.addEventListener('click', () => {
-      renderDiff(state.pastedConfigRaw, result.correctedConfig || '');
+      renderDiff(pasted, result.correctedConfig || '');
       els.modalDiff.classList.remove('hidden');
     });
   }
@@ -1624,12 +1436,49 @@ function scrollStreamToBottom() {
   els.chatMessagesStream.scrollTop = els.chatMessagesStream.scrollHeight;
 }
 
-// MULTI-STEP PROGRESSIVE PIPELINE SUBMISSION (INLINE DIRECTLY INSIDE CHAT)
-async function runStepperAndSubmit(submitPayload) {
-  const currentLang = state.language === 'auto' ? 'en' : state.language;
-  const t = i18n[currentLang] || i18n.en;
+/**
+ * ============================================================================
+ * HIGH-IMPACT INLINE RETRY EXCEPTION CARDS
+ * ============================================================================
+ */
+function appendInlineErrorCard(errorMessage, retryCallback) {
+  const container = els.chatMessagesContainer || els.chatMessagesStream;
+  const card = document.createElement('div');
+  card.className = 'flex flex-col space-y-3 p-5 rounded-2xl bg-red-950/40 border border-red-500/30 shadow-lg text-xs text-red-200 w-full max-w-2xl animate-apple-reveal';
 
-  // Construct and append the inline loader card directly inside the chat messages stream!
+  card.innerHTML = `
+    <div class="flex items-start space-x-3">
+      <span class="text-base select-none">💥</span>
+      <div class="flex-1 space-y-1">
+        <h4 class="font-bold uppercase tracking-wider text-red-400">Analysis Spell Failed</h4>
+        <p class="leading-relaxed font-medium">${errorMessage}</p>
+      </div>
+    </div>
+    <div class="flex justify-end pt-2 border-t border-red-500/10">
+      <button id="btn-inline-retry" class="px-4 py-2 bg-red-500 hover:bg-red-600 active:scale-95 text-white font-bold rounded-xl text-[10px] uppercase tracking-wide transition flex items-center space-x-1.5 select-none shadow">
+        <span>🔄</span> <span>Retry Analysis</span>
+      </button>
+    </div>
+  `;
+
+  const btnRetry = card.querySelector('#btn-inline-retry');
+  btnRetry.addEventListener('click', () => {
+    card.remove();
+    retryCallback();
+  });
+
+  container.appendChild(card);
+  scrollStreamToBottom();
+}
+
+/**
+ * ============================================================================
+ * INTERACTIVE MULTI-STEP PIPELINE (runStepperAndSubmit)
+ * ============================================================================
+ */
+async function runStepperAndSubmit(submitPayload) {
+  const t = LocalizationService.getTranslation();
+
   const loaderCard = document.createElement('div');
   loaderCard.id = 'inline-loader-card';
   loaderCard.className = 'flex flex-col space-y-3.5 items-start max-w-2xl mr-auto w-full select-none p-5 rounded-2xl bg-cyber-panel border border-brand-500/30 shadow-brand-glow animate-pulse';
@@ -1697,10 +1546,9 @@ async function runStepperAndSubmit(submitPayload) {
     </div>
   `;
 
-  // Append user message bubble first
-  appendUserMessage(submitPayload.chatMessage, state.pastedConfigRaw);
+  // Append User message
+  appendUserMessage(submitPayload.chatMessage, stateStore.get('pastedConfigRaw'));
 
-  // Append inline loader card
   const activeContainer = els.chatMessagesContainer || els.chatMessagesStream;
   activeContainer.appendChild(loaderCard);
   scrollStreamToBottom();
@@ -1716,7 +1564,6 @@ async function runStepperAndSubmit(submitPayload) {
   function updateInlineStep(el, stepState, logMsg) {
     const indicator = el.querySelector('.step-indicator');
     const stat = el.querySelector('.step-stat');
-
     if (inlineLogText) inlineLogText.textContent = logMsg;
 
     if (stepState === 'active') {
@@ -1743,6 +1590,9 @@ async function runStepperAndSubmit(submitPayload) {
     if (inlinePercentage) inlinePercentage.textContent = text;
   }
 
+  // Delay helper
+  const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+
   // Stage 1: Masking
   await delay(700);
   updateInlineStep(inlineStepMask, 'complete', t.loaderStep1DescComplete);
@@ -1760,8 +1610,7 @@ async function runStepperAndSubmit(submitPayload) {
       body: JSON.stringify(submitPayload)
     });
 
-    const timeoutPromise = delay(1200); // Minimum feed for stunning visual UI
-
+    const timeoutPromise = delay(1200);
     const [res] = await Promise.all([fetchPromise, timeoutPromise]);
 
     if (!res.ok) {
@@ -1777,7 +1626,9 @@ async function runStepperAndSubmit(submitPayload) {
   if (serverError) {
     loaderCard.remove();
     showToast(serverError.message, 'error');
-    alert(`Audit Failed: ${serverError.message}`);
+    appendInlineErrorCard(serverError.message, () => {
+      runStepperAndSubmit(submitPayload);
+    });
     return;
   }
 
@@ -1798,59 +1649,56 @@ async function runStepperAndSubmit(submitPayload) {
   updateInlineStep(inlineStepDiff, 'complete', t.loaderStep4DescComplete);
   await delay(300);
 
-  // Remove loader card and render actual response!
+  // Remove loading card
   loaderCard.remove();
 
-  // Load results into active state
-  state.analysisResult = serverResponseData;
-
-  // Clear welcome panel
+  // Load results into active state Store
+  stateStore.set('analysisResult', serverResponseData);
   els.panelWelcome.classList.add('hidden');
 
-  // Inject assistant response
+  // Append assistant bubble
   appendAssistantResponse(serverResponseData);
-
-  // Show success toast
   showToast(t.toastPipelineComplete, 'success');
 
-  // Clear attachment inputs after success to prepare next input cleanly
+  // Reset inputs
   els.pastedConfig.value = '';
-  state.currentFile = null;
+  stateStore.set('currentFile', null);
   els.fileInfoBar.classList.add('hidden');
   closeAttachmentDrawer();
 
   // Save conversation step in history list
   const timestamp = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  let title = `RouterOS Config ${stateStore.get('history').length + 1}`;
+  const currentChatId = stateStore.get('currentChatId');
 
-  let title = `RouterOS Config ${state.history.length + 1}`;
-  if (state.currentChatId) {
-    const existing = state.history.find(h => h.id === state.currentChatId);
+  if (currentChatId) {
+    const existing = stateStore.get('history').find(h => h.id === currentChatId);
     if (existing) {
       title = existing.title;
     }
-  } else if (state.currentFile) {
-    title = state.currentFile.name;
+  } else if (stateStore.get('currentFile')) {
+    title = stateStore.get('currentFile').name;
   }
 
-  saveHistoryItem({
-    id: state.currentChatId || Date.now(),
+  HistoryManager.saveItem({
+    id: currentChatId || Date.now(),
     title,
     timestamp,
     rosVersion: submitPayload.routerOsVersion,
     hardwareModel: submitPayload.hardwareModel,
     messages: [{
       chatMessage: submitPayload.chatMessage || 'Configuration audit request',
-      pastedConfig: state.pastedConfigRaw,
+      pastedConfig: stateStore.get('pastedConfigRaw'),
       result: serverResponseData
     }]
   });
 }
 
-function delay(ms) {
-  return new Promise(resolve => setTimeout(resolve, ms));
-}
-
-// SUBMIT COMPREHENSIVE CONVERSATION CHAT
+/**
+ * ============================================================================
+ * CHAT SUBMISSION CONTROLLER
+ * ============================================================================
+ */
 async function submitChat() {
   const pastedVal = els.pastedConfig.value.trim();
   const chatVal = els.chatMessage.value.trim();
@@ -1860,26 +1708,26 @@ async function submitChat() {
     return;
   }
 
-  // Toggle submit buttons state
   els.btnSubmit.disabled = true;
   els.submitIcon.classList.add('hidden');
   els.loadingSpinner.classList.remove('hidden');
 
-  state.pastedConfigRaw = pastedVal;
+  stateStore.set('pastedConfigRaw', pastedVal);
 
+  const settings = stateStore.get('settings');
   const maskOptions = {
-    maskIPs: state.settings.maskIPs,
-    maskMACs: state.settings.maskMACs,
-    maskSecrets: state.settings.maskSecrets,
-    maskInterfaces: state.settings.maskInterfaces,
-    maskDomains: state.settings.maskDomains,
-    maskIdentity: state.settings.maskIdentity
+    maskIPs: settings.maskIPs,
+    maskMACs: settings.maskMACs,
+    maskSecrets: settings.maskSecrets,
+    maskInterfaces: settings.maskInterfaces,
+    maskDomains: settings.maskDomains,
+    maskIdentity: settings.maskIdentity
   };
 
-  // Retrieve previous messages from the current conversation if continuing
   let chatHistory = [];
-  if (state.currentChatId) {
-    const activeChat = state.history.find(h => h.id === state.currentChatId);
+  const currentChatId = stateStore.get('currentChatId');
+  if (currentChatId) {
+    const activeChat = stateStore.get('history').find(h => h.id === currentChatId);
     if (activeChat && activeChat.messages) {
       chatHistory = activeChat.messages.map(msg => ({
         chatMessage: msg.chatMessage,
@@ -1895,12 +1743,12 @@ async function submitChat() {
     pastedConfig: pastedVal,
     chatMessage: chatVal,
     chatHistory,
-    provider: state.settings.provider,
-    apiKey: state.settings.apiKey,
-    baseUrl: state.settings.baseUrl,
-    model: state.settings.model,
-    systemPrompt: state.settings.prompt,
-    language: state.language,
+    provider: settings.provider,
+    apiKey: settings.apiKey,
+    baseUrl: settings.baseUrl,
+    model: settings.model,
+    systemPrompt: settings.prompt,
+    language: stateStore.get('language'),
     maskOptions,
     routerOsVersion: els.selectRosVersion.value,
     hardwareModel: els.selectHardware.value
@@ -1908,7 +1756,6 @@ async function submitChat() {
 
   try {
     await runStepperAndSubmit(body);
-    // Clear chat input on successful completion
     els.chatMessage.value = '';
     adjustTextAreaHeight();
   } finally {
@@ -1916,4 +1763,108 @@ async function submitChat() {
     els.submitIcon.classList.remove('hidden');
     els.loadingSpinner.classList.add('hidden');
   }
+}
+
+/**
+ * ============================================================================
+ * DEBOUNCED SEARCH HISTORY ACTION
+ * ============================================================================
+ */
+const handleSearchInput = window.debounce((query) => {
+  HistoryManager.renderList(query);
+}, 250);
+
+/**
+ * ============================================================================
+ * FULL-SCALE EVENT INTERFACES
+ * ============================================================================
+ */
+function setupEventListeners() {
+  els.btnToggleSidebar.addEventListener('click', () => {
+    stateStore.set('isSidebarOpen', !stateStore.get('isSidebarOpen'));
+    renderSidebarState();
+  });
+
+  els.btnCloseSidebar.addEventListener('click', () => {
+    stateStore.set('isSidebarOpen', false);
+    renderSidebarState();
+  });
+
+  els.settingLanguage.addEventListener('change', () => {
+    stateStore.saveLanguage(els.settingLanguage.value);
+    LocalizationService.updateUILanguage();
+  });
+
+  els.sidebarTabHistory.addEventListener('click', () => switchSidebarTab('history'));
+  els.sidebarTabContext.addEventListener('click', () => switchSidebarTab('context'));
+  els.sidebarTabPreferences.addEventListener('click', () => switchSidebarTab('preferences'));
+
+  els.settingProvider.addEventListener('change', () => {
+    stateStore.updateModelDefaults(els.settingProvider.value);
+    // Bind updated default fields
+    const updatedSettings = stateStore.get('settings');
+    els.settingModel.value = updatedSettings.model || '';
+    els.settingBaseurl.value = updatedSettings.baseUrl || '';
+  });
+
+  els.btnSaveSettings.addEventListener('click', () => {
+    saveSettings();
+    if (window.innerWidth < 1024) {
+      stateStore.set('isSidebarOpen', false);
+      renderSidebarState();
+    }
+  });
+
+  els.btnTestConnection.addEventListener('click', testConnection);
+
+  [els.maskIPs, els.maskMACs, els.maskSecrets, els.maskInterfaces, els.maskDomains, els.maskIdentity].forEach(el => {
+    el.addEventListener('change', updatePrivacyShieldLabel);
+  });
+
+  els.btnToggleDrawer.addEventListener('click', toggleAttachmentDrawer);
+  els.btnClearAttachment.addEventListener('click', () => {
+    els.pastedConfig.value = '';
+    stateStore.set('currentFile', null);
+    els.fileInfoBar.classList.add('hidden');
+    closeAttachmentDrawer();
+  });
+
+  els.btnCloseDiff.addEventListener('click', () => els.modalDiff.classList.add('hidden'));
+  els.btnCloseCommands.addEventListener('click', () => els.modalCommands.classList.add('hidden'));
+
+  [els.modalDiff, els.modalCommands].forEach(modal => {
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal) {
+        modal.classList.add('hidden');
+      }
+    });
+  });
+
+  els.diffViewModeSplit.addEventListener('click', () => switchDiffMode('split'));
+  els.diffViewModeUnified.addEventListener('click', () => switchDiffMode('unified'));
+
+  els.commandViewModeChecklist.addEventListener('click', () => switchCommandMode('checklist'));
+  els.commandViewModeRaw.addEventListener('click', () => switchCommandMode('raw'));
+
+  els.btnQuickFirewall.addEventListener('click', loadFirewallTemplate);
+  els.btnQuickRouting.addEventListener('click', loadRoutingTemplate);
+
+  els.btnClearHistory.addEventListener('click', () => HistoryManager.clearAll());
+  els.btnNewChat.addEventListener('click', startNewChat);
+  els.btnHeaderNewChat.addEventListener('click', startNewChat);
+
+  // Apply performance-optimized debounced search filter
+  els.searchHistory.addEventListener('input', (e) => handleSearchInput(e.target.value));
+
+  els.chatMessage.addEventListener('input', adjustTextAreaHeight);
+  els.btnSubmit.addEventListener('click', submitChat);
+
+  els.chatMessage.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      submitChat();
+    }
+  });
+
+  els.btnThemeToggle.addEventListener('click', toggleTheme);
 }
