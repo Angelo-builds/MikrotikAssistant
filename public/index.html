@@ -4,6 +4,10 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title id="ui-title">Mik the Winbox Wizard — MikroTik Privacy AI Chatbot Assistant</title>
+
+  <!-- Single Animated SVG favicon matching the app logo exactly! -->
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%237c3aed' stroke-width='2.5'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z'/%3E%3C/svg%3E">
+
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- Custom config for Tailwind to support custom colors if any -->
@@ -162,7 +166,7 @@
         </svg>
       </button>
 
-      <!-- High-Tech Animated Network Hub Logo -->
+      <!-- High-Tech Animated Network Hub Logo (Unified animated logo used consistently) -->
       <div class="relative w-10 h-10 flex items-center justify-center shrink-0">
         <!-- Outer rotating tech ring -->
         <div class="absolute inset-0 border-2 border-dashed border-brand-500/40 rounded-xl animate-[spin_10s_linear_infinite]"></div>
@@ -199,31 +203,41 @@
   <div class="flex-1 flex overflow-hidden relative">
 
     <!-- UNIFIED SIDEBAR (Wizard Control Center) -->
-    <aside id="sidebar-control-center" class="w-80 md:w-85 bg-cyber-panel border-r border-cyber-border flex flex-col transition-all duration-300 absolute inset-y-0 left-0 -translate-x-full lg:relative lg:translate-x-0 z-30 shadow-2xl lg:shadow-none h-full overflow-hidden">
+    <aside id="sidebar-control-center" class="bg-cyber-panel border-r border-cyber-border flex flex-col transition-all duration-300 z-30 shadow-2xl lg:shadow-none h-full overflow-hidden w-80">
 
       <!-- Sidebar Heading / Wizard Tab Switcher -->
       <div class="p-4 border-b border-cyber-border bg-cyber-bg/50 shrink-0">
         <div class="flex items-center justify-between">
-          <h2 class="text-xs font-black uppercase tracking-wider text-slate-600 dark:text-slate-400 flex items-center gap-1.5">
-            <span class="text-lg">🧙‍♂️</span>
-            <span>Wizard Control Center</span>
-          </h2>
+          <div class="flex items-center gap-2">
+            <!-- Animated SVG logo replacing the old emoji next to the heading -->
+            <div class="relative w-5 h-5 flex items-center justify-center shrink-0">
+              <div class="absolute inset-0 border border-dashed border-brand-500/40 rounded-md animate-[spin_10s_linear_infinite]"></div>
+              <div class="w-3.5 h-3.5 rounded-sm bg-brand-500 text-white flex items-center justify-center border border-brand-100/10 animate-pulse">
+                <svg class="w-2 h-2 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z"></path>
+                </svg>
+              </div>
+            </div>
+            <h2 class="text-xs font-black uppercase tracking-wider text-slate-600 dark:text-slate-400">
+              Wizard Control Center
+            </h2>
+          </div>
           <!-- Collapsible indicator (Close button on small screens) -->
           <button id="btn-close-sidebar" class="lg:hidden p-1 bg-cyber-bg hover:bg-slate-300 dark:hover:bg-slate-800/20 border border-cyber-border rounded-lg text-slate-600 dark:text-slate-400">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
           </button>
         </div>
 
-        <!-- Sidebar subcategories -->
-        <div class="grid grid-cols-3 gap-1 mt-3">
-          <button id="sidebar-tab-context" class="py-1.5 px-2 text-[10px] font-bold rounded-lg bg-slate-250 dark:bg-slate-800/80 text-brand-600 dark:text-brand-400 border border-cyber-border hover:text-brand-500 transition truncate text-center">
-            Network Context
+        <!-- Sidebar subcategories tabs (Uncluttered, categorizing sidebar cleanly into 3 tabs) -->
+        <div class="grid grid-cols-3 gap-1 mt-3 bg-cyber-bg p-1 rounded-xl border border-cyber-border/40">
+          <button id="sidebar-tab-history" class="py-1.5 px-1 text-[10px] font-bold rounded-lg bg-slate-200 dark:bg-slate-800/80 text-brand-600 dark:text-brand-400 border border-cyber-border hover:text-brand-500 transition truncate text-center">
+            History
           </button>
-          <button id="sidebar-tab-privacy" class="py-1.5 px-2 text-[10px] font-bold rounded-lg text-slate-500 hover:text-slate-900 dark:hover:text-white transition truncate text-center">
-            Privacy Shields
+          <button id="sidebar-tab-context" class="py-1.5 px-1 text-[10px] font-bold rounded-lg text-slate-500 hover:text-slate-900 dark:hover:text-white transition truncate text-center">
+            Context
           </button>
-          <button id="sidebar-tab-settings" class="py-1.5 px-2 text-[10px] font-bold rounded-lg text-slate-500 hover:text-slate-900 dark:hover:text-white transition truncate text-center">
-            Engine Configuration
+          <button id="sidebar-tab-preferences" class="py-1.5 px-1 text-[10px] font-bold rounded-lg text-slate-500 hover:text-slate-900 dark:hover:text-white transition truncate text-center">
+            Prefs
           </button>
         </div>
       </div>
@@ -231,12 +245,32 @@
       <!-- Scrollable Sidebar Body Content -->
       <div class="flex-1 overflow-y-auto p-4 space-y-5">
 
-        <!-- SECTION 1: NETWORK CONTEXT & SESSION HISTORY (Default Tab) -->
-        <div id="sidebar-section-context" class="space-y-5">
+        <!-- SECTION 1: SESSION HISTORY ONLY (Isolated to ensure clean interface) -->
+        <div id="sidebar-section-history" class="space-y-4">
+          <div class="flex items-center justify-between select-none">
+            <h3 class="text-[10px] font-black text-slate-600 dark:text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
+              <span>🕒</span> Session History
+            </h3>
+            <button id="btn-clear-history" class="text-[10px] text-slate-500 hover:text-red-400 transition font-bold">
+              Wipe All
+            </button>
+          </div>
+
+          <!-- Search in history -->
+          <input id="search-history" type="text" class="w-full bg-cyber-bg border border-cyber-border text-slate-800 dark:text-slate-200 text-[11px] px-3 py-2 rounded-xl outline-none focus:border-brand-500/50 transition font-medium" placeholder="Search saved audits...">
+
+          <!-- History Items Scroll Container -->
+          <div id="history-items-container" class="space-y-2 max-h-[350px] overflow-y-auto pr-1">
+            <div id="ui-history-empty" class="text-center py-4 text-slate-500 text-xs">No audits saved in this session yet.</div>
+          </div>
+        </div>
+
+        <!-- SECTION 2: DEVICE CONTEXT (OS Version, Board Model, and Templates) -->
+        <div id="sidebar-section-context" class="hidden space-y-5">
           <!-- RouterOS Version & Board model dropdowns -->
           <div class="p-3.5 bg-cyber-bg/40 border border-cyber-border rounded-xl space-y-3">
             <h3 class="text-[10px] font-black text-slate-600 dark:text-slate-400 uppercase tracking-wider flex items-center gap-1.5 select-none">
-              <span>📋</span> RouterOS Environment
+              <span>🖥️</span> RouterOS Environment
             </h3>
 
             <div class="space-y-1">
@@ -260,26 +294,6 @@
             </div>
           </div>
 
-          <!-- Session History -->
-          <div class="space-y-2.5">
-            <div class="flex items-center justify-between select-none">
-              <h3 class="text-[10px] font-black text-slate-600 dark:text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
-                <span>🕒</span> Session History
-              </h3>
-              <button id="btn-clear-history" class="text-[10px] text-slate-500 hover:text-red-400 transition font-bold">
-                Wipe All
-              </button>
-            </div>
-
-            <!-- Search in history -->
-            <input id="search-history" type="text" class="w-full bg-cyber-bg border border-cyber-border text-slate-800 dark:text-slate-200 text-[11px] px-3 py-2 rounded-xl outline-none focus:border-brand-500/50 transition font-medium" placeholder="Search saved audits...">
-
-            <!-- History Items Scroll Container -->
-            <div id="history-items-container" class="space-y-2 max-h-[220px] overflow-y-auto pr-1">
-              <div id="ui-history-empty" class="text-center py-4 text-slate-500 text-xs">No audits saved in this session yet.</div>
-            </div>
-          </div>
-
           <!-- Quick Templates Panel -->
           <div class="space-y-2 bg-cyber-bg/35 border border-cyber-border p-3.5 rounded-xl">
             <h3 class="text-[10px] font-black text-slate-600 dark:text-slate-400 uppercase tracking-wider select-none flex items-center gap-1.5">
@@ -298,105 +312,130 @@
           </div>
         </div>
 
-        <!-- SECTION 2: PRIVACY SHIELDS STATUS & TOGGLES -->
-        <div id="sidebar-section-privacy" class="hidden space-y-3.5">
-          <div class="flex items-center justify-between pb-1 select-none">
-            <h4 class="text-[10px] font-black text-slate-600 dark:text-slate-400 uppercase tracking-wider">De-identification Pipeline</h4>
-            <span class="text-[9px] text-brand-600 dark:text-brand-400 font-bold bg-brand-500/10 px-2 py-0.5 rounded-full border border-cyber-border">Runs Locally</span>
+        <!-- SECTION 3: PREFERENCES (Language, Theme, Privacy Shields, and Engine Credentials) -->
+        <div id="sidebar-section-preferences" class="hidden space-y-5">
+
+          <!-- UI preference controls -->
+          <div class="p-3 bg-cyber-bg/40 border border-cyber-border rounded-xl space-y-3">
+            <h3 class="text-[10px] font-black text-slate-600 dark:text-slate-400 uppercase tracking-wider select-none">
+              🎨 Interface Style
+            </h3>
+            <div class="flex items-center justify-between gap-2 select-none">
+              <!-- Light / Dark Mode Switcher -->
+              <button id="btn-theme-toggle" class="p-2.5 bg-cyber-bg hover:bg-slate-300 dark:hover:bg-slate-800/20 border border-cyber-border rounded-xl text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition active:scale-95 flex items-center justify-center shrink-0" title="Switch Theme">
+                <svg id="theme-sun-icon" class="hidden w-4 h-4 text-cyber-amber" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364-6.364l-.707.707M6.343 17.657l-.707.707m0-12.728l.707.707m12.728 12.728l.707-.707M12 8a4 4 0 100 8 4 4 0 000-8z"></path></svg>
+                <svg id="theme-moon-icon" class="w-4 h-4 text-cyber-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path></svg>
+              </button>
+
+              <!-- Language Selector -->
+              <select id="setting-language" class="bg-cyber-bg hover:bg-slate-300 dark:hover:bg-slate-800/20 text-slate-800 dark:text-slate-200 px-3 py-2 border border-cyber-border hover:border-slate-600 rounded-xl text-xs font-semibold transition cursor-pointer outline-none flex-1">
+                <option value="auto">🌐 Auto-Detect</option>
+                <option value="en">🇬🇧 English</option>
+                <option value="it">🇮🇹 Italiano</option>
+              </select>
+            </div>
           </div>
 
-          <label class="flex items-start space-x-3 cursor-pointer bg-cyber-bg border border-cyber-border p-3 rounded-xl hover:border-slate-700 transition">
-            <input type="checkbox" id="mask-ips" checked class="mt-1 accent-brand-500 h-4 w-4">
-            <div>
-              <span id="ui-mask-ips-title" class="block text-xs font-bold text-slate-800 dark:text-white">Mask IP Addresses</span>
-              <span id="ui-mask-ips-desc" class="block text-[10px] text-slate-500 mt-0.5">Scans IPv4/6; maps to [PRIV_IP_x] & [PUB_IP_x]</span>
+          <!-- Privacy checkboxes -->
+          <div class="space-y-2.5">
+            <div class="flex items-center justify-between pb-1 select-none">
+              <h4 class="text-[10px] font-black text-slate-600 dark:text-slate-400 uppercase tracking-wider">De-identification Pipeline</h4>
+              <span class="text-[9px] text-brand-600 dark:text-brand-400 font-bold bg-brand-500/10 px-2 py-0.5 rounded-full border border-cyber-border">Local</span>
             </div>
-          </label>
 
-          <label class="flex items-start space-x-3 cursor-pointer bg-cyber-bg border border-cyber-border p-3 rounded-xl hover:border-slate-700 transition">
-            <input type="checkbox" id="mask-macs" checked class="mt-1 accent-brand-500 h-4 w-4">
-            <div>
-              <span id="ui-mask-macs-title" class="block text-xs font-bold text-slate-800 dark:text-white">Mask MAC Hardware ID</span>
-              <span id="ui-mask-macs-desc" class="block text-[10px] text-slate-500 mt-0.5">Hides physical hex hardware interfaces</span>
-            </div>
-          </label>
+            <label class="flex items-start space-x-2.5 cursor-pointer bg-cyber-bg border border-cyber-border p-2.5 rounded-xl hover:border-slate-700 transition">
+              <input type="checkbox" id="mask-ips" checked class="mt-0.5 accent-brand-500 h-3.5 w-3.5">
+              <div>
+                <span id="ui-mask-ips-title" class="block text-[11px] font-bold text-slate-800 dark:text-white">Mask IP Addresses</span>
+                <span id="ui-mask-ips-desc" class="block text-[9px] text-slate-500 mt-0.5">Scans IPv4/6; maps to placeholders</span>
+              </div>
+            </label>
 
-          <label class="flex items-start space-x-3 cursor-pointer bg-cyber-bg border border-cyber-border p-3 rounded-xl hover:border-slate-700 transition">
-            <input type="checkbox" id="mask-secrets" checked class="mt-1 accent-brand-500 h-4 w-4">
-            <div>
-              <span id="ui-mask-secrets-title" class="block text-xs font-bold text-slate-800 dark:text-white">Mask Keys & Secrets</span>
-              <span id="ui-mask-secrets-desc" class="block text-[10px] text-slate-500 mt-0.5">Hides security-profiles, passwords, pre-shared keys</span>
-            </div>
-          </label>
+            <label class="flex items-start space-x-2.5 cursor-pointer bg-cyber-bg border border-cyber-border p-2.5 rounded-xl hover:border-slate-700 transition">
+              <input type="checkbox" id="mask-macs" checked class="mt-0.5 accent-brand-500 h-3.5 w-3.5">
+              <div>
+                <span id="ui-mask-macs-title" class="block text-[11px] font-bold text-slate-800 dark:text-white">Mask MAC ID</span>
+                <span id="ui-mask-macs-desc" class="block text-[9px] text-slate-500 mt-0.5">Hides physical hex hardware addresses</span>
+              </div>
+            </label>
 
-          <label class="flex items-start space-x-3 cursor-pointer bg-cyber-bg border border-cyber-border p-3 rounded-xl hover:border-slate-700 transition">
-            <input type="checkbox" id="mask-interfaces" checked class="mt-1 accent-brand-500 h-4 w-4">
-            <div>
-              <span id="ui-mask-interfaces-title" class="block text-xs font-bold text-slate-800 dark:text-white">Mask Custom Interface Names</span>
-              <span id="ui-mask-interfaces-desc" class="block text-[10px] text-slate-500 mt-0.5">Keeps standard interfaces like bridge, ether1; masks custom</span>
-            </div>
-          </label>
+            <label class="flex items-start space-x-2.5 cursor-pointer bg-cyber-bg border border-cyber-border p-2.5 rounded-xl hover:border-slate-700 transition">
+              <input type="checkbox" id="mask-secrets" checked class="mt-0.5 accent-brand-500 h-3.5 w-3.5">
+              <div>
+                <span id="ui-mask-secrets-title" class="block text-[11px] font-bold text-slate-800 dark:text-white">Mask Keys & Secrets</span>
+                <span id="ui-mask-secrets-desc" class="block text-[9px] text-slate-500 mt-0.5">Hides passwords, pre-shared keys</span>
+              </div>
+            </label>
 
-          <label class="flex items-start space-x-3 cursor-pointer bg-cyber-bg border border-cyber-border p-3 rounded-xl hover:border-slate-700 transition">
-            <input type="checkbox" id="mask-domains" checked class="mt-1 accent-brand-500 h-4 w-4">
-            <div>
-              <span id="ui-mask-domains-title" class="block text-xs font-bold text-slate-800 dark:text-white">Mask Domain Names</span>
-              <span id="ui-mask-domains-desc" class="block text-[10px] text-slate-500 mt-0.5">Hides external server addresses & DDNS urls</span>
-            </div>
-          </label>
+            <label class="flex items-start space-x-2.5 cursor-pointer bg-cyber-bg border border-cyber-border p-2.5 rounded-xl hover:border-slate-700 transition">
+              <input type="checkbox" id="mask-interfaces" checked class="mt-0.5 accent-brand-500 h-3.5 w-3.5">
+              <div>
+                <span id="ui-mask-interfaces-title" class="block text-[11px] font-bold text-slate-800 dark:text-white">Mask Interface Names</span>
+                <span id="ui-mask-interfaces-desc" class="block text-[9px] text-slate-500 mt-0.5">Keeps bridge, ether1; masks custom</span>
+              </div>
+            </label>
 
-          <label class="flex items-start space-x-3 cursor-pointer bg-cyber-bg border border-cyber-border p-3 rounded-xl hover:border-slate-700 transition">
-            <input type="checkbox" id="mask-identity" checked class="mt-1 accent-brand-500 h-4 w-4">
-            <div>
-              <span id="ui-mask-identity-title" class="block text-xs font-bold text-slate-800 dark:text-white">Mask Router system identity</span>
-              <span id="ui-mask-identity-desc" class="block text-[10px] text-slate-500 mt-0.5">Redacts custom system labels or hardware handles</span>
-            </div>
-          </label>
-        </div>
+            <label class="flex items-start space-x-2.5 cursor-pointer bg-cyber-bg border border-cyber-border p-2.5 rounded-xl hover:border-slate-700 transition">
+              <input type="checkbox" id="mask-domains" checked class="mt-0.5 accent-brand-500 h-3.5 w-3.5">
+              <div>
+                <span id="ui-mask-domains-title" class="block text-[11px] font-bold text-slate-800 dark:text-white">Mask Domain Names</span>
+                <span id="ui-mask-domains-desc" class="block text-[9px] text-slate-500 mt-0.5">Hides DDNS urls & addresses</span>
+              </div>
+            </label>
 
-        <!-- SECTION 3: LLM PROVIDER & SYSTEM PROMPT CONFIGURATION -->
-        <div id="sidebar-section-settings" class="hidden space-y-4">
-          <div class="space-y-1">
-            <label id="ui-label-llm-provider" class="block text-[10px] font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider">LLM Provider</label>
-            <select id="setting-provider" class="w-full bg-cyber-bg border border-cyber-border text-slate-800 dark:text-slate-200 text-xs rounded-xl p-2.5 outline-none focus:border-brand-500">
-              <option value="openai">OpenAI (GPT-4o / GPT-4o-mini)</option>
-              <option value="anthropic">Anthropic (Claude)</option>
-              <option value="openrouter">OpenRouter (Any LLM - Free/Paid)</option>
-              <option value="ollama">Local Ollama</option>
-              <option value="custom">Custom API (Local LAN / Custom Gateway)</option>
-            </select>
+            <label class="flex items-start space-x-2.5 cursor-pointer bg-cyber-bg border border-cyber-border p-2.5 rounded-xl hover:border-slate-700 transition">
+              <input type="checkbox" id="mask-identity" checked class="mt-0.5 accent-brand-500 h-3.5 w-3.5">
+              <div>
+                <span id="ui-mask-identity-title" class="block text-[11px] font-bold text-slate-800 dark:text-white">Mask Router system identity</span>
+                <span id="ui-mask-identity-desc" class="block text-[9px] text-slate-500 mt-0.5">Redacts custom identity names</span>
+              </div>
+            </label>
           </div>
 
-          <div class="space-y-1">
-            <label id="ui-label-model-name" class="block text-[10px] font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider">Model Name</label>
-            <input id="setting-model" type="text" class="w-full bg-cyber-bg border border-cyber-border text-slate-800 dark:text-slate-200 text-xs rounded-xl p-2.5 outline-none focus:border-brand-500" placeholder="gpt-4o-mini">
-          </div>
+          <!-- Connection credentials -->
+          <div class="space-y-3.5 border-t border-cyber-border pt-4">
+            <div class="space-y-1">
+              <label id="ui-label-llm-provider" class="block text-[10px] font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider">LLM Provider</label>
+              <select id="setting-provider" class="w-full bg-cyber-bg border border-cyber-border text-slate-800 dark:text-slate-200 text-xs rounded-xl p-2.5 outline-none focus:border-brand-500">
+                <option value="openai">OpenAI (GPT-4o / GPT-4o-mini)</option>
+                <option value="anthropic">Anthropic (Claude)</option>
+                <option value="openrouter">OpenRouter (Any LLM - Free/Paid)</option>
+                <option value="ollama">Local Ollama</option>
+                <option value="custom">Custom API (Local LAN / Custom Gateway)</option>
+              </select>
+            </div>
 
-          <div class="space-y-1">
-            <label class="block text-[10px] font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider" id="label-apikey">API Key / Secret</label>
-            <input id="setting-apikey" type="password" class="w-full bg-cyber-bg border border-cyber-border text-slate-800 dark:text-slate-200 text-xs rounded-xl p-2.5 outline-none focus:border-brand-500" placeholder="sk-...">
-          </div>
+            <div class="space-y-1">
+              <label id="ui-label-model-name" class="block text-[10px] font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider">Model Name</label>
+              <input id="setting-model" type="text" class="w-full bg-cyber-bg border border-cyber-border text-slate-800 dark:text-slate-200 text-xs rounded-xl p-2.5 outline-none focus:border-brand-500" placeholder="gpt-4o-mini">
+            </div>
 
-          <div class="space-y-1">
-            <label class="block text-[10px] font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider" id="label-baseurl">Base URL (For Local/Ollama)</label>
-            <input id="setting-baseurl" type="text" class="w-full bg-cyber-bg border border-cyber-border text-slate-800 dark:text-slate-200 text-xs rounded-xl p-2.5 outline-none focus:border-brand-500" placeholder="http://localhost:11434">
-          </div>
+            <div class="space-y-1">
+              <label class="block text-[10px] font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider" id="label-apikey">API Key / Secret</label>
+              <input id="setting-apikey" type="password" class="w-full bg-cyber-bg border border-cyber-border text-slate-800 dark:text-slate-200 text-xs rounded-xl p-2.5 outline-none focus:border-brand-500" placeholder="sk-...">
+            </div>
 
-          <div class="flex items-center justify-between pt-2">
-            <button id="btn-test-connection" class="text-[10px] bg-cyber-bg hover:bg-slate-350 dark:hover:bg-slate-800/25 text-slate-800 dark:text-slate-200 border border-cyber-border px-4 py-2 rounded-lg font-bold transition flex items-center space-x-1.5 active:scale-95 shrink-0">
-              <span id="ui-label-test-connection">Test Connection</span>
-              <svg id="test-spinner" class="hidden animate-spin h-3.5 w-3.5 text-slate-800 dark:text-white" fill="none" viewBox="0 0 24 24">
-                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-              </svg>
-            </button>
-            <span id="test-result" class="text-[10px] font-bold"></span>
-          </div>
+            <div class="space-y-1">
+              <label class="block text-[10px] font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider" id="label-baseurl">Base URL (For Local/Ollama)</label>
+              <input id="setting-baseurl" type="text" class="w-full bg-cyber-bg border border-cyber-border text-slate-800 dark:text-slate-200 text-xs rounded-xl p-2.5 outline-none focus:border-brand-500" placeholder="http://localhost:11434">
+            </div>
 
-          <!-- Prompt Override -->
-          <div class="pt-2 border-t border-cyber-border space-y-1.5">
-            <label id="ui-label-prompt-override" class="block text-[10px] font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider">Custom Prompt Override</label>
-            <textarea id="setting-prompt" rows="4" class="w-full bg-cyber-bg border border-cyber-border text-slate-800 dark:text-slate-200 text-xs rounded-xl p-2.5 outline-none focus:border-brand-500 font-mono placeholder-slate-500 resize-none" placeholder="Enter elite instructions..."></textarea>
+            <div class="flex items-center justify-between pt-1">
+              <button id="btn-test-connection" class="text-[10px] bg-cyber-bg hover:bg-slate-350 dark:hover:bg-slate-800/25 text-slate-800 dark:text-slate-200 border border-cyber-border px-4 py-2 rounded-lg font-bold transition flex items-center space-x-1.5 active:scale-95 shrink-0">
+                <span id="ui-label-test-connection">Test Connection</span>
+                <svg id="test-spinner" class="hidden animate-spin h-3.5 w-3.5 text-slate-800 dark:text-white" fill="none" viewBox="0 0 24 24">
+                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                  <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+              </button>
+              <span id="test-result" class="text-[10px] font-bold"></span>
+            </div>
+
+            <!-- Prompt Override -->
+            <div class="pt-2 border-t border-cyber-border space-y-1.5">
+              <label id="ui-label-prompt-override" class="block text-[10px] font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider">Custom Prompt Override</label>
+              <textarea id="setting-prompt" rows="4" class="w-full bg-cyber-bg border border-cyber-border text-slate-800 dark:text-slate-200 text-xs rounded-xl p-2.5 outline-none focus:border-brand-500 font-mono placeholder-slate-500 resize-none" placeholder="Enter elite instructions..."></textarea>
+            </div>
           </div>
         </div>
 
@@ -404,24 +443,6 @@
 
       <!-- Unified Sidebar Preferences Drawer Footer (Save configs, Language selector & Theme toggle inside sidebar) -->
       <div class="px-4 py-3.5 border-t border-cyber-border bg-cyber-bg/50 shrink-0 space-y-3">
-        <!-- Theme switcher & Language selection inside sidebar preferences -->
-        <div class="flex items-center justify-between gap-2 select-none">
-          <!-- Light / Dark Mode Switcher -->
-          <button id="btn-theme-toggle" class="p-2 bg-cyber-bg hover:bg-slate-300 dark:hover:bg-slate-800/20 border border-cyber-border rounded-xl text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition active:scale-95 flex items-center justify-center shrink-0" title="Switch Theme">
-            <!-- Sun icon -->
-            <svg id="theme-sun-icon" class="hidden w-4 h-4 text-cyber-amber" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364-6.364l-.707.707M6.343 17.657l-.707.707m0-12.728l.707.707m12.728 12.728l.707-.707M12 8a4 4 0 100 8 4 4 0 000-8z"></path></svg>
-            <!-- Moon icon -->
-            <svg id="theme-moon-icon" class="w-4 h-4 text-cyber-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path></svg>
-          </button>
-
-          <!-- Language Selector -->
-          <select id="setting-language" class="bg-cyber-bg hover:bg-slate-300 dark:hover:bg-slate-800/20 text-slate-800 dark:text-slate-200 px-3 py-2 border border-cyber-border hover:border-slate-600 rounded-xl text-xs font-semibold transition cursor-pointer outline-none flex-1">
-            <option value="auto">🌐 Auto-Detect</option>
-            <option value="en">🇬🇧 English</option>
-            <option value="it">🇮🇹 Italiano</option>
-          </select>
-        </div>
-
         <!-- Privacy Status Display -->
         <div id="privacy-indicator" class="text-[10px] text-slate-600 dark:text-slate-400 flex items-center justify-center gap-1.5 bg-cyber-bg border border-cyber-border px-3 py-2 rounded-xl select-none">
           <svg class="w-3.5 h-3.5 text-cyber-emerald" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M2.166 4.9c.7.3 1.5.5 2.333.5C6.1 5.4 7.6 4.7 8.666 3.6A11.022 11.022 0 0012 3c.8 0 1.584.1 2.333.3a1.993 1.993 0 011.5 1.6C16.5 6.4 17 8.1 17 10c0 4.418-4.03 8-9 8a9.863 9.863 0 01-3.136-.514L2.5 18l.78-2.6A9.957 9.957 0 012.166 10c0-1.9.5-3.6 1.166-5.1z" clip-rule="evenodd"></path></svg>
@@ -476,7 +497,7 @@
       </section>
 
       <!-- COLLAPSIBLE ATTACHMENT BOX DRAWER (Opened via "+" trigger) -->
-      <section id="attachment-drawer" class="hidden mx-4 md:mx-6 p-4 bg-cyber-panel border border-cyber-border rounded-2xl relative shrink-0 transition-all duration-300">
+      <section id="attachment-drawer" class="hidden mx-4 md:mx-6 p-4 bg-cyber-panel border border-cyber-border rounded-2xl relative shrink-0 transition-all duration-300 animate-[fadeIn_0.3s_ease-out_1]">
         <div class="flex items-center justify-between mb-3 select-none">
           <div class="flex items-center space-x-2">
             <svg class="w-4 h-4 text-brand-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
@@ -519,7 +540,7 @@
           <!-- Input bar text area -->
           <div class="flex items-end bg-cyber-bg border border-cyber-border rounded-2xl p-2 focus-within:border-brand-500 transition-all duration-300 relative shadow-inner">
             <!-- Toggle attachment Drawer button -->
-            <button id="btn-toggle-drawer" class="p-3 text-slate-500 hover:text-slate-800 dark:hover:text-white hover:bg-slate-350 dark:hover:bg-slate-800/20 rounded-xl transition shrink-0 active:scale-95" title="Attach Config RSC or Log">
+            <button id="btn-toggle-drawer" class="p-3 text-slate-500 hover:text-slate-800 dark:hover:text-white hover:bg-slate-300 dark:hover:bg-slate-800/20 rounded-xl transition shrink-0 active:scale-95" title="Attach Config RSC or Log">
               <svg class="w-5 h-5 text-cyber-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
             </button>
 
@@ -635,69 +656,6 @@
     </div>
     <h4 id="ui-drag-title" class="text-sm font-black text-white uppercase tracking-wider">Drop RouterOS Configuration File</h4>
     <p id="ui-drag-desc" class="text-xs text-slate-300">Accepts .rsc, .txt, or .log exports</p>
-  </div>
-
-  <!-- PRIVACY SHIELD PROGRESSIVE STEPPER LOADER OVERLAY -->
-  <div id="privacy-loader" class="hidden fixed inset-0 z-50 flex items-center justify-center glass-effect bg-slate-950/80">
-    <div class="bg-cyber-panel border border-cyber-border rounded-2xl p-6 max-w-sm w-full mx-4 shadow-2xl relative overflow-hidden">
-      <div class="absolute -top-12 -left-12 w-32 h-32 bg-brand-500/10 rounded-full blur-2xl pointer-events-none"></div>
-
-      <div class="flex items-center space-x-3 mb-4 shrink-0">
-        <div class="relative flex items-center justify-center">
-          <div class="absolute w-8 h-8 rounded-full bg-brand-500/20 pulse-ring-active"></div>
-          <svg class="w-5 h-5 text-brand-400 relative z-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path></svg>
-        </div>
-        <h3 id="ui-loader-title" class="text-xs font-black uppercase tracking-wider text-slate-800 dark:text-slate-200">Mik's Privacy Shield Active</h3>
-      </div>
-
-      <!-- Progressive steps -->
-      <div class="space-y-4 font-sans text-xs">
-        <!-- Step 1 -->
-        <div id="step-mask" class="flex items-center justify-between text-slate-500">
-          <div class="flex items-center space-x-2.5">
-            <div class="step-indicator w-5 h-5 rounded-full border border-cyber-border text-[10px] font-bold flex items-center justify-center bg-slate-950 text-slate-500">1</div>
-            <span id="ui-loader-step1-title" class="font-medium">Redact & Mask Private Context</span>
-          </div>
-          <span class="step-stat text-[10px] font-mono text-slate-500">Pending</span>
-        </div>
-        <!-- Step 2 -->
-        <div id="step-transit" class="flex items-center justify-between text-slate-500">
-          <div class="flex items-center space-x-2.5">
-            <div class="step-indicator w-5 h-5 rounded-full border border-cyber-border text-[10px] font-bold flex items-center justify-center bg-slate-950 text-slate-500">2</div>
-            <span id="ui-loader-step2-title" class="font-medium">AI Audit in Safe Sandbox</span>
-          </div>
-          <span class="step-stat text-[10px] font-mono text-slate-500">Pending</span>
-        </div>
-        <!-- Step 3 -->
-        <div id="step-restore" class="flex items-center justify-between text-slate-500">
-          <div class="flex items-center space-x-2.5">
-            <div class="step-indicator w-5 h-5 rounded-full border border-cyber-border text-[10px] font-bold flex items-center justify-center bg-slate-950 text-slate-500">3</div>
-            <span id="ui-loader-step3-title" class="font-medium">De-anonymize Original Records</span>
-          </div>
-          <span class="step-stat text-[10px] font-mono text-slate-500">Pending</span>
-        </div>
-        <!-- Step 4 -->
-        <div id="step-diff" class="flex items-center justify-between text-slate-500">
-          <div class="flex items-center space-x-2.5">
-            <div class="step-indicator w-5 h-5 rounded-full border border-cyber-border text-[10px] font-bold flex items-center justify-center bg-slate-950 text-slate-500">4</div>
-            <span id="ui-loader-step4-title" class="font-medium">Format Redline Comparison Diff</span>
-          </div>
-          <span class="step-stat text-[10px] font-mono text-slate-500">Pending</span>
-        </div>
-      </div>
-
-      <!-- Log text & progress bar -->
-      <div class="mt-5 pt-3 border-t border-cyber-border space-y-2 select-none">
-        <div class="flex justify-between items-center text-[10px] text-slate-550 dark:text-slate-400 font-semibold">
-          <span id="stepper-log-text" class="truncate max-w-[200px]">Initializing...</span>
-          <span id="stepper-percentage">0%</span>
-        </div>
-        <div class="w-full bg-cyber-bg h-1.5 rounded-full overflow-hidden border border-cyber-border">
-          <div id="stepper-progress-bar" class="bg-brand-500 h-full w-0 transition-all duration-300"></div>
-        </div>
-      </div>
-
-    </div>
   </div>
 
   <!-- MODERN FLOATING TOAST CONTAINER -->
