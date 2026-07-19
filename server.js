@@ -13,8 +13,10 @@ app.use(express.json({ limit: '10mb' }));
 // Serve static frontend files from 'public' directory
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Default strong system prompt
-const DEFAULT_SYSTEM_PROMPT = `You are an elite, certified MikroTik network engineer and RouterOS (v6 and v7) expert. Your job is to analyze the user's issue and RouterOS configurations/logs, find any syntax errors, logical bugs, firewall misconfigurations, routing errors, or other issues, and provide corrections.
+// Default strong wizard system prompt
+const DEFAULT_SYSTEM_PROMPT = `You are Mik the Winbox Wizard (or Mik for short), a witty, legendary, certified MikroTik network engineer, RouterOS (v6 and v7) master, and packet-filtering wizard. Your job is to analyze the user's issue and RouterOS configurations/logs, find any syntax errors, logical bugs, firewall misconfigurations, routing errors, or other issues, and provide corrections.
+
+In your explanations, you should adopt a helpful, friendly, and slightly humorous wizard persona—referring to configurations as "spells", firewalls as "protective wards", packets as "travelers", and routing tables as "ancient maps". Always greet the user with a fun wizard/MikroTik greeting, and naturally use your name ("Mik" or "Mik the Winbox Wizard") in your explanations! Keep it professional yet lighthearted.
 
 You must return your output in three distinct sections, wrapped in the following markers:
 
@@ -35,14 +37,30 @@ Strict Instructions:
 2. Maintain RouterOS CLI syntax standards. For v7, routing commands can be different from v6; match the version in the config or support both if unsure.`;
 
 /**
+ * Dynamic language prompt injector that retains Mik's wizardly persona
+ */
+function getLocalizedSystemPrompt(baseSystemPrompt, language) {
+  const base = baseSystemPrompt || DEFAULT_SYSTEM_PROMPT;
+
+  if (language === 'it') {
+    return `${base}\n\nStrict Language Requirement:\nYou MUST output the content inside the <<<EXPLANATION>>> block entirely in Italian, using your witty and slightly humorous wizard persona (e.g., call yourself "Mik il Mago di Winbox", call configurations "incantesimi", firewalls "barriere protettive", packets "viaggiatori", and routing tables "mappe antiche"). However, always keep standard RouterOS configuration syntax inside the <<<CORRECTED_CONFIG>>> and the <<<FIX_COMMANDS>>> blocks intact (retaining standard English commands like '/ip firewall', '/interface bridge', etc.).`;
+  } else if (language === 'en') {
+    return `${base}\n\nStrict Language Requirement:\nYou MUST output the content inside the <<<EXPLANATION>>> block entirely in English.`;
+  } else {
+    // Language: 'auto'
+    return `${base}\n\nStrict Language Requirement:\nYou MUST detect the language of the user's question or logs/comments, and output the content inside the <<<EXPLANATION>>> block entirely in that same language (e.g. if the user asks in Italian, respond in Italian inside the <<<EXPLANATION>>> block using your translated witty wizard persona). However, always keep standard RouterOS configuration syntax inside the <<<CORRECTED_CONFIG>>> and the <<<FIX_COMMANDS>>> blocks intact (retaining standard English commands like '/ip firewall', '/interface bridge', etc.).`;
+  }
+}
+
+/**
  * Proxy call to LLM providers
  */
-async function callLLM({ provider, apiKey, baseUrl, model, systemPrompt, promptText }) {
+async function callLLM({ provider, apiKey, baseUrl, model, systemPrompt, promptText, language }) {
   let url = '';
   let headers = { 'Content-Type': 'application/json' };
   let body = {};
 
-  const activeSystemPrompt = systemPrompt || DEFAULT_SYSTEM_PROMPT;
+  const activeSystemPrompt = getLocalizedSystemPrompt(systemPrompt, language);
 
   if (provider === 'openai') {
     url = 'https://api.openai.com/v1/chat/completions';
@@ -109,7 +127,7 @@ async function callLLM({ provider, apiKey, baseUrl, model, systemPrompt, promptT
     throw new Error(`Unknown LLM provider: ${provider}`);
   }
 
-  console.log(`[Proxy] Sending request to provider: ${provider}, URL: ${url}`);
+  console.log(`🧙‍♂️ [Mik the Winbox Wizard] Proxying request to provider: ${provider}, URL: ${url}`);
 
   const response = await fetch(url, {
     method: 'POST',
@@ -180,6 +198,7 @@ app.post('/api/chat', async (req, res) => {
       baseUrl,
       model,
       systemPrompt,
+      language,
       maskOptions
     } = req.body;
 
@@ -191,10 +210,10 @@ app.post('/api/chat', async (req, res) => {
     const combinedInput = `[USER QUESTION/ISSUE]:\n${chatMessage || 'Please analyze this configuration for errors or potential improvements.'}\n\n[ROUTEROS CONFIG / LOGS / EXPORT]:\n\`\`\`\n${pastedConfig || '(No configuration pasted)'}\n\`\`\`\n`;
 
     // Apply the Privacy Shield masking
-    console.log('[Privacy Shield] Masking user input...');
+    console.log('🛡️ [Mik\'s Privacy Shield] Casting masking spell on user input...');
     const { maskedText, mapping } = mask(combinedInput, maskOptions);
 
-    console.log('[Privacy Shield] Masking complete. Sending masked query to LLM.');
+    console.log('🛡️ [Mik\'s Privacy Shield] Masking complete. Channeling masked query to the LLM.');
 
     // Send to LLM Proxy
     const llmRawResponse = await callLLM({
@@ -203,10 +222,11 @@ app.post('/api/chat', async (req, res) => {
       baseUrl,
       model,
       systemPrompt,
-      promptText: maskedText
+      promptText: maskedText,
+      language: language || 'auto'
     });
 
-    console.log('[LLM] Response received. Restoring original values using Privacy Shield...');
+    console.log('🔮 [Mik the Winbox Wizard] Response received! Breaking the masking spell to restore original values...');
 
     // Restore the original data in the LLM's raw response
     const unmaskedRawResponse = unmask(llmRawResponse, mapping);
@@ -261,5 +281,5 @@ app.post('/api/test-connection', async (req, res) => {
 
 // Start server
 app.listen(PORT, () => {
-  console.log(`🚀 MikroTik Privacy Chatbot server is running at http://localhost:${PORT}`);
+  console.log(`🧙‍♂️ 🚀 Mik the Winbox Wizard is running at http://localhost:${PORT}`);
 });
