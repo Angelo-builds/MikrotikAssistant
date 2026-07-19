@@ -1,4 +1,4 @@
-// Main frontend JS for MikroTik Privacy AI Chatbot Assistant with Next-Gen UI Redesign & Multilingual Wizard Persona
+// Main frontend JS for Mik the Winbox Wizard with Unified Chat Stream & Contextual dropdowns
 
 // Professional UI Localization Dictionary
 const i18n = {
@@ -7,7 +7,7 @@ const i18n = {
     headerTitle: 'Mik the Winbox Wizard',
     headerBadge: "Mik's Privacy Shield Active",
     headerDesc: 'RouterOS Configuration Auditor & Safe Correction Suite',
-    tooltipAudit: 'Audit Workspace',
+    tooltipAudit: 'New Chat',
     tooltipHistory: 'Audit History',
     tooltipUpload: 'Upload File',
     tooltipHelp: 'Wizard Assistance',
@@ -19,11 +19,11 @@ const i18n = {
     quickFirewall: 'Firewall Audit',
     quickRouting: 'Gateway & DNS',
     clearLabel: 'Clear',
-    pastedConfigPlaceholder: '# Drag & drop a .rsc config here or paste it manually...\n# (All IP/MAC addresses, secrets, custom interfaces and identities will be stripped locally before sending to AI, and restored on response!)',
+    pastedConfigPlaceholder: '# Paste a .rsc export configuration here... (All IP/MAC/secrets will be masked locally before sending to AI, and restored instantly!)',
     dragTitle: 'Drop RouterOS Configuration File',
     dragDesc: 'Accepts .rsc, .txt, or .log exports',
     chatMessageLabel: 'Explain the Problem / Task Description',
-    chatMessagePlaceholder: "Explain what is broken (e.g., 'My port forwarding is not working' or 'Why cannot I ping internal hosts?')",
+    chatMessagePlaceholder: "Describe the issue (e.g., 'Ospf isn't establishing peer' or 'Check if WAN ports are secure')",
     privacyDefault: 'Toggles configuration in Settings',
     privacyActiveLabel: '🛡️ Privacy Guard: {count}/6 Shields Active',
     submitBtn: 'Analyze & Correct',
@@ -38,11 +38,11 @@ const i18n = {
     copyBtn: 'Copy Content',
     copiedText: 'Copied!',
     welcomeTitle: 'Mik the Winbox Wizard is Ready to Cast Spells!',
-    welcomeDesc: 'Configure your preferred LLM provider in settings, paste your RouterOS /export config or log files, explain your problem, and let <strong class="text-brand-400">Mik</strong> work his magic.',
-    welcomePrivacy: "🛡️ Fully Privacy Guarded: Mik's Privacy Ward ensures your passwords, IPs, MACs, custom interface names, and identities never leave this machine.",
+    welcomeDesc: 'Configure your LLM provider in settings, paste your RouterOS `/export` config or log files, explain your problem, and let <strong class="text-brand-400">Mik</strong> audit your network config.',
+    welcomePrivacy: "🛡️ Fully Privacy Guarded: Mik's Privacy Shield ensures your passwords, IPs, MACs, custom interface names, and identities never leave this machine.",
     diffOriginalHeader: 'Original Config (Redacted Display)',
     diffCorrectedHeader: 'Corrected Config (Fully Restored)',
-    diffUnifiedDesc: 'Unified Diff Legend: <span class="text-red-400">Red Line = Original</span> | <span class="text-emerald-400">Green Line = Corrected</span>',
+    diffUnifiedDesc: 'Unified Diff Legend: <span class="text-red-400">Red Line = Original</span> | <span class="text-cyber-emerald">Green Line = Corrected</span>',
     commandsTip: 'These are RouterOS terminal commands. Paste them directly into your MikroTik CLI window to apply the fix.',
     commandsChecklistEmpty: '<div class="text-center py-12 text-slate-500 text-xs">No terminal commands generated for this analysis.</div>',
     commandsRawEmpty: '# Commands will appear here after analysis...',
@@ -98,7 +98,7 @@ const i18n = {
     settingsMaskIdentityTitle: 'Mask Router system identity',
     settingsMaskIdentityDesc: 'Redacts custom system labels or hardware handles',
     settingsLabelPromptOverride: 'Custom Prompt Override',
-    settingsLabelPromptDesc: 'Set a tailored system instruction list for RouterOS optimization. Leave blank to fallback to system standard expert prompt.',
+    settingsLabelPromptDesc: 'Set a tailored system instruction list for RouterOS optimization. Leave blank to fallback to system standard prompt.',
     settingsPromptPlaceholder: 'Enter elite instructions...',
     settingsBtnSave: 'Save Configuration',
     historyNoDesc: '(No description)',
@@ -111,7 +111,7 @@ const i18n = {
     headerTitle: 'Mik il Mago di Winbox',
     headerBadge: 'Scudo della Privacy di Mik Attivo',
     headerDesc: 'Suite di Audit e Correzione Sicura della Configurazione RouterOS',
-    tooltipAudit: 'Area di Lavoro di Audit',
+    tooltipAudit: 'Nuova Chat',
     tooltipHistory: 'Cronologia degli Audit',
     tooltipUpload: 'Carica File',
     tooltipHelp: 'Assistenza del Mago',
@@ -123,11 +123,11 @@ const i18n = {
     quickFirewall: 'Audit del Firewall',
     quickRouting: 'Gateway e DNS',
     clearLabel: 'Cancella',
-    pastedConfigPlaceholder: '# Trascina e rilascia un file .rsc qui o incollalo manualmente...\n# (Tutti gli indirizzi IP/MAC, i segreti, le interfacce personalizzate e le identità saranno rimossi localmente prima dell\'invio all\'IA e ripristinati nella risposta!)',
+    pastedConfigPlaceholder: '# Incolla qui una configurazione .rsc di esportazione... (Tutti gli IP/MAC/segreti saranno mascherati localmente prima dell\'invio all\'IA e ripristinati istantaneamente!)',
     dragTitle: 'Rilascia il File di Configurazione RouterOS',
     dragDesc: 'Accetta esportazioni .rsc, .txt o .log',
     chatMessageLabel: 'Spiega il Problema / Descrizione del Compito',
-    chatMessagePlaceholder: "Spiega cosa non funziona (ad es., 'Il mio port forwarding non funziona' o 'Perché non riesco a pingare gli host interni?')",
+    chatMessagePlaceholder: "Descrivi il problema (es. 'OSPF non stabilisce il peering' o 'Verifica se le porte WAN sono sicure')",
     privacyDefault: 'Configura i parametri di mascheramento nelle Impostazioni',
     privacyActiveLabel: '🛡️ Scudo Privacy: {count}/6 Schermature Attive',
     submitBtn: 'Analizza e Correggi',
@@ -140,13 +140,13 @@ const i18n = {
     commandModeChecklist: 'Lista di Controllo',
     commandModeRaw: 'Terminale CLI',
     copyBtn: 'Copia Contenuto',
-    copiedText: 'Copiato!',
+    copiedText: 'Copia eseguita!',
     welcomeTitle: 'Mik il Mago di Winbox è pronto a lanciare incantesimi!',
-    welcomeDesc: 'Configura il tuo provider LLM preferito nelle impostazioni, incolla la configurazione /export di RouterOS o i file di log, spiega il tuo problema e lascia che <strong class="text-brand-400">Mik</strong> faccia la sua magia.',
+    welcomeDesc: 'Configura il tuo provider LLM nelle impostazioni, incolla la tua configurazione `/export` o file di log di RouterOS, spiega il problema e lascia che <strong class="text-brand-400">Mik</strong> verifichi il tuo dispositivo.',
     welcomePrivacy: '🛡️ Massima Privacy Garantita: lo Scudo di Mik assicura che password, IP, MAC, nomi di interfacce personalizzate e identità non lascino mai questa macchina.',
     diffOriginalHeader: 'Config. Originale (Visualizzazione Oscurata)',
     diffCorrectedHeader: 'Config. Corretta (Completamente Ripristinata)',
-    diffUnifiedDesc: 'Legenda Differenze: <span class="text-red-400">Linea Rossa = Originale</span> | <span class="text-emerald-400">Linea Verde = Corretta</span>',
+    diffUnifiedDesc: 'Legenda Differenze: <span class="text-red-400">Linea Rossa = Originale</span> | <span class="text-cyber-emerald">Linea Verde = Corretta</span>',
     commandsTip: 'Questi sono comandi del terminale RouterOS. Incollali direttamente nella finestra CLI di MikroTik per applicare la correzione.',
     commandsChecklistEmpty: '<div class="text-center py-12 text-slate-500 text-xs">Nessun comando di terminale generato per questa analisi.</div>',
     commandsRawEmpty: '# I comandi appariranno qui dopo l\'analisi...',
@@ -214,7 +214,6 @@ const i18n = {
 
 // State Management
 const state = {
-  activeTab: 'explanation', // 'explanation' | 'diff' | 'commands'
   diffMode: 'split',        // 'split' | 'unified'
   commandMode: 'checklist', // 'checklist' | 'raw'
   language: 'auto',         // 'auto' | 'en' | 'it'
@@ -234,9 +233,9 @@ const state = {
   // Active response data
   analysisResult: null,
   pastedConfigRaw: '',
-  history: [], // List of { id, title, timestamp, pastedConfig, chatMessage, result }
+  history: [], // List of { id, title, timestamp, pastedConfig, chatMessage, result, rosVersion, hardwareModel }
   currentFile: null,
-  inputPanelCollapsed: false,
+  isAttachmentDrawerOpen: false,
   activeSettingsCategoryTab: 'ai' // 'ai' | 'privacy' | 'prompt'
 };
 
@@ -246,6 +245,7 @@ const els = {
   chatMessage: document.getElementById('chat-message'),
   btnSubmit: document.getElementById('btn-submit'),
   loadingSpinner: document.getElementById('loading-spinner'),
+  submitIcon: document.getElementById('submit-icon'),
 
   // Sidebar controls
   sidebarBtnAudit: document.getElementById('sidebar-btn-audit'),
@@ -259,50 +259,48 @@ const els = {
   searchHistory: document.getElementById('search-history'),
   historyItemsContainer: document.getElementById('history-items-container'),
 
-  // Drag and Drop Zone
+  // Drag and Drop Zone & Overlays
   dragDropZone: document.getElementById('drag-drop-zone'),
-  dragPromptOverlay: document.getElementById('drag-prompt-overlay'),
+  globalDragOverlay: document.getElementById('global-drag-overlay'),
   fileInfoBar: document.getElementById('file-info-bar'),
   fileNameLabel: document.getElementById('file-name-label'),
   fileSizeLabel: document.getElementById('file-size-label'),
   btnRemoveFile: document.getElementById('btn-remove-file'),
   fileInput: document.getElementById('file-input'),
 
-  // Collapse Trigger Left Panel
-  panelLeftInput: document.getElementById('panel-left-input'),
-  panelRightOutput: document.getElementById('panel-right-output'),
-  btnToggleInputPanel: document.getElementById('btn-toggle-input-panel'),
-  btnToggleInputPanelIcon: document.getElementById('btn-toggle-input-panel-icon'),
+  // Collapsible Attachment drawer
+  attachmentDrawer: document.getElementById('attachment-drawer'),
+  btnToggleDrawer: document.getElementById('btn-toggle-drawer'),
+  btnClearAttachment: document.getElementById('btn-clear-attachment'),
 
-  // Tabs
-  tabExplanation: document.getElementById('tab-explanation'),
-  tabDiff: document.getElementById('tab-diff'),
-  tabCommands: document.getElementById('tab-commands'),
+  // Chat message stream area
+  chatMessagesStream: document.getElementById('chat-messages-stream'),
 
-  // Mode Toggles (Diff & Commands)
-  diffModeToggles: document.getElementById('diff-mode-toggles'),
+  // Dropdown contexts
+  selectRosVersion: document.getElementById('select-ros-version'),
+  selectHardware: document.getElementById('select-hardware'),
+
+  // MODALS
+  modalDiff: document.getElementById('modal-diff'),
+  modalCommands: document.getElementById('modal-commands'),
+  btnCloseDiff: document.getElementById('btn-close-diff'),
+  btnCloseCommands: document.getElementById('btn-close-commands'),
+
+  // Modals Toggles & Content
   diffViewModeSplit: document.getElementById('diff-view-mode-split'),
   diffViewModeUnified: document.getElementById('diff-view-mode-unified'),
-  commandModeToggles: document.getElementById('command-mode-toggles'),
-  commandViewModeChecklist: document.getElementById('command-view-mode-checklist'),
-  commandViewModeRaw: document.getElementById('command-view-mode-raw'),
-
-  // Tab Content Panels
-  panelWelcome: document.getElementById('panel-welcome'),
-  contentExplanation: document.getElementById('content-explanation'),
-  contentDiff: document.getElementById('content-diff'),
-  contentCommands: document.getElementById('content-commands'),
   diffTableBody: document.getElementById('diff-table-body'),
   diffSplitHeaders: document.getElementById('diff-split-headers'),
   diffUnifiedHeader: document.getElementById('diff-unified-header'),
+
+  commandViewModeChecklist: document.getElementById('command-view-mode-checklist'),
+  commandViewModeRaw: document.getElementById('command-view-mode-raw'),
   commandsChecklistContainer: document.getElementById('commands-checklist-container'),
   commandsRawContainer: document.getElementById('commands-raw-container'),
   commandsBlock: document.getElementById('commands-block'),
 
-  // Actions
-  btnCopyTab: document.getElementById('btn-copy-tab'),
-  btnCopyText: document.getElementById('btn-copy-text'),
-  btnClearAll: document.getElementById('btn-clear-all'),
+  // Actions / Templates
+  panelWelcome: document.getElementById('panel-welcome'),
   btnQuickFirewall: document.getElementById('btn-quick-firewall'),
   btnQuickRouting: document.getElementById('btn-quick-routing'),
 
@@ -341,7 +339,6 @@ const els = {
   maskIdentity: document.getElementById('mask-identity'),
 
   // Statuses
-  llmStatus: document.getElementById('llm-status'),
   llmStatusDot: document.getElementById('llm-status-dot'),
   llmStatusText: document.getElementById('llm-status-text'),
   privacyCount: document.getElementById('privacy-count'),
@@ -359,7 +356,7 @@ const els = {
   // Toast container
   toastContainer: document.getElementById('toast-container'),
 
-  // Translatable Elements (New)
+  // Translatable Elements
   uiTitle: document.getElementById('ui-title'),
   uiHeaderTitle: document.getElementById('ui-header-title'),
   uiHeaderBadge: document.getElementById('ui-header-badge'),
@@ -371,11 +368,8 @@ const els = {
   uiHistoryTitle: document.getElementById('ui-history-title'),
   uiHistoryEmpty: document.getElementById('ui-history-empty'),
   uiLabelPasteConfig: document.getElementById('ui-label-paste-config'),
-  uiLabelClear: document.getElementById('ui-label-clear'),
   uiDragTitle: document.getElementById('ui-drag-title'),
   uiDragDesc: document.getElementById('ui-drag-desc'),
-  uiLabelChatMessage: document.getElementById('ui-label-chat-message'),
-  uiLabelSubmit: document.getElementById('ui-label-submit'),
   uiLabelWelcomeTitle: document.getElementById('ui-label-welcome-title'),
   uiLabelWelcomeDesc: document.getElementById('ui-label-welcome-desc'),
   uiLabelWelcomePrivacy: document.getElementById('ui-label-welcome-privacy'),
@@ -420,6 +414,7 @@ document.addEventListener('DOMContentLoaded', () => {
   updatePrivacyShieldLabel();
   updateLLMStatusBadge();
   updateUILanguage();
+  adjustTextAreaHeight();
 });
 
 // DYNAMIC UI TRANSLATION / LOCALIZATION
@@ -451,36 +446,15 @@ function updateUILanguage() {
   if (els.uiLabelPasteConfig) {
     els.uiLabelPasteConfig.textContent = t.pasteConfigLabel;
   }
-  if (els.uiLabelClear) els.uiLabelClear.textContent = t.clearLabel;
   if (els.pastedConfig) els.pastedConfig.placeholder = t.pastedConfigPlaceholder;
   if (els.uiDragTitle) els.uiDragTitle.textContent = t.dragTitle;
   if (els.uiDragDesc) els.uiDragDesc.textContent = t.dragDesc;
-  if (els.uiLabelChatMessage) {
-    els.uiLabelChatMessage.childNodes[2].textContent = ` ${t.chatMessageLabel}`;
-  }
   if (els.chatMessage) els.chatMessage.placeholder = t.chatMessagePlaceholder;
-
-  // Submit button
-  if (els.uiLabelSubmit) {
-    els.uiLabelSubmit.textContent = t.submitBtn;
-  }
 
   // Welcome panel
   if (els.uiLabelWelcomeTitle) els.uiLabelWelcomeTitle.textContent = t.welcomeTitle;
   if (els.uiLabelWelcomeDesc) els.uiLabelWelcomeDesc.innerHTML = t.welcomeDesc;
   if (els.uiLabelWelcomePrivacy) els.uiLabelWelcomePrivacy.textContent = t.welcomePrivacy;
-
-  // Tabs
-  if (els.tabExplanation) els.tabExplanation.textContent = t.tabExplanation;
-  if (els.tabDiff) els.tabDiff.textContent = t.tabDiff;
-  if (els.tabCommands) els.tabCommands.textContent = t.tabCommands;
-
-  // Mode toggles
-  if (els.diffViewModeSplit) els.diffViewModeSplit.textContent = t.diffModeSplit;
-  if (els.diffViewModeUnified) els.diffViewModeUnified.textContent = t.diffModeUnified;
-  if (els.commandViewModeChecklist) els.commandViewModeChecklist.textContent = t.commandModeChecklist;
-  if (els.commandViewModeRaw) els.commandViewModeRaw.textContent = t.commandModeRaw;
-  if (els.btnCopyText) els.btnCopyText.textContent = t.copyBtn;
 
   // Diff Headers
   if (els.uiLabelDiffOriginal) els.uiLabelDiffOriginal.textContent = t.diffOriginalHeader;
@@ -489,7 +463,7 @@ function updateUILanguage() {
 
   // Fix commands
   if (els.uiLabelCommandsTip) {
-    els.uiLabelCommandsTip.childNodes[2].textContent = ` ${t.commandsTip}`;
+    els.uiLabelCommandsTip.textContent = t.commandsTip;
   }
 
   // Stepper Loader
@@ -661,33 +635,32 @@ function showToast(message, type = 'info') {
 
 // DRAG AND DROP HANDLERS
 function setupDragAndDrop() {
-  const zone = els.dragDropZone;
   const currentLang = state.language === 'auto' ? 'en' : state.language;
   const t = i18n[currentLang] || i18n.en;
 
-  window.addEventListener('dragover', (e) => e.preventDefault());
-  window.addEventListener('drop', (e) => e.preventDefault());
-
-  zone.addEventListener('dragenter', (e) => {
+  // Global window drag handlers to fade overlay in/out elegantly
+  window.addEventListener('dragenter', (e) => {
     e.preventDefault();
-    els.dragPromptOverlay.classList.remove('opacity-0');
+    els.globalDragOverlay.classList.remove('hidden');
   });
 
-  zone.addEventListener('dragover', (e) => {
+  els.globalDragOverlay.addEventListener('dragover', (e) => {
     e.preventDefault();
-    els.dragPromptOverlay.classList.remove('opacity-0');
   });
 
-  zone.addEventListener('dragleave', (e) => {
+  els.globalDragOverlay.addEventListener('dragleave', (e) => {
     e.preventDefault();
-    if (e.relatedTarget === null || !zone.contains(e.relatedTarget)) {
-      els.dragPromptOverlay.classList.add('opacity-0');
-    }
+    els.globalDragOverlay.classList.add('hidden');
   });
 
-  zone.addEventListener('drop', (e) => {
+  window.addEventListener('drop', (e) => {
     e.preventDefault();
-    els.dragPromptOverlay.classList.add('opacity-0');
+    els.globalDragOverlay.classList.add('hidden');
+  });
+
+  els.globalDragOverlay.addEventListener('drop', (e) => {
+    e.preventDefault();
+    els.globalDragOverlay.classList.add('hidden');
 
     if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
       handleUploadedFile(e.dataTransfer.files[0]);
@@ -699,7 +672,6 @@ function setupDragAndDrop() {
     els.pastedConfig.value = '';
     els.pastedConfig.disabled = false;
     els.fileInfoBar.classList.add('hidden');
-    els.pastedConfig.classList.remove('pb-12');
   });
 
   els.fileInput.addEventListener('change', (e) => {
@@ -731,14 +703,15 @@ function handleUploadedFile(file) {
     els.fileSizeLabel.textContent = (file.size / 1024).toFixed(1) + ' KB';
 
     els.fileInfoBar.classList.remove('hidden');
-    els.pastedConfig.classList.add('pb-12');
+    openAttachmentDrawer();
     showToast(t.toastFileUploadSuccess, 'success');
   };
   reader.readAsText(file);
 }
 
+// SETUP EVENT LISTENERS
 function setupEventListeners() {
-  // Toggle Settings Slider Drawer (Slides from right side)
+  // Toggle Settings Drawer
   els.btnSettings.addEventListener('click', () => {
     loadSettings();
     els.modalSettings.classList.remove('hidden');
@@ -762,14 +735,14 @@ function setupEventListeners() {
     }
   });
 
-  // Language selector change listener
+  // Language selector
   els.settingLanguage.addEventListener('change', () => {
     state.language = els.settingLanguage.value;
     localStorage.setItem('mikrotik_chatbot_language', state.language);
     updateUILanguage();
   });
 
-  // Categories switcher inside settings drawer
+  // Settings Category switcher
   els.settingsTabAi.addEventListener('click', () => switchSettingsCategoryTab('ai'));
   els.settingsTabPrivacy.addEventListener('click', () => switchSettingsCategoryTab('privacy'));
   els.settingsTabPrompt.addEventListener('click', () => switchSettingsCategoryTab('prompt'));
@@ -783,110 +756,138 @@ function setupEventListeners() {
     closeSettingsHandler();
   });
 
-  // Test connection
+  // Test Connection
   els.btnTestConnection.addEventListener('click', testConnection);
 
-  // Live update counts from toggles inside drawer
+  // Dynamic status indicators
   [els.maskIPs, els.maskMACs, els.maskSecrets, els.maskInterfaces, els.maskDomains, els.maskIdentity].forEach(el => {
     el.addEventListener('change', updatePrivacyShieldLabel);
   });
 
-  // Sidebar Workspace Button
+  // Sidebar Controls
   els.sidebarBtnAudit.addEventListener('click', () => {
-    // Hide drawer history
     els.drawerHistory.classList.add('hidden');
+    resetChatWorkspace();
   });
 
-  // Toggle History Drawer
   els.sidebarBtnHistory.addEventListener('click', () => {
     els.drawerHistory.classList.toggle('hidden');
   });
 
-  // Sidebar Help Button
   els.sidebarBtnHelp.addEventListener('click', () => {
     const currentLang = state.language === 'auto' ? 'en' : state.language;
     const t = i18n[currentLang] || i18n.en;
     showToast(t.tooltipHelp + ': ' + t.welcomePrivacy, 'info');
   });
 
-  // Toggle Input panel collapse/expand
-  els.btnToggleInputPanel.addEventListener('click', toggleInputPanel);
+  // Collapsible Attachment Drawer trigger
+  els.btnToggleDrawer.addEventListener('click', toggleAttachmentDrawer);
+  els.btnClearAttachment.addEventListener('click', () => {
+    els.pastedConfig.value = '';
+    state.currentFile = null;
+    els.fileInfoBar.classList.add('hidden');
+    closeAttachmentDrawer();
+  });
 
-  // Tabs navigation inside Workspace
-  els.tabExplanation.addEventListener('click', () => switchTab('explanation'));
-  els.tabDiff.addEventListener('click', () => switchTab('diff'));
-  els.tabCommands.addEventListener('click', () => switchTab('commands'));
+  // Modal closers
+  els.btnCloseDiff.addEventListener('click', () => els.modalDiff.classList.add('hidden'));
+  els.btnCloseCommands.addEventListener('click', () => els.modalCommands.classList.add('hidden'));
 
-  // Diff view modes
+  // Modals click-away
+  [els.modalDiff, els.modalCommands].forEach(modal => {
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal) {
+        modal.classList.add('hidden');
+      }
+    });
+  });
+
+  // Diff view mode toggles inside modal
   els.diffViewModeSplit.addEventListener('click', () => switchDiffMode('split'));
   els.diffViewModeUnified.addEventListener('click', () => switchDiffMode('unified'));
 
-  // Command view modes
+  // Commands checklist toggles inside modal
   els.commandViewModeChecklist.addEventListener('click', () => switchCommandMode('checklist'));
   els.commandViewModeRaw.addEventListener('click', () => switchCommandMode('raw'));
 
-  // Quick action buttons
+  // Quick Action Welcome Panel triggers
   els.btnQuickFirewall.addEventListener('click', loadFirewallTemplate);
   els.btnQuickRouting.addEventListener('click', loadRoutingTemplate);
-  els.btnClearAll.addEventListener('click', clearAll);
 
-  // Clear history list
+  // Clear Session History button
   els.btnClearHistory.addEventListener('click', clearHistory);
 
-  // Search History
+  // History filtering input
   els.searchHistory.addEventListener('input', () => renderHistoryList(els.searchHistory.value));
 
-  // Copy Tab content
-  els.btnCopyTab.addEventListener('click', copyActiveTabContent);
+  // Chat message height auto adjustment
+  els.chatMessage.addEventListener('input', adjustTextAreaHeight);
 
-  // Form Submission
+  // Submission
   els.btnSubmit.addEventListener('click', submitChat);
+
+  // Enter key trigger for quick sending (Shift+Enter for new line)
+  els.chatMessage.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      submitChat();
+    }
+  });
 }
 
 function switchSettingsCategoryTab(catId) {
   state.activeSettingsCategoryTab = catId;
 
-  // Reset tab UI
+  // Reset category styles
   [els.settingsTabAi, els.settingsTabPrivacy, els.settingsTabPrompt].forEach(el => {
     el.className = 'flex-1 py-1.5 text-[10px] font-bold rounded-md text-slate-400 hover:text-white transition';
   });
 
-  // Reset sections
   els.settingsSectionAi.classList.add('hidden');
   els.settingsSectionPrivacy.classList.add('hidden');
   els.settingsSectionPrompt.classList.add('hidden');
 
   if (catId === 'ai') {
-    els.settingsTabAi.className = 'flex-1 py-1.5 text-[10px] font-bold rounded-md bg-slate-800 text-brand-400 border border-slate-700/50 transition';
+    els.settingsTabAi.className = 'flex-1 py-1.5 text-[10px] font-bold rounded-md bg-slate-800 text-brand-400 border border-cyber-border transition';
     els.settingsSectionAi.classList.remove('hidden');
   } else if (catId === 'privacy') {
-    els.settingsTabPrivacy.className = 'flex-1 py-1.5 text-[10px] font-bold rounded-md bg-slate-800 text-brand-400 border border-slate-700/50 transition';
+    els.settingsTabPrivacy.className = 'flex-1 py-1.5 text-[10px] font-bold rounded-md bg-slate-800 text-brand-400 border border-cyber-border transition';
     els.settingsSectionPrivacy.classList.remove('hidden');
   } else if (catId === 'prompt') {
-    els.settingsTabPrompt.className = 'flex-1 py-1.5 text-[10px] font-bold rounded-md bg-slate-800 text-brand-400 border border-slate-700/50 transition';
+    els.settingsTabPrompt.className = 'flex-1 py-1.5 text-[10px] font-bold rounded-md bg-slate-800 text-brand-400 border border-cyber-border transition';
     els.settingsSectionPrompt.classList.remove('hidden');
   }
 }
 
-// TOGGLE LEFT PANEL COLLAPSE
-function toggleInputPanel() {
-  state.inputPanelCollapsed = !state.inputPanelCollapsed;
-  if (state.inputPanelCollapsed) {
-    els.panelLeftInput.classList.add('lg:w-0', 'lg:p-0', 'overflow-hidden', 'opacity-0');
-    els.btnToggleInputPanelIcon.innerHTML = `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>`;
-    els.btnToggleInputPanel.classList.remove('right-4');
-    els.btnToggleInputPanel.classList.add('left-4', 'absolute');
-    els.panelRightOutput.appendChild(els.btnToggleInputPanel); // Teleport button so it remains clickable
+// TOGGLE ATTACHMENT DRAWER
+function toggleAttachmentDrawer() {
+  if (state.isAttachmentDrawerOpen) {
+    closeAttachmentDrawer();
   } else {
-    els.panelLeftInput.classList.remove('lg:w-0', 'lg:p-0', 'overflow-hidden', 'opacity-0');
-    els.btnToggleInputPanelIcon.innerHTML = `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>`;
-    els.btnToggleInputPanel.classList.remove('left-4', 'absolute');
-    els.btnToggleInputPanel.classList.add('right-4');
-    els.panelLeftInput.appendChild(els.btnToggleInputPanel); // Teleport back
+    openAttachmentDrawer();
   }
 }
 
-// LOCAL HISTORY IMPLEMENTATION
+function openAttachmentDrawer() {
+  state.isAttachmentDrawerOpen = true;
+  els.attachmentDrawer.classList.remove('hidden');
+  els.btnToggleDrawer.classList.add('bg-brand-500/10', 'text-brand-400');
+}
+
+function closeAttachmentDrawer() {
+  state.isAttachmentDrawerOpen = false;
+  els.attachmentDrawer.classList.add('hidden');
+  els.btnToggleDrawer.classList.remove('bg-brand-500/10', 'text-brand-400');
+}
+
+// TEXT AREA AUTO GROW
+function adjustTextAreaHeight() {
+  const textarea = els.chatMessage;
+  textarea.style.height = 'auto';
+  textarea.style.height = Math.min(textarea.scrollHeight, 128) + 'px';
+}
+
+// LOCAL HISTORY PERSISTENCE
 function loadHistory() {
   const saved = localStorage.getItem('mikrotik_chatbot_history');
   if (saved) {
@@ -935,7 +936,7 @@ function renderHistoryList(filterQuery = '') {
 
   filtered.forEach((item) => {
     const card = document.createElement('div');
-    card.className = 'group/item relative p-3.5 bg-[#111827]/60 hover:bg-slate-800/50 border border-slate-800/80 hover:border-slate-700/60 rounded-xl transition cursor-pointer select-none flex flex-col gap-1';
+    card.className = 'group/item relative p-3.5 bg-cyber-bg/60 hover:bg-[#1e1b4b]/40 border border-cyber-border rounded-2xl transition cursor-pointer flex flex-col gap-1';
 
     const deleteBtn = document.createElement('button');
     deleteBtn.className = 'absolute top-3 right-3 text-slate-500 hover:text-red-400 opacity-0 group-hover/item:opacity-100 transition p-1 hover:bg-red-500/10 rounded-md';
@@ -979,19 +980,25 @@ function renderHistoryList(filterQuery = '') {
 }
 
 function restoreHistoryItem(item) {
+  // Clear chat stream and restore a single conversation step
+  els.chatMessagesStream.innerHTML = '';
+  els.panelWelcome.classList.add('hidden');
+
   state.analysisResult = item.result;
   state.pastedConfigRaw = item.pastedConfig;
-  els.pastedConfig.value = item.pastedConfig;
-  els.chatMessage.value = item.chatMessage;
 
-  // Render everything back
-  els.panelWelcome.classList.add('hidden');
-  els.contentExplanation.innerHTML = renderMarkdown(item.result.explanation || '');
-  renderDiff(item.pastedConfig, item.result.correctedConfig || '');
-  renderCommands(item.result.fixCommands || '');
+  // Set selectors
+  els.selectRosVersion.value = item.rosVersion || 'auto';
+  els.selectHardware.value = item.hardwareModel || 'auto';
 
-  switchTab('explanation');
-  showToast('Restored audit from session history!', 'success');
+  // Inject User Message
+  appendUserMessage(item.chatMessage, item.pastedConfig);
+
+  // Inject Assistant Response
+  appendAssistantResponse(item.result);
+
+  els.drawerHistory.classList.add('hidden');
+  showToast('Restored conversation from history!', 'success');
 }
 
 function clearHistory() {
@@ -1024,13 +1031,13 @@ function updateLLMStatusBadge() {
   const hasKey = !!state.settings.apiKey;
 
   if (prov === 'ollama' || prov === 'custom') {
-    els.llmStatusDot.className = 'w-2.5 h-2.5 bg-emerald-400 rounded-full animate-pulse shadow-emerald-glow';
+    els.llmStatusDot.className = 'w-2.5 h-2.5 bg-cyber-emerald rounded-full animate-pulse shadow-emerald-glow';
     els.llmStatusText.textContent = `LAN Active (${prov.toUpperCase()})`;
-    els.llmStatusText.className = 'font-bold text-emerald-400 text-[10px] tracking-wide';
+    els.llmStatusText.className = 'font-bold text-cyber-emerald text-[10px] tracking-wide';
   } else if (hasKey) {
-    els.llmStatusDot.className = 'w-2.5 h-2.5 bg-emerald-400 rounded-full animate-pulse shadow-emerald-glow';
+    els.llmStatusDot.className = 'w-2.5 h-2.5 bg-cyber-emerald rounded-full animate-pulse shadow-emerald-glow';
     els.llmStatusText.textContent = `Secure Cloud Active`;
-    els.llmStatusText.className = 'font-bold text-emerald-400 text-[10px] tracking-wide';
+    els.llmStatusText.className = 'font-bold text-cyber-emerald text-[10px] tracking-wide';
   } else {
     els.llmStatusDot.className = 'w-2.5 h-2.5 bg-slate-500 rounded-full';
     els.llmStatusText.textContent = 'LLM Offline (Requires Key/API)';
@@ -1063,7 +1070,7 @@ async function testConnection() {
 
     if (data.success) {
       els.testResult.textContent = t.toastConnectionSuccess;
-      els.testResult.className = 'text-[10px] font-black text-emerald-400';
+      els.testResult.className = 'text-[10px] font-black text-cyber-emerald';
       showToast(t.toastConnectionSuccess, 'success');
     } else {
       throw new Error(data.message || 'No response');
@@ -1071,139 +1078,34 @@ async function testConnection() {
   } catch (err) {
     els.testSpinner.classList.add('hidden');
     els.testResult.textContent = 'Connection Fail';
-    els.testResult.className = 'text-[10px] font-black text-red-400';
+    els.testResult.className = 'text-[10px] font-black text-cyber-red';
     showToast(t.toastConnectionError + err.message, 'error');
   }
 }
 
-// TAB NAVIGATION
-function switchTab(tabId) {
-  state.activeTab = tabId;
-
-  // Toggle button colors
-  [els.tabExplanation, els.tabDiff, els.tabCommands].forEach(el => {
-    el.className = 'tab-btn px-4 py-1.5 text-[11px] font-bold rounded-lg text-slate-400 hover:text-white transition-all duration-200';
-  });
-
-  // Toggle content panels
-  els.contentExplanation.classList.add('hidden');
-  els.contentDiff.classList.add('hidden');
-  els.contentCommands.classList.add('hidden');
-
-  // Toggle view control bars
-  els.diffModeToggles.classList.add('hidden');
-  els.commandModeToggles.classList.add('hidden');
-
-  if (tabId === 'explanation') {
-    els.tabExplanation.className = 'tab-btn active px-4 py-1.5 text-[11px] font-bold rounded-lg bg-brand-500 text-white transition-all duration-200 shadow-brand-glow';
-    if (state.analysisResult) {
-      els.contentExplanation.classList.remove('hidden');
-    } else {
-      els.panelWelcome.classList.remove('hidden');
-    }
-  } else if (tabId === 'diff') {
-    els.tabDiff.className = 'tab-btn active px-4 py-1.5 text-[11px] font-bold rounded-lg bg-brand-500 text-white transition-all duration-200 shadow-brand-glow';
-    els.diffModeToggles.classList.remove('hidden');
-    if (state.analysisResult) {
-      els.contentDiff.classList.remove('hidden');
-    } else {
-      els.panelWelcome.classList.remove('hidden');
-    }
-  } else if (tabId === 'commands') {
-    els.tabCommands.className = 'tab-btn active px-4 py-1.5 text-[11px] font-bold rounded-lg bg-brand-500 text-white transition-all duration-200 shadow-brand-glow';
-    els.commandModeToggles.classList.remove('hidden');
-    if (state.analysisResult) {
-      els.contentCommands.classList.remove('hidden');
-    } else {
-      els.panelWelcome.classList.remove('hidden');
-    }
-  }
-}
-
-// TOGGLE DIFF MODES
-function switchDiffMode(modeId) {
-  state.diffMode = modeId;
-
-  // Reset toggles UI
-  els.diffViewModeSplit.className = 'px-2.5 py-1 text-[10px] font-bold rounded text-slate-400 hover:text-white transition';
-  els.diffViewModeUnified.className = 'px-2.5 py-1 text-[10px] font-bold rounded text-slate-400 hover:text-white transition';
-
-  if (modeId === 'split') {
-    els.diffViewModeSplit.className = 'px-2.5 py-1 text-[10px] font-bold rounded bg-slate-800 text-cyber-accent border border-slate-700/50 transition';
-  } else {
-    els.diffViewModeUnified.className = 'px-2.5 py-1 text-[10px] font-bold rounded bg-slate-800 text-cyber-accent border border-slate-700/50 transition';
-  }
-
-  if (state.analysisResult) {
-    renderDiff(state.pastedConfigRaw, state.analysisResult.correctedConfig || '');
-  }
-}
-
-// TOGGLE COMMAND MODES
-function switchCommandMode(modeId) {
-  state.commandMode = modeId;
-
-  els.commandViewModeChecklist.className = 'px-2.5 py-1 text-[10px] font-bold rounded text-slate-400 hover:text-white transition';
-  els.commandViewModeRaw.className = 'px-2.5 py-1 text-[10px] font-bold rounded text-slate-400 hover:text-white transition';
-
-  if (modeId === 'checklist') {
-    els.commandViewModeChecklist.className = 'px-2.5 py-1 text-[10px] font-bold rounded bg-slate-800 text-cyber-emerald border border-slate-700/50 transition';
-    els.commandsChecklistContainer.classList.remove('hidden');
-    els.commandsRawContainer.classList.add('hidden');
-  } else {
-    els.commandViewModeRaw.className = 'px-2.5 py-1 text-[10px] font-bold rounded bg-slate-800 text-cyber-emerald border border-slate-700/50 transition';
-    els.commandsChecklistContainer.classList.add('hidden');
-    els.commandsRawContainer.classList.remove('hidden');
-  }
-}
-
-// COPY TAB CONTENT HANDLER
-function copyActiveTabContent() {
-  const currentLang = state.language === 'auto' ? 'en' : state.language;
-  const t = i18n[currentLang] || i18n.en;
-
-  let textToCopy = '';
-
-  if (state.activeTab === 'explanation') {
-    textToCopy = els.contentExplanation.innerText;
-  } else if (state.activeTab === 'diff') {
-    // Copy the corrected config
-    textToCopy = state.analysisResult ? state.analysisResult.correctedConfig : '';
-  } else if (state.activeTab === 'commands') {
-    textToCopy = state.analysisResult ? state.analysisResult.fixCommands : '';
-  }
-
-  if (!textToCopy) {
-    showToast('No content to copy!', 'error');
-    return;
-  }
-
-  navigator.clipboard.writeText(textToCopy).then(() => {
-    const originalText = els.btnCopyText.textContent;
-    els.btnCopyText.textContent = t.copiedText;
-    showToast(t.toastCopyTabSuccess, 'success');
-    setTimeout(() => {
-      els.btnCopyText.textContent = originalText;
-    }, 1500);
-  });
-}
-
-// CLEAR ALL INPUTS
-function clearAll() {
+// RESET WORKSPACE
+function resetChatWorkspace() {
+  els.chatMessagesStream.innerHTML = '';
+  els.chatMessagesStream.appendChild(els.panelWelcome);
+  els.panelWelcome.classList.remove('hidden');
+  state.analysisResult = null;
+  state.pastedConfigRaw = '';
   els.pastedConfig.value = '';
   els.chatMessage.value = '';
   state.currentFile = null;
   els.fileInfoBar.classList.add('hidden');
-  els.pastedConfig.classList.remove('pb-12');
+  closeAttachmentDrawer();
+  adjustTextAreaHeight();
 }
 
-// LOAD SAMPLES/TEMPLATES
+// TEMPLATE LOADING
 function loadFirewallTemplate() {
   const currentLang = state.language === 'auto' ? 'en' : state.language;
   const t = i18n[currentLang] || i18n.en;
 
-  els.pastedConfig.value = `# Standard RouterOS Firewall audit example config\n/ip firewall filter\nadd action=accept chain=input comment="defconf: accept established,related,untracked" connection-state=established,related,untracked\nadd action=drop chain=input comment="defconf: drop invalid" connection-state=invalid\nadd action=accept chain=input comment="defconf: accept ICMP" protocol=icmp\nadd action=drop chain=input comment="defconf: drop all not coming from LAN" in-interface-list=!LAN\nadd action=accept chain=forward comment="defconf: accept in-interface=ether1" in-interface=ether1\nadd action=drop chain=forward comment="defconf: drop invalid" connection-state=invalid`;
-  els.chatMessage.value = "Audita le mie regole di firewall. Ci sono porte WAN esposte o vulnerabilità?";
+  els.pastedConfig.value = `/ip firewall filter\nadd action=accept chain=input comment="defconf: accept established,related" connection-state=established,related\nadd action=drop chain=input comment="defconf: drop invalid" connection-state=invalid\nadd action=accept chain=input protocol=icmp\nadd action=drop chain=input comment="defconf: drop WAN access" in-interface-list=WAN\nadd action=accept chain=forward comment="defconf: accept in-interface=ether1" in-interface=ether1`;
+  els.chatMessage.value = "Audita le mie regole di firewall. Ci sono vulnerabilità o porte non protette?";
+  openAttachmentDrawer();
   showToast(t.toastTemplateFirewall, 'success');
 }
 
@@ -1211,12 +1113,46 @@ function loadRoutingTemplate() {
   const currentLang = state.language === 'auto' ? 'en' : state.language;
   const t = i18n[currentLang] || i18n.en;
 
-  els.pastedConfig.value = `# Basic gateway & dns lookup template\n/ip route\nadd dst-address=0.0.0.0/0 gateway=192.168.88.1 routing-table=main\n/ip dns\nset allow-remote-requests=yes servers=8.8.8.8,1.1.1.1\n/ip address\nadd address=192.168.1.50/24 interface=bridge-lan`;
+  els.pastedConfig.value = `/ip route\nadd dst-address=0.0.0.0/0 gateway=192.168.88.1 routing-table=main\n/ip dns\nset allow-remote-requests=yes servers=8.8.8.8,1.1.1.1`;
   els.chatMessage.value = "Why cannot users connect to local addresses, and how should static gateway routes be defined securely?";
+  openAttachmentDrawer();
   showToast(t.toastTemplateRouting, 'success');
 }
 
-// LIGHTWEIGHT DIFF COMPARE GENERATOR
+// TOGGLE MODAL VIEWS & RENDERING DIFF / COMMANDS
+function switchDiffMode(modeId) {
+  state.diffMode = modeId;
+  els.diffViewModeSplit.className = 'px-2.5 py-1 text-[10px] font-bold rounded text-slate-400 hover:text-white transition';
+  els.diffViewModeUnified.className = 'px-2.5 py-1 text-[10px] font-bold rounded text-slate-400 hover:text-white transition';
+
+  if (modeId === 'split') {
+    els.diffViewModeSplit.className = 'px-2.5 py-1 text-[10px] font-bold rounded bg-slate-800 text-cyber-accent border border-cyber-border transition';
+  } else {
+    els.diffViewModeUnified.className = 'px-2.5 py-1 text-[10px] font-bold rounded bg-slate-800 text-cyber-accent border border-cyber-border transition';
+  }
+
+  if (state.analysisResult) {
+    renderDiff(state.pastedConfigRaw, state.analysisResult.correctedConfig || '');
+  }
+}
+
+function switchCommandMode(modeId) {
+  state.commandMode = modeId;
+  els.commandViewModeChecklist.className = 'px-2.5 py-1 text-[10px] font-bold rounded text-slate-400 hover:text-white transition';
+  els.commandViewModeRaw.className = 'px-2.5 py-1 text-[10px] font-bold rounded text-slate-400 hover:text-white transition';
+
+  if (modeId === 'checklist') {
+    els.commandViewModeChecklist.className = 'px-2.5 py-1 text-[10px] font-bold rounded bg-slate-800 text-cyber-emerald border border-cyber-border transition';
+    els.commandsChecklistContainer.classList.remove('hidden');
+    els.commandsRawContainer.classList.add('hidden');
+  } else {
+    els.commandViewModeRaw.className = 'px-2.5 py-1 text-[10px] font-bold rounded bg-slate-800 text-cyber-emerald border border-cyber-border transition';
+    els.commandsChecklistContainer.classList.add('hidden');
+    els.commandsRawContainer.classList.remove('hidden');
+  }
+}
+
+// LIGHTWEIGHT LINE DIFF ENGINE
 function computeLineDiff(originalText, correctedText) {
   const leftLines = originalText.split('\n');
   const rightLines = correctedText.split('\n');
@@ -1234,7 +1170,6 @@ function computeLineDiff(originalText, correctedText) {
       }
       i++; j++;
     } else {
-      // Very basic lookahead heuristics to align modified/inserted/deleted lines
       const leftLookahead = leftLines[i + 1] !== undefined ? leftLines[i + 1] : null;
       const rightLookahead = rightLines[j + 1] !== undefined ? rightLines[j + 1] : null;
 
@@ -1243,15 +1178,12 @@ function computeLineDiff(originalText, correctedText) {
         alignedLines.push({ type: 'modify', left: leftLine, right: rightLine });
         i++; j++;
       } else if (leftLine !== null && rightLookahead === leftLine) {
-        // Insertion on the right
         alignedLines.push({ type: 'insert', left: '', right: rightLine });
         j++;
       } else if (rightLine !== null && leftLookahead === rightLine) {
-        // Deletion on the left
         alignedLines.push({ type: 'delete', left: leftLine, right: '' });
         i++;
       } else {
-        // Fallback: modify
         if (leftLine !== null && rightLine !== null) {
           alignedLines.push({ type: 'modify', left: leftLine, right: rightLine });
           i++; j++;
@@ -1269,11 +1201,7 @@ function computeLineDiff(originalText, correctedText) {
   return alignedLines;
 }
 
-// RENDER DIFF TABLE
 function renderDiff(originalText, correctedText) {
-  const currentLang = state.language === 'auto' ? 'en' : state.language;
-  const t = i18n[currentLang] || i18n.en;
-
   const tbody = els.diffTableBody;
   tbody.innerHTML = '';
 
@@ -1296,20 +1224,20 @@ function renderDiff(originalText, correctedText) {
       if (row.type === 'equal') {
         tdLeft.textContent = row.left;
         tdRight.textContent = row.right;
-        tdLeft.className += ' text-slate-500';
-        tdRight.className += ' text-slate-500';
+        tdLeft.className += ' text-slate-600';
+        tdRight.className += ' text-slate-600';
       } else if (row.type === 'delete') {
-        tdLeft.className += ' diff-deleted text-red-400 font-medium';
+        tdLeft.className += ' diff-deleted text-cyber-red font-medium';
         tdLeft.textContent = row.left;
         tdRight.textContent = '';
       } else if (row.type === 'insert') {
         tdLeft.textContent = '';
-        tdRight.className += ' diff-inserted text-emerald-400 font-medium';
+        tdRight.className += ' diff-inserted text-cyber-emerald font-medium';
         tdRight.textContent = row.right;
       } else if (row.type === 'modify') {
-        tdLeft.className += ' diff-modified-left text-amber-500';
+        tdLeft.className += ' diff-modified-left text-cyber-amber';
         tdLeft.textContent = row.left;
-        tdRight.className += ' diff-modified-right text-emerald-400 font-medium';
+        tdRight.className += ' diff-modified-right text-cyber-emerald font-medium';
         tdRight.textContent = row.right;
       }
 
@@ -1318,14 +1246,13 @@ function renderDiff(originalText, correctedText) {
       tbody.appendChild(tr);
     });
   } else {
-    // Unified view
     els.diffSplitHeaders.classList.add('hidden');
     els.diffUnifiedHeader.classList.remove('hidden');
 
     alignedLines.forEach((row) => {
       if (row.type === 'equal') {
         const tr = document.createElement('tr');
-        tr.className = 'border-b border-slate-900 hover:bg-slate-900/40 text-slate-400';
+        tr.className = 'border-b border-slate-900 hover:bg-slate-900/40 text-slate-500';
         const td = document.createElement('td');
         td.className = 'p-2 whitespace-pre-wrap break-all select-text font-mono text-xs';
         td.textContent = `  ${row.left}`;
@@ -1335,7 +1262,7 @@ function renderDiff(originalText, correctedText) {
         const tr = document.createElement('tr');
         tr.className = 'border-b border-slate-900 hover:bg-slate-900/40';
         const td = document.createElement('td');
-        td.className = 'p-2 whitespace-pre-wrap break-all select-text font-mono text-xs diff-deleted text-red-400 font-medium';
+        td.className = 'p-2 whitespace-pre-wrap break-all select-text font-mono text-xs diff-deleted text-cyber-red font-medium';
         td.textContent = `- ${row.left}`;
         tr.appendChild(td);
         tbody.appendChild(tr);
@@ -1343,16 +1270,15 @@ function renderDiff(originalText, correctedText) {
         const tr = document.createElement('tr');
         tr.className = 'border-b border-slate-900 hover:bg-slate-900/40';
         const td = document.createElement('td');
-        td.className = 'p-2 whitespace-pre-wrap break-all select-text font-mono text-xs diff-inserted text-emerald-400 font-medium';
+        td.className = 'p-2 whitespace-pre-wrap break-all select-text font-mono text-xs diff-inserted text-cyber-emerald font-medium';
         td.textContent = `+ ${row.right}`;
         tr.appendChild(td);
         tbody.appendChild(tr);
       } else if (row.type === 'modify') {
-        // Render deletion line, followed immediately by insertion line
         const trDel = document.createElement('tr');
         trDel.className = 'border-b border-slate-900 hover:bg-slate-900/40';
         const tdDel = document.createElement('td');
-        tdDel.className = 'p-2 whitespace-pre-wrap break-all select-text font-mono text-xs diff-deleted text-red-400 font-medium';
+        tdDel.className = 'p-2 whitespace-pre-wrap break-all select-text font-mono text-xs diff-deleted text-cyber-red font-medium';
         tdDel.textContent = `- ${row.left}`;
         trDel.appendChild(tdDel);
         tbody.appendChild(trDel);
@@ -1360,7 +1286,7 @@ function renderDiff(originalText, correctedText) {
         const trIns = document.createElement('tr');
         trIns.className = 'border-b border-slate-900 hover:bg-slate-900/40';
         const tdIns = document.createElement('td');
-        tdIns.className = 'p-2 whitespace-pre-wrap break-all select-text font-mono text-xs diff-inserted text-emerald-400 font-medium';
+        tdIns.className = 'p-2 whitespace-pre-wrap break-all select-text font-mono text-xs diff-inserted text-cyber-emerald font-medium';
         tdIns.textContent = `+ ${row.right}`;
         trIns.appendChild(tdIns);
         tbody.appendChild(trIns);
@@ -1369,12 +1295,10 @@ function renderDiff(originalText, correctedText) {
   }
 }
 
-// RENDER INTERACTIVE CHECKLIST FOR COMMANDS
 function renderCommands(fixCommands) {
   const currentLang = state.language === 'auto' ? 'en' : state.language;
   const t = i18n[currentLang] || i18n.en;
 
-  // Populate Raw Command Block
   els.commandsBlock.textContent = fixCommands || t.commandsRawNoNeed;
 
   const container = els.commandsChecklistContainer;
@@ -1390,27 +1314,26 @@ function renderCommands(fixCommands) {
 
   lines.forEach((line) => {
     const item = document.createElement('div');
-    item.className = 'p-3 bg-[#0b0f19] border border-slate-800 rounded-xl flex items-center justify-between space-x-3 hover:border-slate-700 transition duration-200';
+    item.className = 'p-3 bg-cyber-bg border border-cyber-border rounded-xl flex items-center justify-between space-x-3 hover:border-slate-700 transition duration-200';
 
     const left = document.createElement('div');
     left.className = 'flex items-start space-x-3 select-none flex-1 overflow-hidden';
 
     const checkbox = document.createElement('input');
     checkbox.type = 'checkbox';
-    checkbox.className = 'mt-1 accent-emerald-500 h-4 w-4 rounded shrink-0 cursor-pointer';
+    checkbox.className = 'mt-1 accent-cyber-emerald h-4 w-4 rounded shrink-0 cursor-pointer';
 
     const text = document.createElement('code');
     text.className = 'text-xs text-slate-200 font-mono select-text break-all leading-normal';
     text.textContent = line;
 
-    // Line completed strike behavior
     checkbox.addEventListener('change', () => {
       if (checkbox.checked) {
         text.className += ' line-through opacity-40';
-        item.className = 'p-3 bg-[#0b0f19]/40 border border-slate-800 rounded-xl flex items-center justify-between space-x-3 opacity-60 transition';
+        item.className = 'p-3 bg-cyber-bg/40 border border-cyber-border rounded-xl flex items-center justify-between space-x-3 opacity-60 transition';
       } else {
         text.className = 'text-xs text-slate-200 font-mono select-text break-all leading-normal';
-        item.className = 'p-3 bg-[#0b0f19] border border-slate-800 rounded-xl flex items-center justify-between space-x-3 hover:border-slate-700 transition';
+        item.className = 'p-3 bg-cyber-bg border border-cyber-border rounded-xl flex items-center justify-between space-x-3 hover:border-slate-700 transition';
       }
     });
 
@@ -1418,17 +1341,17 @@ function renderCommands(fixCommands) {
     left.appendChild(text);
 
     const btnCopy = document.createElement('button');
-    btnCopy.className = 'text-[10px] bg-slate-900 border border-slate-800 hover:bg-slate-800 text-slate-300 font-bold px-2.5 py-1 rounded-lg shrink-0 transition active:scale-95';
+    btnCopy.className = 'text-[10px] bg-cyber-panel border border-cyber-border hover:bg-slate-800 text-slate-300 font-bold px-2.5 py-1 rounded-lg shrink-0 transition active:scale-95';
     btnCopy.textContent = t.copyLabel;
 
     btnCopy.addEventListener('click', () => {
       navigator.clipboard.writeText(line).then(() => {
         btnCopy.textContent = t.copiedText;
-        btnCopy.className = 'text-[10px] bg-emerald-950 border border-emerald-800 text-emerald-400 font-bold px-2.5 py-1 rounded-lg shrink-0 transition';
+        btnCopy.className = 'text-[10px] bg-emerald-950 border border-cyber-emerald text-cyber-emerald font-bold px-2.5 py-1 rounded-lg shrink-0 transition';
         showToast(t.toastCopySuccess, 'success');
         setTimeout(() => {
           btnCopy.textContent = t.copyLabel;
-          btnCopy.className = 'text-[10px] bg-slate-900 border border-slate-800 hover:bg-slate-800 text-slate-300 font-bold px-2.5 py-1 rounded-lg shrink-0';
+          btnCopy.className = 'text-[10px] bg-cyber-panel border border-cyber-border hover:bg-slate-800 text-slate-300 font-bold px-2.5 py-1 rounded-lg shrink-0';
         }, 1500);
       });
     });
@@ -1439,12 +1362,12 @@ function renderCommands(fixCommands) {
   });
 }
 
-// MARKDOWN RENDERING FOR EXPLANATION
+// MARKDOWN RENDERING FOR EXPLANATIONS IN CHAT BUBBLE
 function renderMarkdown(text) {
   if (!text) return '';
   let html = text;
 
-  // Escape HTML tags to prevent injections but keep paragraphs
+  // Escape HTML tags
   html = html
     .replace(/&/g, '&amp;')
     .replace(/</g, '&lt;')
@@ -1460,22 +1383,36 @@ function renderMarkdown(text) {
   html = html.replace(/(<li.*<\/li>)/gs, '<ul class="my-2 space-y-1.5">$1</ul>');
 
   // Headers (###, ##, #)
-  html = html.replace(/^### (.*$)/gim, '<h5 class="text-xs font-bold text-white mt-4 mb-2 uppercase tracking-wide">$1</h5>');
-  html = html.replace(/^## (.*$)/gim, '<h4 class="text-sm font-bold text-white mt-5 mb-2 border-b border-slate-800 pb-1.5">$1</h4>');
+  html = html.replace(/^### (.*$)/gim, '<h5 class="text-xs font-black text-white mt-4 mb-2 uppercase tracking-wide">$1</h5>');
+  html = html.replace(/^## (.*$)/gim, '<h4 class="text-sm font-bold text-white mt-5 mb-2 border-b border-cyber-border pb-1.5">$1</h4>');
   html = html.replace(/^# (.*$)/gim, '<h3 class="text-base font-bold text-cyber-accent mt-6 mb-3">$1</h3>');
 
   // Bold (**text**)
   html = html.replace(/\*\*(.*?)\*\*/g, '<strong class="text-white font-semibold">$1</strong>');
 
   // Inline code (`code`)
-  html = html.replace(/`(.*?)`/g, '<code class="bg-[#0b0f19] text-cyber-accent font-mono text-[11px] px-1.5 py-0.5 rounded border border-slate-800">$1</code>');
+  html = html.replace(/`(.*?)`/g, '<code class="bg-[#0b0f19] text-cyber-accent font-mono text-[11px] px-1.5 py-0.5 rounded border border-cyber-border">$1</code>');
 
-  // Code blocks (```lang ... ```)
-  html = html.replace(/```[a-z]*\n([\s\S]*?)```/g, '<pre class="bg-slate-950 text-slate-300 font-mono text-xs p-3.5 rounded-xl border border-slate-800 my-3 overflow-x-auto select-all leading-relaxed">$1</pre>');
+  // Code blocks (with custom styling and copy button)
+  html = html.replace(/```[a-z]*\n([\s\S]*?)```/g, (match, code) => {
+    const uniqueId = 'code-' + Math.random().toString(36).substr(2, 9);
+    // Escape raw code again to be 100% safe
+    const escapedCode = code.trim();
+    return `
+      <div class="relative group/code my-3.5 border border-cyber-border rounded-xl overflow-hidden bg-slate-950 font-mono text-xs select-text">
+        <div class="flex items-center justify-between px-4 py-2 bg-cyber-panel/80 border-b border-cyber-border select-none">
+          <span class="text-[9px] font-bold text-slate-500 uppercase tracking-wider font-mono">RouterOS Spell</span>
+          <button onclick="copySnippetText('${uniqueId}', this)" class="text-[10px] bg-[#1e1b4b] border border-cyber-border hover:bg-indigo-900 text-slate-300 px-2.5 py-1 rounded-md font-bold transition">Copy Code</button>
+        </div>
+        <pre id="${uniqueId}" class="p-3.5 text-slate-300 overflow-x-auto leading-relaxed select-all">${escapedCode}</pre>
+      </div>
+    `;
+  });
 
   // Newlines to paragraphs
   html = html.split('\n\n').map(p => {
-    if (p.trim().startsWith('<h') || p.trim().startsWith('<u') || p.trim().startsWith('<pre')) {
+    const trimmed = p.trim();
+    if (trimmed.startsWith('<h') || trimmed.startsWith('<u') || trimmed.startsWith('<div') || trimmed.startsWith('<li')) {
       return p;
     }
     return `<p class="mb-3 text-slate-300 leading-relaxed">${p}</p>`;
@@ -1484,12 +1421,110 @@ function renderMarkdown(text) {
   return html;
 }
 
-// MULTI-STEP SIMULATED STEPPER LOADER WITH LOCALIZED STRINGS
+// Snippet copying logic exposed globally
+window.copySnippetText = function(id, btn) {
+  const pre = document.getElementById(id);
+  if (!pre) return;
+
+  const text = pre.innerText;
+  navigator.clipboard.writeText(text).then(() => {
+    const orig = btn.textContent;
+    btn.textContent = 'Copied!';
+    btn.className = 'text-[10px] bg-emerald-950 border border-cyber-emerald text-cyber-emerald px-2.5 py-1 rounded-md font-bold transition';
+    showToast('Snippet copied successfully!', 'success');
+    setTimeout(() => {
+      btn.textContent = orig;
+      btn.className = 'text-[10px] bg-[#1e1b4b] border border-cyber-border hover:bg-indigo-900 text-slate-300 px-2.5 py-1 rounded-md font-bold transition';
+    }, 1500);
+  });
+};
+
+// APPEND USER BUBBLE
+function appendUserMessage(messageText, pastedConfigText) {
+  const stream = els.chatMessagesStream;
+  const bubble = document.createElement('div');
+  bubble.className = 'flex flex-col space-y-2.5 items-end max-w-3xl ml-auto w-full select-text';
+
+  let attachmentHtml = '';
+  if (pastedConfigText) {
+    attachmentHtml = `
+      <div class="glow-border-purple text-xs rounded-2xl p-3 bg-cyber-panel/85 border border-cyber-border max-w-full font-mono text-[10px] text-slate-400 select-text overflow-x-auto max-h-40 whitespace-pre">
+        <span class="block text-[9px] font-black uppercase text-cyber-purple tracking-wider mb-1 select-none">📎 Attached RSC Export</span>
+        <span>${pastedConfigText.trim()}</span>
+      </div>
+    `;
+  }
+
+  bubble.innerHTML = `
+    <div class="flex items-center space-x-2 text-[10px] text-slate-500 font-semibold select-none">
+      <span>You</span>
+      <span>•</span>
+      <span>${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+    </div>
+    <div class="chat-bubble-user text-xs text-white p-4 rounded-2xl leading-relaxed shadow-lg max-w-full">
+      ${messageText || 'Analyze attached configuration.'}
+    </div>
+    ${attachmentHtml}
+  `;
+
+  stream.appendChild(bubble);
+  scrollStreamToBottom();
+}
+
+// APPEND ASSISTANT RESPONSE
+function appendAssistantResponse(result) {
+  const stream = els.chatMessagesStream;
+  const container = document.createElement('div');
+  container.className = 'flex flex-col space-y-2.5 items-start max-w-3xl mr-auto w-full select-text';
+
+  const explanationHtml = renderMarkdown(result.explanation || 'No explanation returned.');
+
+  container.innerHTML = `
+    <div class="flex items-center space-x-2 text-[10px] text-slate-500 font-semibold select-none">
+      <span class="text-cyber-accent">🧙‍♂️ Mik the Winbox Wizard</span>
+      <span>•</span>
+      <span>${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+    </div>
+    <div class="chat-bubble-assistant text-xs text-slate-300 p-5 rounded-2xl leading-relaxed shadow-xl max-w-full w-full">
+      ${explanationHtml}
+
+      <!-- Bottom action overlays -->
+      <div class="flex items-center gap-2 pt-4 border-t border-cyber-border mt-4 select-none">
+        <button id="btn-show-diff-overlay" class="bg-brand-500 hover:bg-brand-600 border border-brand-100/10 text-white font-bold px-4 py-2 rounded-xl text-[10px] flex items-center gap-1.5 transition active:scale-95 shadow">
+          <span>🔎</span> View Config Diff
+        </button>
+        <button id="btn-show-checklist-overlay" class="bg-[#1e1b4b] hover:bg-indigo-900 border border-cyber-border text-slate-300 hover:text-white font-bold px-4 py-2 rounded-xl text-[10px] flex items-center gap-1.5 transition active:scale-95 shadow">
+          <span>📋</span> View Fix Checklist
+        </button>
+      </div>
+    </div>
+  `;
+
+  // Bind the buttons inside the bubble
+  container.querySelector('#btn-show-diff-overlay').addEventListener('click', () => {
+    renderDiff(state.pastedConfigRaw, result.correctedConfig || '');
+    els.modalDiff.classList.remove('hidden');
+  });
+
+  container.querySelector('#btn-show-checklist-overlay').addEventListener('click', () => {
+    renderCommands(result.fixCommands || '');
+    els.modalCommands.classList.remove('hidden');
+  });
+
+  stream.appendChild(container);
+  scrollStreamToBottom();
+}
+
+function scrollStreamToBottom() {
+  els.chatMessagesStream.scrollTop = els.chatMessagesStream.scrollHeight;
+}
+
+// MULTI-STEP PROGRESSIVE PIPELINE SUBMISSION
 async function runStepperAndSubmit(submitPayload) {
   const currentLang = state.language === 'auto' ? 'en' : state.language;
   const t = i18n[currentLang] || i18n.en;
 
-  // Reset stepper views
+  // Render progressive stepper
   els.privacyLoader.classList.remove('hidden');
   updateStep(els.stepMask, 'active', t.loaderStep1DescActive);
   updateStep(els.stepTransit, 'pending', t.loaderStep1DescPending);
@@ -1499,7 +1534,7 @@ async function runStepperAndSubmit(submitPayload) {
   setProgressBar(15, '15%');
 
   // Stage 1: Masking
-  await delay(800);
+  await delay(700);
   updateStep(els.stepMask, 'complete', t.loaderStep1DescComplete);
   updateStep(els.stepTransit, 'active', t.loaderStep2DescActive);
   setProgressBar(40, '40%');
@@ -1515,7 +1550,7 @@ async function runStepperAndSubmit(submitPayload) {
       body: JSON.stringify(submitPayload)
     });
 
-    const timeoutPromise = delay(1200); // Enforce a minimum delay for beautiful visual feedback
+    const timeoutPromise = delay(1200); // Minimum feed for stunning visual UI
 
     const [res] = await Promise.all([fetchPromise, timeoutPromise]);
 
@@ -1540,33 +1575,40 @@ async function runStepperAndSubmit(submitPayload) {
   updateStep(els.stepTransit, 'complete', t.loaderStep2DescComplete);
   updateStep(els.stepRestore, 'active', t.loaderStep3DescActive);
   setProgressBar(75, '75%');
-  await delay(700);
+  await delay(600);
 
   // Stage 4: Formatting Diff
   updateStep(els.stepRestore, 'complete', t.loaderStep3DescComplete);
   updateStep(els.stepDiff, 'active', t.loaderStep4DescActive);
   setProgressBar(95, '95%');
-  await delay(600);
+  await delay(500);
 
-  // Finalize
+  // Completed
   setProgressBar(100, '100%');
   updateStep(els.stepDiff, 'complete', t.loaderStep4DescComplete);
   await delay(300);
 
-  // Load results into views
+  // Load results into active state
   state.analysisResult = serverResponseData;
 
+  // Clear welcome panel
   els.panelWelcome.classList.add('hidden');
-  els.contentExplanation.innerHTML = renderMarkdown(serverResponseData.explanation || 'No explanation provided.');
-  renderDiff(state.pastedConfigRaw, serverResponseData.correctedConfig || '');
-  renderCommands(serverResponseData.fixCommands || '');
 
-  // Hide loader and slide to explanation
+  // Inject User bubble & assistant response
+  appendUserMessage(submitPayload.chatMessage, state.pastedConfigRaw);
+  appendAssistantResponse(serverResponseData);
+
+  // Hide loader
   els.privacyLoader.classList.add('hidden');
-  switchTab('explanation');
   showToast(t.toastPipelineComplete, 'success');
 
-  // Save audit in local session history
+  // Clear attachment inputs after success to prepare next input cleanly
+  els.pastedConfig.value = '';
+  state.currentFile = null;
+  els.fileInfoBar.classList.add('hidden');
+  closeAttachmentDrawer();
+
+  // Save conversation step in history list
   const timestamp = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   const title = state.currentFile ? state.currentFile.name : `RouterOS Config ${state.history.length + 1}`;
 
@@ -1576,6 +1618,8 @@ async function runStepperAndSubmit(submitPayload) {
     timestamp,
     pastedConfig: state.pastedConfigRaw,
     chatMessage: submitPayload.chatMessage || 'Configuration audit request',
+    rosVersion: submitPayload.routerOsVersion,
+    hardwareModel: submitPayload.hardwareModel,
     result: serverResponseData
   });
 }
@@ -1588,18 +1632,18 @@ function updateStep(el, state, text) {
 
   if (state === 'active') {
     el.className = 'flex items-center justify-between text-slate-200';
-    indicator.className = 'step-indicator w-5 h-5 rounded-full border border-cyan-500/50 text-[10px] font-bold flex items-center justify-center bg-[#0b0f19] text-cyber-accent pulse-ring-active shadow-cyber-glow';
+    indicator.className = 'step-indicator w-5 h-5 rounded-full border border-cyan-500/50 text-[10px] font-bold flex items-center justify-center bg-slate-950 text-cyber-accent pulse-ring-active shadow-cyber-glow';
     stat.textContent = 'Active';
     stat.className = 'step-stat text-[10px] font-mono text-cyber-accent';
   } else if (state === 'complete') {
     el.className = 'flex items-center justify-between text-slate-400';
-    indicator.className = 'step-indicator w-5 h-5 rounded-full border border-emerald-500/50 text-[10px] font-bold flex items-center justify-center bg-slate-900 text-emerald-400';
+    indicator.className = 'step-indicator w-5 h-5 rounded-full border border-emerald-500/50 text-[10px] font-bold flex items-center justify-center bg-slate-900 text-cyber-emerald';
     indicator.innerHTML = '✓';
     stat.textContent = 'Completed';
-    stat.className = 'step-stat text-[10px] font-mono text-emerald-400';
+    stat.className = 'step-stat text-[10px] font-mono text-cyber-emerald';
   } else {
     el.className = 'flex items-center justify-between text-slate-600';
-    indicator.className = 'step-indicator w-5 h-5 rounded-full border border-slate-800 text-[10px] font-bold flex items-center justify-center bg-slate-950 text-slate-600';
+    indicator.className = 'step-indicator w-5 h-5 rounded-full border border-slate-850 text-[10px] font-bold flex items-center justify-center bg-slate-950 text-slate-600';
     stat.textContent = 'Pending';
     stat.className = 'step-stat text-[10px] font-mono text-slate-600';
   }
@@ -1614,7 +1658,7 @@ function delay(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
 
-// SUBMIT ENTIRE AUDITING TASK
+// SUBMIT COMPREHENSIVE CONVERSATION CHAT
 async function submitChat() {
   const pastedVal = els.pastedConfig.value.trim();
   const chatVal = els.chatMessage.value.trim();
@@ -1623,12 +1667,14 @@ async function submitChat() {
   const t = i18n[currentLang] || i18n.en;
 
   if (!pastedVal && !chatVal) {
-    showToast('Please paste a configuration or describe a question!', 'error');
+    showToast('Please attach a configuration or write a question!', 'error');
     return;
   }
 
-  // Update Submit button text to "Analyzing..." localized
-  els.uiLabelSubmit.textContent = t.submitBtnLoading;
+  // Toggle submit buttons state
+  els.btnSubmit.disabled = true;
+  els.submitIcon.classList.add('hidden');
+  els.loadingSpinner.classList.remove('hidden');
 
   state.pastedConfigRaw = pastedVal;
 
@@ -1650,12 +1696,19 @@ async function submitChat() {
     model: state.settings.model,
     systemPrompt: state.settings.prompt,
     language: state.language,
-    maskOptions
+    maskOptions,
+    routerOsVersion: els.selectRosVersion.value,
+    hardwareModel: els.selectHardware.value
   };
 
   try {
     await runStepperAndSubmit(body);
+    // Clear chat input on successful completion
+    els.chatMessage.value = '';
+    adjustTextAreaHeight();
   } finally {
-    els.uiLabelSubmit.textContent = t.submitBtn;
+    els.btnSubmit.disabled = false;
+    els.submitIcon.classList.remove('hidden');
+    els.loadingSpinner.classList.add('hidden');
   }
 }
