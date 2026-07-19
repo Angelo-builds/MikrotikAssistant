@@ -146,7 +146,7 @@ const i18n = {
     welcomePrivacy: '🛡️ Massima Privacy Garantita: lo Scudo di Mik assicura che password, IP, MAC, nomi di interfacce personalizzate e identità non lascino mai questa macchina.',
     diffOriginalHeader: 'Config. Originale (Visualizzazione Oscurata)',
     diffCorrectedHeader: 'Config. Corretta (Completamente Ripristinata)',
-    diffUnifiedDesc: 'Legenda Differenze: <span class="text-red-400">Linea Rossa = Originale</span> | <span class="text-cyber-emerald">Linea Verde = Corretta</span>',
+    diffUnifiedDesc: 'Legenda Differenze: <span class="text-red-400">Linea Rossa = Originale</span> | <span class="text-cyber-emerald">Green Line = Corretta</span>',
     commandsTip: 'Questi sono comandi del terminale RouterOS. Incollali direttamente nella finestra CLI di MikroTik per applicare la correzione.',
     commandsChecklistEmpty: '<div class="text-center py-12 text-slate-500 text-xs">Nessun comando di terminale generato per questa analisi.</div>',
     commandsRawEmpty: '# I comandi appariranno qui dopo l\'analisi...',
@@ -237,7 +237,8 @@ const state = {
   history: [], // List of { id, title, timestamp, pastedConfig, chatMessage, result, rosVersion, hardwareModel }
   currentFile: null,
   isAttachmentDrawerOpen: false,
-  activeSettingsCategoryTab: 'ai' // 'ai' | 'privacy' | 'prompt'
+  isSidebarOpen: true,         // Toggle Sidebar state
+  activeSidebarTab: 'context'   // 'context' | 'privacy' | 'settings'
 };
 
 // UI Elements Reference
@@ -254,13 +255,20 @@ const els = {
   themeMoonIcon: document.getElementById('theme-moon-icon'),
 
   // Sidebar controls
-  sidebarBtnAudit: document.getElementById('sidebar-btn-audit'),
-  sidebarBtnHistory: document.getElementById('sidebar-btn-history'),
-  sidebarBtnHelp: document.getElementById('sidebar-btn-help'),
+  btnToggleSidebar: document.getElementById('btn-toggle-sidebar'),
+  btnCloseSidebar: document.getElementById('btn-close-sidebar'),
+  sidebarControlCenter: document.getElementById('sidebar-control-center'),
   historyBadge: document.getElementById('history-badge'),
 
+  // Sidebar Tabs
+  sidebarTabContext: document.getElementById('sidebar-tab-context'),
+  sidebarTabPrivacy: document.getElementById('sidebar-tab-privacy'),
+  sidebarTabSettings: document.getElementById('sidebar-tab-settings'),
+  sidebarSectionContext: document.getElementById('sidebar-section-context'),
+  sidebarSectionPrivacy: document.getElementById('sidebar-section-privacy'),
+  sidebarSectionSettings: document.getElementById('sidebar-section-settings'),
+
   // History Drawer
-  drawerHistory: document.getElementById('drawer-history'),
   btnClearHistory: document.getElementById('btn-clear-history'),
   searchHistory: document.getElementById('search-history'),
   historyItemsContainer: document.getElementById('history-items-container'),
@@ -310,23 +318,11 @@ const els = {
   btnQuickFirewall: document.getElementById('btn-quick-firewall'),
   btnQuickRouting: document.getElementById('btn-quick-routing'),
 
-  // Settings Sliding Panel Drawer
-  btnSettings: document.getElementById('btn-settings'),
-  modalSettings: document.getElementById('modal-settings'),
-  settingsPanelDrawer: document.getElementById('settings-panel-drawer'),
-  btnCloseSettings: document.getElementById('btn-close-settings'),
+  // Sidebar configurations
   btnSaveSettings: document.getElementById('btn-save-settings'),
   btnTestConnection: document.getElementById('btn-test-connection'),
   testSpinner: document.getElementById('test-spinner'),
   testResult: document.getElementById('test-result'),
-
-  // Settings Drawer Categories
-  settingsTabAi: document.getElementById('settings-tab-ai'),
-  settingsTabPrivacy: document.getElementById('settings-tab-privacy'),
-  settingsTabPrompt: document.getElementById('settings-tab-prompt'),
-  settingsSectionAi: document.getElementById('settings-section-ai'),
-  settingsSectionPrivacy: document.getElementById('settings-section-privacy'),
-  settingsSectionPrompt: document.getElementById('settings-section-prompt'),
 
   // Settings Fields
   settingProvider: document.getElementById('setting-provider'),
@@ -347,6 +343,8 @@ const els = {
   // Statuses
   llmStatusDot: document.getElementById('llm-status-dot'),
   llmStatusText: document.getElementById('llm-status-text'),
+  llmStatusDotMobile: document.getElementById('llm-status-dot-mobile'),
+  llmStatusTextMobile: document.getElementById('llm-status-text-mobile'),
   privacyCount: document.getElementById('privacy-count'),
 
   // Privacy Stepper Loader
@@ -367,11 +365,6 @@ const els = {
   uiHeaderTitle: document.getElementById('ui-header-title'),
   uiHeaderBadge: document.getElementById('ui-header-badge'),
   uiHeaderDesc: document.getElementById('ui-header-desc'),
-  uiTooltipAudit: document.getElementById('ui-tooltip-audit'),
-  uiTooltipHistory: document.getElementById('ui-tooltip-history'),
-  uiTooltipUpload: document.getElementById('ui-tooltip-upload'),
-  uiTooltipHelp: document.getElementById('ui-tooltip-help'),
-  uiHistoryTitle: document.getElementById('ui-history-title'),
   uiHistoryEmpty: document.getElementById('ui-history-empty'),
   uiLabelPasteConfig: document.getElementById('ui-label-paste-config'),
   uiDragTitle: document.getElementById('ui-drag-title'),
@@ -388,12 +381,9 @@ const els = {
   uiLoaderStep2Title: document.getElementById('ui-loader-step2-title'),
   uiLoaderStep3Title: document.getElementById('ui-loader-step3-title'),
   uiLoaderStep4Title: document.getElementById('ui-loader-step4-title'),
-  uiSettingsPanelTitle: document.getElementById('ui-settings-panel-title'),
   uiLabelLlmProvider: document.getElementById('ui-label-llm-provider'),
   uiLabelModelName: document.getElementById('ui-label-model-name'),
   uiLabelTestConnection: document.getElementById('ui-label-test-connection'),
-  uiLabelPrivacyPipeline: document.getElementById('ui-label-privacy-pipeline'),
-  uiLabelPrivacyLocalTag: document.getElementById('ui-label-privacy-local-tag'),
   uiMaskIpsTitle: document.getElementById('ui-mask-ips-title'),
   uiMaskIpsDesc: document.getElementById('ui-mask-ips-desc'),
   uiMaskMacsTitle: document.getElementById('ui-mask-macs-title'),
@@ -407,7 +397,6 @@ const els = {
   uiMaskIdentityTitle: document.getElementById('ui-mask-identity-title'),
   uiMaskIdentityDesc: document.getElementById('ui-mask-identity-desc'),
   uiLabelPromptOverride: document.getElementById('ui-label-prompt-override'),
-  uiLabelPromptDesc: document.getElementById('ui-label-prompt-desc'),
   uiLabelSaveSettings: document.getElementById('ui-label-save-settings')
 };
 
@@ -422,6 +411,15 @@ document.addEventListener('DOMContentLoaded', () => {
   updateUILanguage();
   adjustTextAreaHeight();
   applyActiveTheme();
+
+  // Set default Sidebar state based on screen size
+  if (window.innerWidth < 1024) {
+    state.isSidebarOpen = false;
+    els.sidebarControlCenter.classList.add('-translate-x-full');
+  } else {
+    state.isSidebarOpen = true;
+    els.sidebarControlCenter.classList.remove('-translate-x-full');
+  }
 });
 
 // DYNAMIC UI TRANSLATION / LOCALIZATION
@@ -435,16 +433,7 @@ function updateUILanguage() {
   if (els.uiHeaderBadge) els.uiHeaderBadge.textContent = t.headerBadge;
   if (els.uiHeaderDesc) els.uiHeaderDesc.textContent = t.headerDesc;
 
-  // Tooltips
-  if (els.uiTooltipAudit) els.uiTooltipAudit.textContent = t.tooltipAudit;
-  if (els.uiTooltipHistory) els.uiTooltipHistory.textContent = t.tooltipHistory;
-  if (els.uiTooltipUpload) els.uiTooltipUpload.textContent = t.tooltipUpload;
-  if (els.uiTooltipHelp) els.uiTooltipHelp.textContent = t.tooltipHelp;
-
   // History Sidebar
-  if (els.uiHistoryTitle) {
-    els.uiHistoryTitle.childNodes[2].textContent = ` ${t.historyTitle}`;
-  }
   if (els.btnClearHistory) els.btnClearHistory.textContent = t.clearHistory;
   if (els.searchHistory) els.searchHistory.placeholder = t.searchHistoryPlaceholder;
   if (els.uiHistoryEmpty) els.uiHistoryEmpty.textContent = t.historyEmpty;
@@ -480,20 +469,16 @@ function updateUILanguage() {
   if (els.uiLoaderStep3Title) els.uiLoaderStep3Title.textContent = t.loaderStep3Title;
   if (els.uiLoaderStep4Title) els.uiLoaderStep4Title.textContent = t.loaderStep4Title;
 
-  // Settings Panel Drawer
-  if (els.uiSettingsPanelTitle) els.uiSettingsPanelTitle.textContent = t.settingsPanelTitle;
-  if (els.settingsTabAi) els.settingsTabAi.textContent = t.settingsTabAi;
-  if (els.settingsTabPrivacy) els.settingsTabPrivacy.textContent = t.settingsTabPrivacy;
-  if (els.settingsTabPrompt) els.settingsTabPrompt.textContent = t.settingsTabPrompt;
+  // Sidebar Config translation
+  if (els.sidebarTabSettings) els.sidebarTabSettings.textContent = t.settingsTabAi;
+  if (els.sidebarTabPrivacy) els.sidebarTabPrivacy.textContent = t.settingsTabPrivacy;
 
-  // Category 1 Fields
+  // Fields
   if (els.uiLabelLlmProvider) els.uiLabelLlmProvider.textContent = t.settingsLabelLlmProvider;
   if (els.uiLabelModelName) els.uiLabelModelName.textContent = t.settingsLabelModelName;
   if (els.uiLabelTestConnection) els.uiLabelTestConnection.textContent = t.settingsBtnTestConnection;
 
-  // Category 2 Fields
-  if (els.uiLabelPrivacyPipeline) els.uiLabelPrivacyPipeline.textContent = t.settingsLabelPrivacyPipeline;
-  if (els.uiLabelPrivacyLocalTag) els.uiLabelPrivacyLocalTag.textContent = t.settingsLabelPrivacyLocalTag;
+  // Pipeline Fields
   if (els.uiMaskIpsTitle) els.uiMaskIpsTitle.textContent = t.settingsMaskIpsTitle;
   if (els.uiMaskIpsDesc) els.uiMaskIpsDesc.textContent = t.settingsMaskIpsDesc;
   if (els.uiMaskMacsTitle) els.uiMaskMacsTitle.textContent = t.settingsMaskMacsTitle;
@@ -507,9 +492,8 @@ function updateUILanguage() {
   if (els.uiMaskIdentityTitle) els.uiMaskIdentityTitle.textContent = t.settingsMaskIdentityTitle;
   if (els.uiMaskIdentityDesc) els.uiMaskIdentityDesc.textContent = t.settingsMaskIdentityDesc;
 
-  // Category 3 Fields
+  // Prompt Fields
   if (els.uiLabelPromptOverride) els.uiLabelPromptOverride.textContent = t.settingsLabelPromptOverride;
-  if (els.uiLabelPromptDesc) els.uiLabelPromptDesc.textContent = t.settingsLabelPromptDesc;
   if (els.settingPrompt) els.settingPrompt.placeholder = t.settingsPromptPlaceholder;
 
   // Save Settings button
@@ -725,28 +709,19 @@ function handleUploadedFile(file) {
 
 // SETUP EVENT LISTENERS
 function setupEventListeners() {
-  // Toggle Settings Drawer
-  els.btnSettings.addEventListener('click', () => {
-    loadSettings();
-    els.modalSettings.classList.remove('hidden');
-    setTimeout(() => {
-      els.settingsPanelDrawer.classList.remove('translate-x-full');
-    }, 10);
-    els.testResult.textContent = '';
+  // Toggle Sidebar
+  els.btnToggleSidebar.addEventListener('click', () => {
+    state.isSidebarOpen = !state.isSidebarOpen;
+    if (state.isSidebarOpen) {
+      els.sidebarControlCenter.classList.remove('-translate-x-full');
+    } else {
+      els.sidebarControlCenter.classList.add('-translate-x-full');
+    }
   });
 
-  const closeSettingsHandler = () => {
-    els.settingsPanelDrawer.classList.add('translate-x-full');
-    setTimeout(() => {
-      els.modalSettings.classList.add('hidden');
-    }, 300);
-  };
-
-  els.btnCloseSettings.addEventListener('click', closeSettingsHandler);
-  els.modalSettings.addEventListener('click', (e) => {
-    if (e.target === els.modalSettings) {
-      closeSettingsHandler();
-    }
+  els.btnCloseSidebar.addEventListener('click', () => {
+    state.isSidebarOpen = false;
+    els.sidebarControlCenter.classList.add('-translate-x-full');
   });
 
   // Language selector
@@ -756,10 +731,10 @@ function setupEventListeners() {
     updateUILanguage();
   });
 
-  // Settings Category switcher
-  els.settingsTabAi.addEventListener('click', () => switchSettingsCategoryTab('ai'));
-  els.settingsTabPrivacy.addEventListener('click', () => switchSettingsCategoryTab('privacy'));
-  els.settingsTabPrompt.addEventListener('click', () => switchSettingsCategoryTab('prompt'));
+  // Sidebar Section switcher tabs
+  els.sidebarTabContext.addEventListener('click', () => switchSidebarTab('context'));
+  els.sidebarTabPrivacy.addEventListener('click', () => switchSidebarTab('privacy'));
+  els.sidebarTabSettings.addEventListener('click', () => switchSidebarTab('settings'));
 
   els.settingProvider.addEventListener('change', () => {
     updateModelDefaults(els.settingProvider.value);
@@ -767,7 +742,10 @@ function setupEventListeners() {
 
   els.btnSaveSettings.addEventListener('click', () => {
     saveSettings();
-    closeSettingsHandler();
+    if (window.innerWidth < 1024) {
+      state.isSidebarOpen = false;
+      els.sidebarControlCenter.classList.add('-translate-x-full');
+    }
   });
 
   // Test Connection
@@ -776,22 +754,6 @@ function setupEventListeners() {
   // Dynamic status indicators
   [els.maskIPs, els.maskMACs, els.maskSecrets, els.maskInterfaces, els.maskDomains, els.maskIdentity].forEach(el => {
     el.addEventListener('change', updatePrivacyShieldLabel);
-  });
-
-  // Sidebar Controls
-  els.sidebarBtnAudit.addEventListener('click', () => {
-    els.drawerHistory.classList.add('hidden');
-    resetChatWorkspace();
-  });
-
-  els.sidebarBtnHistory.addEventListener('click', () => {
-    els.drawerHistory.classList.toggle('hidden');
-  });
-
-  els.sidebarBtnHelp.addEventListener('click', () => {
-    const currentLang = state.language === 'auto' ? 'en' : state.language;
-    const t = i18n[currentLang] || i18n.en;
-    showToast(t.tooltipHelp + ': ' + t.welcomePrivacy, 'info');
   });
 
   // Collapsible Attachment Drawer trigger
@@ -875,27 +837,27 @@ function toggleTheme() {
   applyActiveTheme();
 }
 
-function switchSettingsCategoryTab(catId) {
-  state.activeSettingsCategoryTab = catId;
+function switchSidebarTab(tabId) {
+  state.activeSidebarTab = tabId;
 
-  // Reset category styles
-  [els.settingsTabAi, els.settingsTabPrivacy, els.settingsTabPrompt].forEach(el => {
-    el.className = 'flex-1 py-1.5 text-[10px] font-bold rounded-md text-slate-400 hover:text-white transition';
+  // Reset tab button states
+  [els.sidebarTabContext, els.sidebarTabPrivacy, els.sidebarTabSettings].forEach(el => {
+    el.className = 'py-1.5 px-2 text-[10px] font-bold rounded-lg text-slate-500 hover:text-slate-900 dark:hover:text-white transition truncate text-center';
   });
 
-  els.settingsSectionAi.classList.add('hidden');
-  els.settingsSectionPrivacy.classList.add('hidden');
-  els.settingsSectionPrompt.classList.add('hidden');
+  els.sidebarSectionContext.classList.add('hidden');
+  els.sidebarSectionPrivacy.classList.add('hidden');
+  els.sidebarSectionSettings.classList.add('hidden');
 
-  if (catId === 'ai') {
-    els.settingsTabAi.className = 'flex-1 py-1.5 text-[10px] font-bold rounded-md bg-slate-800 text-brand-400 border border-cyber-border transition';
-    els.settingsSectionAi.classList.remove('hidden');
-  } else if (catId === 'privacy') {
-    els.settingsTabPrivacy.className = 'flex-1 py-1.5 text-[10px] font-bold rounded-md bg-slate-800 text-brand-400 border border-cyber-border transition';
-    els.settingsSectionPrivacy.classList.remove('hidden');
-  } else if (catId === 'prompt') {
-    els.settingsTabPrompt.className = 'flex-1 py-1.5 text-[10px] font-bold rounded-md bg-slate-800 text-brand-400 border border-cyber-border transition';
-    els.settingsSectionPrompt.classList.remove('hidden');
+  if (tabId === 'context') {
+    els.sidebarTabContext.className = 'py-1.5 px-2 text-[10px] font-bold rounded-lg bg-slate-800 dark:bg-slate-800/80 text-brand-500 dark:text-brand-400 border border-cyber-border hover:text-brand-500 transition truncate text-center';
+    els.sidebarSectionContext.classList.remove('hidden');
+  } else if (tabId === 'privacy') {
+    els.sidebarTabPrivacy.className = 'py-1.5 px-2 text-[10px] font-bold rounded-lg bg-slate-800 dark:bg-slate-800/80 text-brand-500 dark:text-brand-400 border border-cyber-border hover:text-brand-500 transition truncate text-center';
+    els.sidebarSectionPrivacy.classList.remove('hidden');
+  } else if (tabId === 'settings') {
+    els.sidebarTabSettings.className = 'py-1.5 px-2 text-[10px] font-bold rounded-lg bg-slate-800 dark:bg-slate-800/80 text-brand-500 dark:text-brand-400 border border-cyber-border hover:text-brand-500 transition truncate text-center';
+    els.sidebarSectionSettings.classList.remove('hidden');
   }
 }
 
@@ -914,17 +876,17 @@ function openAttachmentDrawer() {
   els.btnToggleDrawer.classList.add('bg-brand-500/10', 'text-brand-400');
 }
 
-function closeAttachmentDrawer() {
-  state.isAttachmentDrawerOpen = false;
-  els.attachmentDrawer.classList.add('hidden');
-  els.btnToggleDrawer.classList.remove('bg-brand-500/10', 'text-brand-400');
-}
-
-// TEXT AREA AUTO GROW
+// text area auto grow
 function adjustTextAreaHeight() {
   const textarea = els.chatMessage;
   textarea.style.height = '38px';
   textarea.style.height = Math.max(38, Math.min(textarea.scrollHeight, 128)) + 'px';
+}
+
+function closeAttachmentDrawer() {
+  state.isAttachmentDrawerOpen = false;
+  els.attachmentDrawer.classList.add('hidden');
+  els.btnToggleDrawer.classList.remove('bg-brand-500/10', 'text-brand-400');
 }
 
 // LOCAL HISTORY PERSISTENCE
@@ -962,8 +924,6 @@ function renderHistoryList(filterQuery = '') {
            (item.chatMessage && item.chatMessage.toLowerCase().includes(q));
   });
 
-  els.historyBadge.textContent = state.history.length;
-
   if (state.history.length === 0) {
     container.innerHTML = `<div class="text-center py-8 text-slate-500 text-xs">${t.historyEmpty}</div>`;
     return;
@@ -976,7 +936,7 @@ function renderHistoryList(filterQuery = '') {
 
   filtered.forEach((item) => {
     const card = document.createElement('div');
-    card.className = 'group/item relative p-3.5 bg-cyber-bg/60 hover:bg-[#1e1b4b]/40 border border-cyber-border rounded-2xl transition cursor-pointer flex flex-col gap-1';
+    card.className = 'group/item relative p-3 bg-cyber-bg border border-cyber-border rounded-xl transition cursor-pointer flex flex-col gap-1';
 
     const deleteBtn = document.createElement('button');
     deleteBtn.className = 'absolute top-3 right-3 text-slate-500 hover:text-red-400 opacity-0 group-hover/item:opacity-100 transition p-1 hover:bg-red-500/10 rounded-md';
@@ -993,7 +953,7 @@ function renderHistoryList(filterQuery = '') {
     header.className = 'flex items-center justify-between pr-5';
 
     const title = document.createElement('span');
-    title.className = 'text-xs font-bold text-slate-200 truncate block max-w-[180px]';
+    title.className = 'text-xs font-bold text-slate-800 dark:text-slate-200 truncate block max-w-[140px]';
     title.textContent = item.title;
 
     const time = document.createElement('span');
@@ -1004,7 +964,7 @@ function renderHistoryList(filterQuery = '') {
     header.appendChild(time);
 
     const desc = document.createElement('p');
-    desc.className = 'text-[10px] text-slate-400 line-clamp-2 leading-normal';
+    desc.className = 'text-[10px] text-slate-500 dark:text-slate-400 line-clamp-1 leading-normal';
     desc.textContent = item.chatMessage || t.historyNoDesc;
 
     card.appendChild(header);
@@ -1037,7 +997,10 @@ function restoreHistoryItem(item) {
   // Inject Assistant Response
   appendAssistantResponse(item.result);
 
-  els.drawerHistory.classList.add('hidden');
+  if (window.innerWidth < 1024) {
+    state.isSidebarOpen = false;
+    els.sidebarControlCenter.classList.add('-translate-x-full');
+  }
   showToast('Restored conversation from history!', 'success');
 }
 
@@ -1070,18 +1033,37 @@ function updateLLMStatusBadge() {
   const prov = state.settings.provider;
   const hasKey = !!state.settings.apiKey;
 
+  let activeText = '';
+  let isActive = false;
+
   if (prov === 'ollama' || prov === 'custom') {
-    els.llmStatusDot.className = 'w-2.5 h-2.5 bg-cyber-emerald rounded-full animate-pulse shadow-emerald-glow';
-    els.llmStatusText.textContent = `LAN Active (${prov.toUpperCase()})`;
-    els.llmStatusText.className = 'font-bold text-cyber-emerald text-[10px] tracking-wide';
+    activeText = `LAN Active (${prov.toUpperCase()})`;
+    isActive = true;
   } else if (hasKey) {
+    activeText = `Secure Cloud Active`;
+    isActive = true;
+  } else {
+    activeText = 'LLM Offline';
+    isActive = false;
+  }
+
+  // Desktop badge update
+  if (isActive) {
     els.llmStatusDot.className = 'w-2.5 h-2.5 bg-cyber-emerald rounded-full animate-pulse shadow-emerald-glow';
-    els.llmStatusText.textContent = `Secure Cloud Active`;
+    els.llmStatusText.textContent = activeText;
     els.llmStatusText.className = 'font-bold text-cyber-emerald text-[10px] tracking-wide';
+
+    els.llmStatusDotMobile.className = 'w-2 h-2 bg-cyber-emerald rounded-full animate-pulse shadow-emerald-glow';
+    els.llmStatusTextMobile.textContent = activeText;
+    els.llmStatusTextMobile.className = 'font-bold text-cyber-emerald text-[10px] tracking-wide';
   } else {
     els.llmStatusDot.className = 'w-2.5 h-2.5 bg-slate-500 rounded-full';
     els.llmStatusText.textContent = 'LLM Offline (Requires Key/API)';
     els.llmStatusText.className = 'font-medium text-slate-400 text-[10px]';
+
+    els.llmStatusDotMobile.className = 'w-2 h-2 bg-slate-500 rounded-full';
+    els.llmStatusTextMobile.textContent = 'LLM Offline';
+    els.llmStatusTextMobile.className = 'font-medium text-slate-400 text-[10px]';
   }
 }
 
@@ -1123,21 +1105,6 @@ async function testConnection() {
   }
 }
 
-// RESET WORKSPACE
-function resetChatWorkspace() {
-  els.chatMessagesStream.innerHTML = '';
-  els.chatMessagesStream.appendChild(els.panelWelcome);
-  els.panelWelcome.classList.remove('hidden');
-  state.analysisResult = null;
-  state.pastedConfigRaw = '';
-  els.pastedConfig.value = '';
-  els.chatMessage.value = '';
-  state.currentFile = null;
-  els.fileInfoBar.classList.add('hidden');
-  closeAttachmentDrawer();
-  adjustTextAreaHeight();
-}
-
 // TEMPLATE LOADING
 function loadFirewallTemplate() {
   const currentLang = state.language === 'auto' ? 'en' : state.language;
@@ -1162,8 +1129,8 @@ function loadRoutingTemplate() {
 // TOGGLE MODAL VIEWS & RENDERING DIFF / COMMANDS
 function switchDiffMode(modeId) {
   state.diffMode = modeId;
-  els.diffViewModeSplit.className = 'px-2.5 py-1 text-[10px] font-bold rounded text-slate-400 hover:text-white transition';
-  els.diffViewModeUnified.className = 'px-2.5 py-1 text-[10px] font-bold rounded text-slate-400 hover:text-white transition';
+  els.diffViewModeSplit.className = 'px-2.5 py-1 text-[10px] font-bold rounded text-slate-500 hover:text-white transition';
+  els.diffViewModeUnified.className = 'px-2.5 py-1 text-[10px] font-bold rounded text-slate-500 hover:text-white transition';
 
   if (modeId === 'split') {
     els.diffViewModeSplit.className = 'px-2.5 py-1 text-[10px] font-bold rounded bg-slate-800 text-cyber-accent border border-cyber-border transition';
@@ -1178,8 +1145,8 @@ function switchDiffMode(modeId) {
 
 function switchCommandMode(modeId) {
   state.commandMode = modeId;
-  els.commandViewModeChecklist.className = 'px-2.5 py-1 text-[10px] font-bold rounded text-slate-400 hover:text-white transition';
-  els.commandViewModeRaw.className = 'px-2.5 py-1 text-[10px] font-bold rounded text-slate-400 hover:text-white transition';
+  els.commandViewModeChecklist.className = 'px-2.5 py-1 text-[10px] font-bold rounded text-slate-500 hover:text-white transition';
+  els.commandViewModeRaw.className = 'px-2.5 py-1 text-[10px] font-bold rounded text-slate-500 hover:text-white transition';
 
   if (modeId === 'checklist') {
     els.commandViewModeChecklist.className = 'px-2.5 py-1 text-[10px] font-bold rounded bg-slate-800 text-cyber-emerald border border-cyber-border transition';
@@ -1364,7 +1331,7 @@ function renderCommands(fixCommands) {
     checkbox.className = 'mt-1 accent-cyber-emerald h-4 w-4 rounded shrink-0 cursor-pointer';
 
     const text = document.createElement('code');
-    text.className = 'text-xs text-slate-200 font-mono select-text break-all leading-normal';
+    text.className = 'text-xs text-slate-800 dark:text-slate-200 font-mono select-text break-all leading-normal';
     text.textContent = line;
 
     checkbox.addEventListener('change', () => {
@@ -1372,7 +1339,7 @@ function renderCommands(fixCommands) {
         text.className += ' line-through opacity-40';
         item.className = 'p-3 bg-cyber-bg/40 border border-cyber-border rounded-xl flex items-center justify-between space-x-3 opacity-60 transition';
       } else {
-        text.className = 'text-xs text-slate-200 font-mono select-text break-all leading-normal';
+        text.className = 'text-xs text-slate-850 dark:text-slate-200 font-mono select-text break-all leading-normal';
         item.className = 'p-3 bg-cyber-bg border border-cyber-border rounded-xl flex items-center justify-between space-x-3 hover:border-slate-700 transition';
       }
     });
@@ -1381,7 +1348,7 @@ function renderCommands(fixCommands) {
     left.appendChild(text);
 
     const btnCopy = document.createElement('button');
-    btnCopy.className = 'text-[10px] bg-cyber-panel border border-cyber-border hover:bg-slate-800 text-slate-300 font-bold px-2.5 py-1 rounded-lg shrink-0 transition active:scale-95';
+    btnCopy.className = 'text-[10px] bg-cyber-panel border border-cyber-border hover:bg-slate-800 text-slate-500 dark:text-slate-300 font-bold px-2.5 py-1 rounded-lg shrink-0 transition active:scale-95';
     btnCopy.textContent = t.copyLabel;
 
     btnCopy.addEventListener('click', () => {
@@ -1391,7 +1358,7 @@ function renderCommands(fixCommands) {
         showToast(t.toastCopySuccess, 'success');
         setTimeout(() => {
           btnCopy.textContent = t.copyLabel;
-          btnCopy.className = 'text-[10px] bg-cyber-panel border border-cyber-border hover:bg-slate-800 text-slate-300 font-bold px-2.5 py-1 rounded-lg shrink-0';
+          btnCopy.className = 'text-[10px] bg-cyber-panel border border-cyber-border hover:bg-slate-800 text-slate-500 dark:text-slate-300 font-bold px-2.5 py-1 rounded-lg shrink-0';
         }, 1500);
       });
     });
@@ -1419,19 +1386,19 @@ function renderMarkdown(text) {
     .replace(/&lt;&lt;&lt;END_EXPLANATION&gt;&gt;&gt;/g, '');
 
   // Bullet lists
-  html = html.replace(/^\s*[\-\*]\s+(.*)$/gm, '<li class="ml-4 list-disc text-slate-300">$1</li>');
+  html = html.replace(/^\s*[\-\*]\s+(.*)$/gm, '<li class="ml-4 list-disc text-slate-700 dark:text-slate-300">$1</li>');
   html = html.replace(/(<li.*<\/li>)/gs, '<ul class="my-2 space-y-1.5">$1</ul>');
 
   // Headers (###, ##, #)
-  html = html.replace(/^### (.*$)/gim, '<h5 class="text-xs font-black text-white mt-4 mb-2 uppercase tracking-wide">$1</h5>');
-  html = html.replace(/^## (.*$)/gim, '<h4 class="text-sm font-bold text-white mt-5 mb-2 border-b border-cyber-border pb-1.5">$1</h4>');
+  html = html.replace(/^### (.*$)/gim, '<h5 class="text-xs font-black text-slate-800 dark:text-white mt-4 mb-2 uppercase tracking-wide">$1</h5>');
+  html = html.replace(/^## (.*$)/gim, '<h4 class="text-sm font-bold text-slate-800 dark:text-white mt-5 mb-2 border-b border-cyber-border pb-1.5">$1</h4>');
   html = html.replace(/^# (.*$)/gim, '<h3 class="text-base font-bold text-cyber-accent mt-6 mb-3">$1</h3>');
 
   // Bold (**text**)
-  html = html.replace(/\*\*(.*?)\*\*/g, '<strong class="text-white font-semibold">$1</strong>');
+  html = html.replace(/\*\*(.*?)\*\*/g, '<strong class="text-slate-800 dark:text-white font-semibold">$1</strong>');
 
   // Inline code (`code`)
-  html = html.replace(/`(.*?)`/g, '<code class="bg-[#0b0f19] text-cyber-accent font-mono text-[11px] px-1.5 py-0.5 rounded border border-cyber-border">$1</code>');
+  html = html.replace(/`(.*?)`/g, '<code class="bg-slate-200 dark:bg-[#0b0f19] text-cyber-accent font-mono text-[11px] px-1.5 py-0.5 rounded border border-cyber-border">$1</code>');
 
   // Code blocks (with custom styling and copy button)
   html = html.replace(/```[a-z]*\n([\s\S]*?)```/g, (match, code) => {
@@ -1455,7 +1422,7 @@ function renderMarkdown(text) {
     if (trimmed.startsWith('<h') || trimmed.startsWith('<u') || trimmed.startsWith('<div') || trimmed.startsWith('<li')) {
       return p;
     }
-    return `<p class="mb-3 text-slate-300 leading-relaxed">${p}</p>`;
+    return `<p class="mb-3 text-slate-755 dark:text-slate-300 leading-relaxed">${p}</p>`;
   }).join('');
 
   return html;
@@ -1488,7 +1455,7 @@ function appendUserMessage(messageText, pastedConfigText) {
   let attachmentHtml = '';
   if (pastedConfigText) {
     attachmentHtml = `
-      <div class="glow-border-purple text-xs rounded-2xl p-3 bg-cyber-panel/85 border border-cyber-border max-w-full font-mono text-[10px] text-slate-400 select-text overflow-x-auto max-h-40 whitespace-pre">
+      <div class="glow-border-purple text-xs rounded-2xl p-3 bg-cyber-panel/85 border border-cyber-border max-w-full font-mono text-[10px] text-slate-500 dark:text-slate-400 select-text overflow-x-auto max-h-40 whitespace-pre">
         <span class="block text-[9px] font-black uppercase text-cyber-purple tracking-wider mb-1 select-none">📎 Attached RSC Export</span>
         <span>${pastedConfigText.trim()}</span>
       </div>
@@ -1525,7 +1492,7 @@ function appendAssistantResponse(result) {
       <span>•</span>
       <span>${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
     </div>
-    <div class="chat-bubble-assistant text-xs text-slate-300 p-5 rounded-2xl leading-relaxed shadow-xl max-w-full w-full">
+    <div class="chat-bubble-assistant text-xs text-slate-700 dark:text-slate-300 p-5 rounded-2xl leading-relaxed shadow-xl max-w-full w-full">
       ${explanationHtml}
 
       <!-- Bottom action overlays -->
@@ -1671,18 +1638,18 @@ function updateStep(el, state, text) {
   els.stepperLogText.textContent = text;
 
   if (state === 'active') {
-    el.className = 'flex items-center justify-between text-slate-200';
+    el.className = 'flex items-center justify-between text-slate-850 dark:text-slate-200';
     indicator.className = 'step-indicator w-5 h-5 rounded-full border border-cyan-500/50 text-[10px] font-bold flex items-center justify-center bg-slate-950 text-cyber-accent pulse-ring-active shadow-cyber-glow';
     stat.textContent = 'Active';
     stat.className = 'step-stat text-[10px] font-mono text-cyber-accent';
   } else if (state === 'complete') {
-    el.className = 'flex items-center justify-between text-slate-400';
+    el.className = 'flex items-center justify-between text-slate-500 dark:text-slate-400';
     indicator.className = 'step-indicator w-5 h-5 rounded-full border border-emerald-500/50 text-[10px] font-bold flex items-center justify-center bg-slate-900 text-cyber-emerald';
     indicator.innerHTML = '✓';
     stat.textContent = 'Completed';
     stat.className = 'step-stat text-[10px] font-mono text-cyber-emerald';
   } else {
-    el.className = 'flex items-center justify-between text-slate-600';
+    el.className = 'flex items-center justify-between text-slate-400 dark:text-slate-600';
     indicator.className = 'step-indicator w-5 h-5 rounded-full border border-slate-850 text-[10px] font-bold flex items-center justify-center bg-slate-950 text-slate-600';
     stat.textContent = 'Pending';
     stat.className = 'step-stat text-[10px] font-mono text-slate-600';
