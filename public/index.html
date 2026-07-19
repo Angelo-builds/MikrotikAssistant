@@ -191,8 +191,8 @@
   <!-- TOP HEADER -->
   <header class="bg-cyber-panel border-b border-cyber-border px-6 py-3 flex items-center justify-between shadow-lg relative z-40 shrink-0">
     <div class="flex items-center space-x-3">
-      <!-- Sidebar Panel Collapse Trigger (Intuitive toggle button) -->
-      <button id="btn-toggle-sidebar" class="p-2 mr-1.5 bg-cyber-bg hover:bg-slate-350 dark:hover:bg-slate-800/20 border border-cyber-border rounded-xl text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition active:scale-95" title="Toggle Control Panel Sidebar">
+      <!-- Sidebar Panel Collapse Trigger (Intuitive toggle button with high-contrast keyboard outlines) -->
+      <button id="btn-toggle-sidebar" class="p-2 mr-1.5 bg-cyber-bg hover:bg-slate-350 dark:hover:bg-slate-800/20 border border-cyber-border rounded-xl text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition active:scale-95 focus:outline-none focus:ring-2 focus:ring-brand-500" aria-label="Toggle control panel sidebar" title="Toggle Control Panel Sidebar">
         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
         </svg>
@@ -224,7 +224,7 @@
     <!-- Right Header Connection Indicator Badge & Toggle -->
     <div class="flex items-center space-x-3 shrink-0">
       <!-- New Chat Button in Header -->
-      <button id="btn-header-new-chat" class="hidden sm:flex items-center gap-1.5 px-3.5 py-1.5 bg-brand-500 hover:bg-brand-600 text-white text-xs font-bold rounded-xl shadow-brand-glow transition-all duration-300 ease-out-apple hover:scale-105 active:scale-95" title="Start a New Chat">
+      <button id="btn-header-new-chat" class="hidden sm:flex items-center gap-1.5 px-3.5 py-1.5 bg-brand-500 hover:bg-brand-600 text-white text-xs font-bold rounded-xl shadow-brand-glow transition-all duration-300 ease-out-apple hover:scale-105 active:scale-95 focus:outline-none focus:ring-2 focus:ring-brand-500" aria-label="Start a new chat session" title="Start a New Chat">
         <span>✨</span>
         <span id="ui-btn-header-new-chat">New Chat</span>
       </button>
@@ -261,20 +261,20 @@
             </h2>
           </div>
           <!-- Collapsible indicator (Close button on small screens) -->
-          <button id="btn-close-sidebar" class="lg:hidden p-1 bg-cyber-bg hover:bg-slate-300 dark:hover:bg-slate-800/20 border border-cyber-border rounded-lg text-slate-600 dark:text-slate-400">
+          <button id="btn-close-sidebar" class="lg:hidden p-1 bg-cyber-bg hover:bg-slate-300 dark:hover:bg-slate-800/20 border border-cyber-border rounded-lg text-slate-600 dark:text-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-500" aria-label="Close sidebar control panel">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
           </button>
         </div>
 
         <!-- Sidebar subcategories tabs (Uncluttered, categorizing sidebar cleanly into 3 tabs) -->
         <div class="grid grid-cols-3 gap-1 mt-3 bg-cyber-bg p-1 rounded-xl border border-cyber-border/40">
-          <button id="sidebar-tab-history" class="py-1.5 px-1 text-[10px] font-bold rounded-lg bg-slate-200 dark:bg-slate-800/80 text-brand-600 dark:text-brand-400 border border-cyber-border hover:text-brand-500 transition truncate text-center">
+          <button id="sidebar-tab-history" class="py-1.5 px-1 text-[10px] font-bold rounded-lg bg-slate-200 dark:bg-slate-800/80 text-brand-600 dark:text-brand-400 border border-cyber-border hover:text-brand-500 transition truncate text-center focus:outline-none focus:ring-2 focus:ring-brand-500">
             History
           </button>
-          <button id="sidebar-tab-context" class="py-1.5 px-1 text-[10px] font-bold rounded-lg text-slate-500 hover:text-slate-900 dark:hover:text-white transition truncate text-center">
+          <button id="sidebar-tab-context" class="py-1.5 px-1 text-[10px] font-bold rounded-lg text-slate-500 hover:text-slate-900 dark:hover:text-white transition truncate text-center focus:outline-none focus:ring-2 focus:ring-brand-500">
             Context
           </button>
-          <button id="sidebar-tab-preferences" class="py-1.5 px-1 text-[10px] font-bold rounded-lg text-slate-500 hover:text-slate-900 dark:hover:text-white transition truncate text-center">
+          <button id="sidebar-tab-preferences" class="py-1.5 px-1 text-[10px] font-bold rounded-lg text-slate-500 hover:text-slate-900 dark:hover:text-white transition truncate text-center focus:outline-none focus:ring-2 focus:ring-brand-500">
             Prefs
           </button>
         </div>
@@ -289,18 +289,19 @@
             <h3 class="text-[10px] font-black text-slate-600 dark:text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
               <span>🕒</span> Session History
             </h3>
-            <button id="btn-clear-history" class="text-[10px] text-slate-500 hover:text-red-400 transition font-bold">
+            <button id="btn-clear-history" class="text-[10px] text-slate-500 hover:text-red-400 transition font-bold focus:outline-none focus:ring-1 focus:ring-red-400">
               Wipe All
             </button>
           </div>
 
           <!-- New Chat Button inside Sidebar -->
-          <button id="btn-new-chat" class="w-full bg-brand-500/10 hover:bg-brand-500/20 text-brand-500 dark:text-brand-400 font-bold py-2.5 px-4 rounded-xl text-xs border border-brand-500/20 hover:border-brand-500/40 transition-all duration-300 ease-out-apple hover:scale-102 active:scale-95 flex items-center justify-center gap-2 shadow-sm" title="Start a New Chat">
+          <button id="btn-new-chat" class="w-full bg-brand-500/10 hover:bg-brand-500/20 text-brand-500 dark:text-brand-400 font-bold py-2.5 px-4 rounded-xl text-xs border border-brand-500/20 hover:border-brand-500/40 transition-all duration-300 ease-out-apple hover:scale-102 active:scale-95 flex items-center justify-center gap-2 shadow-sm focus:outline-none focus:ring-2 focus:ring-brand-500" aria-label="Start a new chat session" title="Start a New Chat">
             <span>✨</span> <span id="ui-btn-new-chat">New Chat</span>
           </button>
 
           <!-- Search in history -->
-          <input id="search-history" type="text" class="w-full bg-cyber-bg border border-cyber-border text-slate-800 dark:text-slate-200 text-[11px] px-3 py-2 rounded-xl outline-none focus:border-brand-500/50 transition font-medium" placeholder="Search saved audits...">
+          <label for="search-history" class="sr-only">Search saved audits</label>
+          <input id="search-history" type="text" class="w-full bg-cyber-bg border border-cyber-border text-slate-800 dark:text-slate-200 text-[11px] px-3 py-2 rounded-xl outline-none focus:border-brand-500/50 transition font-medium focus:ring-2 focus:ring-brand-500" placeholder="Search saved audits...">
 
           <!-- History Items Scroll Container -->
           <div id="history-items-container" class="space-y-2 max-h-[350px] overflow-y-auto pr-1">
@@ -317,8 +318,8 @@
             </h3>
 
             <div class="space-y-1">
-              <label class="text-[10px] text-slate-600 dark:text-slate-400 font-bold uppercase tracking-wide">OS Version</label>
-              <select id="select-ros-version" class="w-full bg-cyber-bg text-xs text-slate-800 dark:text-slate-200 border border-cyber-border rounded-xl p-2.5 outline-none cursor-pointer font-semibold focus:border-brand-500 transition">
+              <label for="select-ros-version" class="text-[10px] text-slate-600 dark:text-slate-400 font-bold uppercase tracking-wide">OS Version</label>
+              <select id="select-ros-version" class="w-full bg-cyber-bg text-xs text-slate-800 dark:text-slate-200 border border-cyber-border rounded-xl p-2.5 outline-none cursor-pointer font-semibold focus:border-brand-500 transition focus:ring-2 focus:ring-brand-500">
                 <option value="auto">🔍 Auto-Detect Context</option>
                 <option value="v7">v7 (Latest ROS)</option>
                 <option value="v6">v6 (Legacy ROS)</option>
@@ -326,8 +327,8 @@
             </div>
 
             <div class="space-y-1">
-              <label class="text-[10px] text-slate-600 dark:text-slate-400 font-bold uppercase tracking-wide">Board Model</label>
-              <select id="select-hardware" class="w-full bg-cyber-bg text-xs text-slate-800 dark:text-slate-200 border border-cyber-border rounded-xl p-2.5 outline-none cursor-pointer font-semibold focus:border-brand-500 transition">
+              <label for="select-hardware" class="text-[10px] text-slate-600 dark:text-slate-400 font-bold uppercase tracking-wide">Board Model</label>
+              <select id="select-hardware" class="w-full bg-cyber-bg text-xs text-slate-800 dark:text-slate-200 border border-cyber-border rounded-xl p-2.5 outline-none cursor-pointer font-semibold focus:border-brand-500 transition focus:ring-2 focus:ring-brand-500">
                 <option value="auto">🔍 Auto-Detect Context</option>
                 <option value="hEX">hEX / GR3</option>
                 <option value="CCR">CCR (Cloud Core)</option>
@@ -343,11 +344,11 @@
               <span>🚀</span> Wizard Templates
             </h3>
             <div class="grid grid-cols-2 gap-2">
-              <button id="btn-quick-firewall" class="flex flex-col items-center p-2.5 bg-cyber-bg border border-cyber-border hover:border-brand-500 hover:bg-brand-500/5 rounded-xl transition-all duration-300 ease-out-apple hover:scale-105 active:scale-95 text-center shadow-sm">
+              <button id="btn-quick-firewall" class="flex flex-col items-center p-2.5 bg-cyber-bg border border-cyber-border hover:border-brand-500 hover:bg-brand-500/5 rounded-xl transition-all duration-300 ease-out-apple hover:scale-105 active:scale-95 text-center shadow-sm focus:outline-none focus:ring-2 focus:ring-brand-500" aria-label="Load firewall template">
                 <span class="text-sm">🛡️</span>
                 <span class="text-[10px] font-bold text-slate-800 dark:text-slate-200 mt-1">Firewall Audit</span>
               </button>
-              <button id="btn-quick-routing" class="flex flex-col items-center p-2.5 bg-cyber-bg border border-cyber-border hover:border-brand-500 hover:bg-brand-500/5 rounded-xl transition-all duration-300 ease-out-apple hover:scale-105 active:scale-95 text-center shadow-sm">
+              <button id="btn-quick-routing" class="flex flex-col items-center p-2.5 bg-cyber-bg border border-cyber-border hover:border-brand-500 hover:bg-brand-500/5 rounded-xl transition-all duration-300 ease-out-apple hover:scale-105 active:scale-95 text-center shadow-sm focus:outline-none focus:ring-2 focus:ring-brand-500" aria-label="Load gateway and DNS template">
                 <span class="text-sm">🗺️</span>
                 <span class="text-[10px] font-bold text-slate-800 dark:text-slate-200 mt-1">Gateway & DNS</span>
               </button>
@@ -365,13 +366,14 @@
             </h3>
             <div class="flex items-center justify-between gap-2 select-none">
               <!-- Light / Dark Mode Switcher -->
-              <button id="btn-theme-toggle" class="p-2.5 bg-cyber-bg hover:bg-slate-300 dark:hover:bg-slate-800/20 border border-cyber-border rounded-xl text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition active:scale-95 flex items-center justify-center shrink-0" title="Switch Theme">
+              <button id="btn-theme-toggle" class="p-2.5 bg-cyber-bg hover:bg-slate-350 dark:hover:bg-slate-800/20 border border-cyber-border rounded-xl text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition active:scale-95 flex items-center justify-center shrink-0 focus:outline-none focus:ring-2 focus:ring-brand-500" title="Switch Theme" aria-label="Switch UI Theme color scheme">
                 <svg id="theme-sun-icon" class="hidden w-4 h-4 text-cyber-amber" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364-6.364l-.707.707M6.343 17.657l-.707.707m0-12.728l.707.707m12.728 12.728l.707-.707M12 8a4 4 0 100 8 4 4 0 000-8z"></path></svg>
                 <svg id="theme-moon-icon" class="w-4 h-4 text-cyber-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path></svg>
               </button>
 
               <!-- Language Selector -->
-              <select id="setting-language" class="bg-cyber-bg hover:bg-slate-300 dark:hover:bg-slate-800/20 text-slate-800 dark:text-slate-200 px-3 py-2 border border-cyber-border hover:border-slate-600 rounded-xl text-xs font-semibold transition cursor-pointer outline-none flex-1">
+              <label for="setting-language" class="sr-only">Interface Language</label>
+              <select id="setting-language" class="bg-cyber-bg hover:bg-slate-300 dark:hover:bg-slate-800/20 text-slate-800 dark:text-slate-200 px-3 py-2 border border-cyber-border hover:border-slate-600 rounded-xl text-xs font-semibold transition cursor-pointer outline-none flex-1 focus:ring-2 focus:ring-brand-500">
                 <option value="auto">🌐 Auto-Detect</option>
                 <option value="en">🇬🇧 English</option>
                 <option value="it">🇮🇹 Italiano</option>
@@ -386,48 +388,48 @@
               <span class="text-[9px] text-brand-600 dark:text-brand-400 font-bold bg-brand-500/10 px-2 py-0.5 rounded-full border border-cyber-border">Local</span>
             </div>
 
-            <label class="flex items-start space-x-2.5 cursor-pointer bg-cyber-bg border border-cyber-border p-2.5 rounded-xl hover:border-slate-700 transition">
-              <input type="checkbox" id="mask-ips" checked class="mt-0.5 accent-brand-500 h-3.5 w-3.5">
+            <label class="flex items-start space-x-2.5 cursor-pointer bg-cyber-bg border border-cyber-border p-2.5 rounded-xl hover:border-slate-700 transition focus-within:ring-2 focus-within:ring-brand-500">
+              <input type="checkbox" id="mask-ips" checked class="mt-0.5 accent-brand-500 h-3.5 w-3.5 outline-none">
               <div>
                 <span id="ui-mask-ips-title" class="block text-[11px] font-bold text-slate-800 dark:text-white">Mask IP Addresses</span>
                 <span id="ui-mask-ips-desc" class="block text-[9px] text-slate-500 mt-0.5">Scans IPv4/6; maps to placeholders</span>
               </div>
             </label>
 
-            <label class="flex items-start space-x-2.5 cursor-pointer bg-cyber-bg border border-cyber-border p-2.5 rounded-xl hover:border-slate-700 transition">
-              <input type="checkbox" id="mask-macs" checked class="mt-0.5 accent-brand-500 h-3.5 w-3.5">
+            <label class="flex items-start space-x-2.5 cursor-pointer bg-cyber-bg border border-cyber-border p-2.5 rounded-xl hover:border-slate-700 transition focus-within:ring-2 focus-within:ring-brand-500">
+              <input type="checkbox" id="mask-macs" checked class="mt-0.5 accent-brand-500 h-3.5 w-3.5 outline-none">
               <div>
                 <span id="ui-mask-macs-title" class="block text-[11px] font-bold text-slate-800 dark:text-white">Mask MAC ID</span>
                 <span id="ui-mask-macs-desc" class="block text-[9px] text-slate-500 mt-0.5">Hides physical hex hardware addresses</span>
               </div>
             </label>
 
-            <label class="flex items-start space-x-2.5 cursor-pointer bg-cyber-bg border border-cyber-border p-2.5 rounded-xl hover:border-slate-700 transition">
-              <input type="checkbox" id="mask-secrets" checked class="mt-0.5 accent-brand-500 h-3.5 w-3.5">
+            <label class="flex items-start space-x-2.5 cursor-pointer bg-cyber-bg border border-cyber-border p-2.5 rounded-xl hover:border-slate-700 transition focus-within:ring-2 focus-within:ring-brand-500">
+              <input type="checkbox" id="mask-secrets" checked class="mt-0.5 accent-brand-500 h-3.5 w-3.5 outline-none">
               <div>
                 <span id="ui-mask-secrets-title" class="block text-[11px] font-bold text-slate-800 dark:text-white">Mask Keys & Secrets</span>
                 <span id="ui-mask-secrets-desc" class="block text-[9px] text-slate-500 mt-0.5">Hides passwords, pre-shared keys</span>
               </div>
             </label>
 
-            <label class="flex items-start space-x-2.5 cursor-pointer bg-cyber-bg border border-cyber-border p-2.5 rounded-xl hover:border-slate-700 transition">
-              <input type="checkbox" id="mask-interfaces" checked class="mt-0.5 accent-brand-500 h-3.5 w-3.5">
+            <label class="flex items-start space-x-2.5 cursor-pointer bg-cyber-bg border border-cyber-border p-2.5 rounded-xl hover:border-slate-700 transition focus-within:ring-2 focus-within:ring-brand-500">
+              <input type="checkbox" id="mask-interfaces" checked class="mt-0.5 accent-brand-500 h-3.5 w-3.5 outline-none">
               <div>
                 <span id="ui-mask-interfaces-title" class="block text-[11px] font-bold text-slate-800 dark:text-white">Mask Interface Names</span>
                 <span id="ui-mask-interfaces-desc" class="block text-[9px] text-slate-500 mt-0.5">Keeps bridge, ether1; masks custom</span>
               </div>
             </label>
 
-            <label class="flex items-start space-x-2.5 cursor-pointer bg-cyber-bg border border-cyber-border p-2.5 rounded-xl hover:border-slate-700 transition">
-              <input type="checkbox" id="mask-domains" checked class="mt-0.5 accent-brand-500 h-3.5 w-3.5">
+            <label class="flex items-start space-x-2.5 cursor-pointer bg-cyber-bg border border-cyber-border p-2.5 rounded-xl hover:border-slate-700 transition focus-within:ring-2 focus-within:ring-brand-500">
+              <input type="checkbox" id="mask-domains" checked class="mt-0.5 accent-brand-500 h-3.5 w-3.5 outline-none">
               <div>
                 <span id="ui-mask-domains-title" class="block text-[11px] font-bold text-slate-800 dark:text-white">Mask Domain Names</span>
                 <span id="ui-mask-domains-desc" class="block text-[9px] text-slate-500 mt-0.5">Hides DDNS urls & addresses</span>
               </div>
             </label>
 
-            <label class="flex items-start space-x-2.5 cursor-pointer bg-cyber-bg border border-cyber-border p-2.5 rounded-xl hover:border-slate-700 transition">
-              <input type="checkbox" id="mask-identity" checked class="mt-0.5 accent-brand-500 h-3.5 w-3.5">
+            <label class="flex items-start space-x-2.5 cursor-pointer bg-cyber-bg border border-cyber-border p-2.5 rounded-xl hover:border-slate-700 transition focus-within:ring-2 focus-within:ring-brand-500">
+              <input type="checkbox" id="mask-identity" checked class="mt-0.5 accent-brand-500 h-3.5 w-3.5 outline-none">
               <div>
                 <span id="ui-mask-identity-title" class="block text-[11px] font-bold text-slate-800 dark:text-white">Mask Router system identity</span>
                 <span id="ui-mask-identity-desc" class="block text-[9px] text-slate-500 mt-0.5">Redacts custom identity names</span>
@@ -438,8 +440,8 @@
           <!-- Connection credentials -->
           <div class="space-y-3.5 border-t border-cyber-border pt-4">
             <div class="space-y-1">
-              <label id="ui-label-llm-provider" class="block text-[10px] font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider">LLM Provider</label>
-              <select id="setting-provider" class="w-full bg-cyber-bg border border-cyber-border text-slate-800 dark:text-slate-200 text-xs rounded-xl p-2.5 outline-none focus:border-brand-500">
+              <label id="ui-label-llm-provider" for="setting-provider" class="block text-[10px] font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider">LLM Provider</label>
+              <select id="setting-provider" class="w-full bg-cyber-bg border border-cyber-border text-slate-800 dark:text-slate-200 text-xs rounded-xl p-2.5 outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500">
                 <option value="openai">OpenAI (GPT-4o / GPT-4o-mini)</option>
                 <option value="anthropic">Anthropic (Claude)</option>
                 <option value="openrouter">OpenRouter (Any LLM - Free/Paid)</option>
@@ -449,24 +451,24 @@
             </div>
 
             <div class="space-y-1">
-              <label id="ui-label-model-name" class="block text-[10px] font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider">Model Name</label>
-              <input id="setting-model" type="text" class="w-full bg-cyber-bg border border-cyber-border text-slate-800 dark:text-slate-200 text-xs rounded-xl p-2.5 outline-none focus:border-brand-500" placeholder="gpt-4o-mini">
+              <label id="ui-label-model-name" for="setting-model" class="block text-[10px] font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider">Model Name</label>
+              <input id="setting-model" type="text" class="w-full bg-cyber-bg border border-cyber-border text-slate-800 dark:text-slate-200 text-xs rounded-xl p-2.5 outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500" placeholder="gpt-4o-mini">
             </div>
 
             <div class="space-y-1">
-              <label class="block text-[10px] font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider" id="label-apikey">API Key / Secret</label>
-              <input id="setting-apikey" type="password" class="w-full bg-cyber-bg border border-cyber-border text-slate-800 dark:text-slate-200 text-xs rounded-xl p-2.5 outline-none focus:border-brand-500" placeholder="sk-...">
+              <label class="block text-[10px] font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider" id="label-apikey" for="setting-apikey">API Key / Secret</label>
+              <input id="setting-apikey" type="password" class="w-full bg-cyber-bg border border-cyber-border text-slate-800 dark:text-slate-200 text-xs rounded-xl p-2.5 outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500" placeholder="sk-...">
             </div>
 
             <div class="space-y-1">
-              <label class="block text-[10px] font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider" id="label-baseurl">Base URL (For Local/Ollama)</label>
-              <input id="setting-baseurl" type="text" class="w-full bg-cyber-bg border border-cyber-border text-slate-800 dark:text-slate-200 text-xs rounded-xl p-2.5 outline-none focus:border-brand-500" placeholder="http://localhost:11434">
+              <label class="block text-[10px] font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider" id="label-baseurl" for="setting-baseurl">Base URL (For Local/Ollama)</label>
+              <input id="setting-baseurl" type="text" class="w-full bg-cyber-bg border border-cyber-border text-slate-800 dark:text-slate-200 text-xs rounded-xl p-2.5 outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500" placeholder="http://localhost:11434">
             </div>
 
             <div class="flex items-center justify-between pt-1">
-              <button id="btn-test-connection" class="text-[10px] bg-cyber-bg hover:bg-slate-350 dark:hover:bg-slate-800/25 text-slate-800 dark:text-slate-200 border border-cyber-border px-4 py-2 rounded-lg font-bold transition flex items-center space-x-1.5 active:scale-95 shrink-0">
+              <button id="btn-test-connection" class="text-[10px] bg-cyber-bg hover:bg-slate-350 dark:hover:bg-slate-800/25 text-slate-800 dark:text-slate-200 border border-cyber-border px-4 py-2 rounded-lg font-bold transition flex items-center space-x-1.5 active:scale-95 focus:outline-none focus:ring-2 focus:ring-brand-500">
                 <span id="ui-label-test-connection">Test Connection</span>
-                <svg id="test-spinner" class="hidden animate-spin h-3.5 w-3.5 text-slate-800 dark:text-white" fill="none" viewBox="0 0 24 24">
+                <svg id="test-spinner" class="hidden animate-spin h-3.5 w-3.5 text-slate-800 dark:text-white" fill="none" viewBox="0 0 24 24" aria-hidden="true">
                   <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                   <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                 </svg>
@@ -476,8 +478,8 @@
 
             <!-- Prompt Override -->
             <div class="pt-2 border-t border-cyber-border space-y-1.5">
-              <label id="ui-label-prompt-override" class="block text-[10px] font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider">Custom Prompt Override</label>
-              <textarea id="setting-prompt" rows="4" class="w-full bg-cyber-bg border border-cyber-border text-slate-800 dark:text-slate-200 text-xs rounded-xl p-2.5 outline-none focus:border-brand-500 font-mono placeholder-slate-500 resize-none" placeholder="Enter elite instructions..."></textarea>
+              <label id="ui-label-prompt-override" for="setting-prompt" class="block text-[10px] font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider">Custom Prompt Override</label>
+              <textarea id="setting-prompt" rows="4" class="w-full bg-cyber-bg border border-cyber-border text-slate-800 dark:text-slate-200 text-xs rounded-xl p-2.5 outline-none focus:border-brand-500 font-mono placeholder-slate-500 resize-none focus:ring-2 focus:ring-brand-500" placeholder="Enter elite instructions..."></textarea>
             </div>
           </div>
         </div>
@@ -488,7 +490,7 @@
       <div class="px-4 py-3.5 border-t border-cyber-border bg-cyber-bg/50 shrink-0 space-y-3">
         <!-- Privacy Status Display -->
         <div id="privacy-indicator" class="text-[10px] text-slate-600 dark:text-slate-400 flex items-center justify-center gap-1.5 bg-cyber-bg border border-cyber-border px-3 py-2 rounded-xl select-none">
-          <svg class="w-3.5 h-3.5 text-cyber-emerald" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M2.166 4.9c.7.3 1.5.5 2.333.5C6.1 5.4 7.6 4.7 8.666 3.6A11.022 11.022 0 0012 3c.8 0 1.584.1 2.333.3a1.993 1.993 0 011.5 1.6C16.5 6.4 17 8.1 17 10c0 4.418-4.03 8-9 8a9.863 9.863 0 01-3.136-.514L2.5 18l.78-2.6A9.957 9.957 0 012.166 10c0-1.9.5-3.6 1.166-5.1z" clip-rule="evenodd"></path></svg>
+          <svg class="w-3.5 h-3.5 text-cyber-emerald" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true"><path fill-rule="evenodd" d="M2.166 4.9c.7.3 1.5.5 2.333.5C6.1 5.4 7.6 4.7 8.666 3.6A11.022 11.022 0 0012 3c.8 0 1.584.1 2.333.3a1.993 1.993 0 011.5 1.6C16.5 6.4 17 8.1 17 10c0 4.418-4.03 8-9 8a9.863 9.863 0 01-3.136-.514L2.5 18l.78-2.6A9.957 9.957 0 012.166 10c0-1.9.5-3.6 1.166-5.1z" clip-rule="evenodd"></path></svg>
           <span id="privacy-count" class="font-medium">6 Shields Active</span>
         </div>
 
@@ -499,7 +501,7 @@
         </div>
 
         <!-- Unified Save Preferences button -->
-        <button id="btn-save-settings" class="w-full bg-brand-500 hover:bg-brand-600 text-white font-bold py-2.5 rounded-xl text-xs transition-all duration-300 ease-out-apple hover:scale-[1.02] active:scale-[0.98] shadow-brand-glow flex items-center justify-center gap-1.5">
+        <button id="btn-save-settings" class="w-full bg-brand-500 hover:bg-brand-600 text-white font-bold py-2.5 rounded-xl text-xs transition-all duration-300 ease-out-apple hover:scale-[1.02] active:scale-[0.98] shadow-brand-glow flex items-center justify-center gap-1.5 focus:outline-none focus:ring-2 focus:ring-brand-500">
           <span id="ui-label-save-settings">Save Configuration</span>
         </button>
       </div>
@@ -509,7 +511,7 @@
     <main class="flex-1 flex flex-col bg-cyber-bg overflow-hidden relative h-full">
 
       <!-- CHAT CHRONOLOGICAL STREAM -->
-      <section id="chat-messages-stream" class="flex-1 overflow-y-auto p-4 md:p-6 space-y-6">
+      <section id="chat-messages-stream" class="flex-1 overflow-y-auto p-4 md:p-6 space-y-6" aria-label="Conversation Messages Stream">
         <!-- WELCOME SCREEN (Renders initially when stream is empty) -->
         <div id="panel-welcome" class="flex flex-col items-center justify-center min-h-[60vh] text-center p-4 md:p-8 space-y-6 max-w-2xl mx-auto select-none">
           <!-- High-Tech Central Network Hub -->
@@ -520,7 +522,7 @@
             <div class="absolute inset-2 rounded-full border-2 border-dotted border-cyber-accent/40 animate-[spin_8s_linear_infinite_reverse]"></div>
             <!-- Central glowing network core -->
             <div class="w-12 h-12 rounded-2xl bg-brand-500/10 border border-brand-500/30 flex items-center justify-center text-brand-400 shadow-xl shadow-brand-500/15 animate-[pulse_3s_ease-in-out_infinite]">
-              <svg class="w-6 h-6 text-brand-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg class="w-6 h-6 text-brand-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 11c0 3.517-1.009 6.799-2.753 9.571m-3.44-2.04l.054-.09A13.916 13.916 0 009 11V5a2 2 0 00-2-2H5a2 2 0 00-2 2v6a13.978 13.978 0 003.07 8.757m.195-.04c.053.076.11.152.17.227m6.525-2.27A13.978 13.978 0 0115 11V5a2 2 0 012-2h2a2 2 0 012 2v6a13.978 13.978 0 01-3.07 8.757m-1.11 1.05A13.916 13.916 0 0115 11c0-1.802-.47-3.493-1.293-4.962m-1.414 4.962A14.02 14.02 0 0012 11m0 0a14.02 14.02 0 01-1.293-4.962m1.293 4.962c0-1.802.47-3.493 1.293-4.962m0 0A13.916 13.916 0 0115 11m-3 7a1 1 0 100-2 1 1 0 000 2z"></path>
               </svg>
             </div>
@@ -544,33 +546,33 @@
       <section id="attachment-drawer" class="hidden mx-4 md:mx-6 p-4 bg-cyber-panel border border-cyber-border rounded-2xl relative shrink-0 transition-all duration-300 animate-[fadeIn_0.3s_ease-out_1]">
         <div class="flex items-center justify-between mb-3 select-none">
           <div class="flex items-center space-x-2">
-            <svg class="w-4 h-4 text-brand-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
-            <label id="ui-label-paste-config" class="text-[10px] md:text-[11px] font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider">RouterOS Config or Log Export</label>
+            <svg class="w-4 h-4 text-brand-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+            <label id="ui-label-paste-config" for="pasted-config" class="text-[10px] md:text-[11px] font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider">RouterOS Config or Log Export</label>
           </div>
           <!-- File Drag-and-Drop or File Upload button inside attachment bar -->
           <div class="flex items-center space-x-3.5">
-            <button id="sidebar-btn-upload" onclick="document.getElementById('file-input').click()" class="text-[10px] text-slate-500 hover:text-brand-500 font-bold transition flex items-center gap-1">
+            <button id="sidebar-btn-upload" onclick="document.getElementById('file-input').click()" class="text-[10px] text-slate-500 hover:text-brand-500 font-bold transition flex items-center gap-1 focus:outline-none focus:ring-1 focus:ring-brand-500">
               <span>📎</span> Upload File
             </button>
-            <button id="btn-clear-attachment" class="text-[10px] text-slate-500 hover:text-red-400 transition font-bold">
+            <button id="btn-clear-attachment" class="text-[10px] text-slate-500 hover:text-red-400 transition font-bold focus:outline-none focus:ring-1 focus:ring-red-400">
               Clear Export
             </button>
           </div>
         </div>
 
         <div id="drag-drop-zone" class="relative min-h-[140px] bg-cyber-bg border border-dashed border-cyber-border rounded-xl flex flex-col overflow-hidden transition-all duration-300">
-          <textarea id="pasted-config" class="w-full h-32 bg-transparent text-slate-800 dark:text-slate-200 p-3 font-mono text-xs placeholder-slate-500 resize-none outline-none z-10" placeholder="# Paste a .rsc export configuration here... (All IP/MAC/secrets will be masked locally before sending to AI, and restored instantly!)"></textarea>
+          <textarea id="pasted-config" class="w-full h-32 bg-transparent text-slate-800 dark:text-slate-200 p-3 font-mono text-xs placeholder-slate-500 resize-none outline-none z-10 focus:ring-2 focus:ring-brand-500" placeholder="# Paste a .rsc export configuration here... (All IP/MAC/secrets will be masked locally before sending to AI, and restored instantly!)"></textarea>
 
           <!-- File upload success panel -->
           <div id="file-info-bar" class="hidden absolute bottom-0 left-0 right-0 bg-cyber-bg border-t border-cyber-border p-2 flex items-center justify-between z-20">
             <div class="flex items-center space-x-2 overflow-hidden mr-2">
-              <svg class="w-4 h-4 text-cyber-emerald shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+              <svg class="w-4 h-4 text-cyber-emerald shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
               <div class="overflow-hidden">
                 <span id="file-name-label" class="block text-xs font-bold text-slate-800 dark:text-white truncate">config.rsc</span>
                 <span id="file-size-label" class="block text-[10px] text-slate-500">12.5 KB</span>
               </div>
             </div>
-            <button id="btn-remove-file" class="p-1 text-slate-500 hover:text-red-400 hover:bg-red-500/10 rounded transition">
+            <button id="btn-remove-file" class="p-1 text-slate-500 hover:text-red-400 hover:bg-red-500/10 rounded transition focus:outline-none focus:ring-1 focus:ring-red-400" aria-label="Remove attached file">
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
             </button>
           </div>
@@ -584,17 +586,18 @@
           <!-- Input bar text area -->
           <div class="flex items-end bg-cyber-bg border border-cyber-border rounded-2xl p-2 focus-within:border-brand-500 transition-all duration-300 relative shadow-inner">
             <!-- Toggle attachment Drawer button -->
-            <button id="btn-toggle-drawer" class="p-3 text-slate-500 hover:text-slate-800 dark:hover:text-white hover:bg-slate-300 dark:hover:bg-slate-800/20 rounded-xl transition-all duration-300 ease-out-apple hover:scale-105 active:scale-95 shrink-0" title="Attach Config RSC or Log">
+            <button id="btn-toggle-drawer" class="p-3 text-slate-500 hover:text-slate-800 dark:hover:text-white hover:bg-slate-300 dark:hover:bg-slate-800/20 rounded-xl transition-all duration-300 ease-out-apple hover:scale-105 active:scale-95 shrink-0 focus:outline-none focus:ring-2 focus:ring-brand-500" title="Attach Config RSC or Log" aria-label="Attach configuration .rsc or logs file">
               <svg class="w-5 h-5 text-cyber-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
             </button>
 
             <!-- Text area -->
-            <textarea id="chat-message" rows="1" style="min-height: 38px;" class="flex-1 max-h-32 bg-transparent text-slate-800 dark:text-slate-200 p-3 text-xs placeholder-slate-500 outline-none resize-none overflow-y-auto" placeholder="Describe the issue (e.g., 'Ospf isn't establishing peer' or 'Check if WAN ports are secure')"></textarea>
+            <label for="chat-message" class="sr-only">Explain the problem or audit task</label>
+            <textarea id="chat-message" rows="1" style="min-height: 38px;" class="flex-1 max-h-32 bg-transparent text-slate-800 dark:text-slate-200 p-3 text-xs placeholder-slate-500 outline-none resize-none overflow-y-auto focus:ring-2 focus:ring-brand-500 rounded-xl" placeholder="Describe the issue (e.g., 'Ospf isn't establishing peer' or 'Check if WAN ports are secure')"></textarea>
 
             <!-- Send button -->
-            <button id="btn-submit" class="bg-brand-500 hover:bg-brand-600 disabled:bg-slate-800 text-white disabled:text-slate-500 p-3 rounded-xl transition-all duration-300 ease-out-apple hover:scale-105 active:scale-95 shadow-brand-glow flex items-center justify-center space-x-2 shrink-0">
+            <button id="btn-submit" class="bg-brand-500 hover:bg-brand-600 disabled:bg-slate-800 text-white disabled:text-slate-500 p-3 rounded-xl transition-all duration-300 ease-out-apple hover:scale-105 active:scale-95 shadow-brand-glow flex items-center justify-center space-x-2 shrink-0 focus:outline-none focus:ring-2 focus:ring-brand-500" aria-label="Send message to assistant">
               <svg id="submit-icon" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
-              <svg id="loading-spinner" class="hidden animate-spin h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
+              <svg id="loading-spinner" class="hidden animate-spin h-4 w-4 text-white" fill="none" viewBox="0 0 24 24" aria-hidden="true">
                 <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                 <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
               </svg>
@@ -607,25 +610,25 @@
   </div>
 
   <!-- HIDDEN FILE INPUT -->
-  <input type="file" id="file-input" accept=".rsc,.txt,.log" class="hidden">
+  <input type="file" id="file-input" accept=".rsc,.txt,.log" class="hidden" aria-hidden="true">
 
   <!-- MODAL: CONFIGURATION DIFF (POP UP INSTEAD OF HALF-SCREEN SPLIT) -->
-  <div id="modal-diff" class="hidden fixed inset-0 z-50 flex items-center justify-center glass-effect p-4">
+  <div id="modal-diff" class="hidden fixed inset-0 z-50 flex items-center justify-center glass-effect p-4" role="dialog" aria-modal="true" aria-labelledby="modal-diff-title">
     <div class="bg-cyber-panel border border-cyber-border rounded-2xl w-full max-w-6xl h-[85vh] flex flex-col overflow-hidden shadow-2xl relative">
       <!-- Header -->
       <div class="px-5 py-4 border-b border-cyber-border bg-cyber-panel flex items-center justify-between shrink-0">
         <div class="flex items-center space-x-2.5 select-none">
-          <span class="text-lg">🔎</span>
-          <h3 class="text-xs font-black uppercase tracking-wider text-slate-800 dark:text-slate-200">Spell Comparison — Configuration Diff</h3>
+          <span class="text-lg" aria-hidden="true">🔎</span>
+          <h3 id="modal-diff-title" class="text-xs font-black uppercase tracking-wider text-slate-800 dark:text-slate-200">Spell Comparison — Configuration Diff</h3>
         </div>
         <div class="flex items-center space-x-3 select-none">
           <!-- Split / Unified Toggle -->
           <div class="flex items-center space-x-1 bg-cyber-bg p-1 rounded-lg border border-cyber-border shrink-0">
-            <button id="diff-view-mode-split" class="px-2.5 py-1 text-[10px] font-bold rounded bg-slate-800 text-cyber-accent border border-cyber-border transition">Split</button>
-            <button id="diff-view-mode-unified" class="px-2.5 py-1 text-[10px] font-bold rounded text-slate-500 hover:text-white transition">Unified</button>
+            <button id="diff-view-mode-split" class="px-2.5 py-1 text-[10px] font-bold rounded bg-slate-800 text-cyber-accent border border-cyber-border transition focus:outline-none focus:ring-1 focus:ring-brand-500">Split</button>
+            <button id="diff-view-mode-unified" class="px-2.5 py-1 text-[10px] font-bold rounded text-slate-500 hover:text-white transition focus:outline-none focus:ring-1 focus:ring-brand-500">Unified</button>
           </div>
           <!-- Close button -->
-          <button id="btn-close-diff" class="text-slate-500 hover:text-slate-800 dark:hover:text-white transition p-1.5 hover:bg-[#1e1b4b] rounded-lg">
+          <button id="btn-close-diff" class="text-slate-500 hover:text-slate-800 dark:hover:text-white transition p-1.5 hover:bg-[#1e1b4b] rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500" aria-label="Close configuration diff modal">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
           </button>
         </div>
@@ -652,29 +655,29 @@
   </div>
 
   <!-- MODAL: FIX COMMANDS INTERACTIVE CHECKLIST -->
-  <div id="modal-commands" class="hidden fixed inset-0 z-50 flex items-center justify-center glass-effect p-4">
+  <div id="modal-commands" class="hidden fixed inset-0 z-50 flex items-center justify-center glass-effect p-4" role="dialog" aria-modal="true" aria-labelledby="modal-commands-title">
     <div class="bg-cyber-panel border border-cyber-border rounded-2xl w-full max-w-3xl h-[75vh] flex flex-col overflow-hidden shadow-2xl relative">
       <!-- Header -->
       <div class="px-5 py-4 border-b border-cyber-border bg-cyber-panel flex items-center justify-between shrink-0">
         <div class="flex items-center space-x-2.5 select-none">
-          <span class="text-lg">📋</span>
-          <h3 class="text-xs font-black uppercase tracking-wider text-slate-800 dark:text-slate-200">Terminal Spell Checklist</h3>
+          <span class="text-lg" aria-hidden="true">📋</span>
+          <h3 id="modal-commands-title" class="text-xs font-black uppercase tracking-wider text-slate-800 dark:text-slate-200">Terminal Spell Checklist</h3>
         </div>
         <div class="flex items-center space-x-3 select-none">
           <!-- Raw/Checklist toggle -->
           <div class="flex items-center space-x-1 bg-cyber-bg p-1 rounded-lg border border-cyber-border shrink-0">
-            <button id="command-view-mode-checklist" class="px-2.5 py-1 text-[10px] font-bold rounded bg-slate-800 text-cyber-emerald border border-cyber-border transition">Checklist</button>
-            <button id="command-view-mode-raw" class="px-2.5 py-1 text-[10px] font-bold rounded text-slate-500 hover:text-white transition">Raw Terminal</button>
+            <button id="command-view-mode-checklist" class="px-2.5 py-1 text-[10px] font-bold rounded bg-slate-800 text-cyber-emerald border border-cyber-border transition focus:outline-none focus:ring-1 focus:ring-brand-500">Checklist</button>
+            <button id="command-view-mode-raw" class="px-2.5 py-1 text-[10px] font-bold rounded text-slate-500 hover:text-white transition focus:outline-none focus:ring-1 focus:ring-brand-500">Raw Terminal</button>
           </div>
           <!-- Close button -->
-          <button id="btn-close-commands" class="text-slate-500 hover:text-slate-800 dark:hover:text-white transition p-1.5 hover:bg-[#1e1b4b] rounded-lg">
+          <button id="btn-close-commands" class="text-slate-500 hover:text-slate-800 dark:hover:text-white transition p-1.5 hover:bg-[#1e1b4b] rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500" aria-label="Close terminal spells checklist modal">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
           </button>
         </div>
       </div>
 
       <div class="p-4 bg-cyber-bg border-b border-cyber-border text-slate-500 dark:text-slate-400 text-[11px] select-none flex items-center gap-1.5">
-        <svg class="w-4 h-4 text-cyber-emerald shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+        <svg class="w-4 h-4 text-cyber-emerald shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
         <span id="ui-label-commands-tip">These are RouterOS terminal commands. Paste them directly into your MikroTik CLI window to apply the fix.</span>
       </div>
 
@@ -694,7 +697,7 @@
   </div>
 
   <!-- DRAG OVERLAY (SMOOTH GENTLE ANIMATED FULL SCREEN ON COMPATIBLE HOVER) -->
-  <div id="global-drag-overlay" class="hidden fixed inset-0 bg-brand-900/50 backdrop-blur-md border-4 border-dashed border-brand-500 z-50 flex flex-col items-center justify-center p-6 text-center space-y-3 transition-opacity pointer-events-none">
+  <div id="global-drag-overlay" class="hidden fixed inset-0 bg-brand-900/50 backdrop-blur-md border-4 border-dashed border-brand-500 z-50 flex flex-col items-center justify-center p-6 text-center space-y-3 transition-opacity pointer-events-none" aria-hidden="true">
     <div class="w-16 h-16 rounded-2xl bg-brand-500/20 text-brand-400 flex items-center justify-center text-3xl animate-bounce">
       📥
     </div>
@@ -703,8 +706,10 @@
   </div>
 
   <!-- MODERN FLOATING TOAST CONTAINER -->
-  <div id="toast-container" class="fixed bottom-6 right-6 z-50 flex flex-col gap-2 pointer-events-none max-w-sm w-full"></div>
+  <div id="toast-container" class="fixed bottom-6 right-6 z-50 flex flex-col gap-2 pointer-events-none max-w-sm w-full" aria-live="polite"></div>
 
+  <!-- Pure client Utilities -->
+  <script src="utils.js"></script>
   <!-- Main client JavaScript file -->
   <script src="app.js"></script>
 </body>
