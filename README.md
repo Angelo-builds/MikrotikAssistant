@@ -1,87 +1,23 @@
-# MikroTik Privacy AI Chatbot Assistant (MikrotikAssistant)
+# Mik the Winbox Wizard — MikroTik Privacy AI Chatbot Assistant
 
-An elite AI-powered chatbot and auditing assistant specifically designed for MikroTik RouterOS (v6 & v7) networks, featuring **Extreme Local Privacy Shielding**.
-
-The assistant processes RouterOS configuration exports, console logs, or network issues, detects syntax/logical configuration bugs, and provides a clear Explanation, a side-by-side Configuration Diff, and copy-pasteable CLI commands to fix them.
-
-All sensitive data—including passwords, private/public IP addresses, MAC addresses, custom interfaces, domains, and router identities—is masked **entirely locally in the browser/node proxy context** before being transmitted to third-party LLMs. It is then seamlessly restored when the response returns, keeping your network credentials and secrets completely confidential.
+An elite, witty, and wizard-themed AI-powered chatbot and auditing assistant specifically designed for MikroTik RouterOS (v6 & v7) networks, featuring **Extreme Local Privacy Shielding** and a **Next-Gen Cyber WinBox UI**!
 
 ---
 
-## Key Features
+## 🧙‍♂️ Who is Mik?
 
-- **Extreme Privacy Shield:** Local regex-based de-anonymization engine masks:
-  - Private & Public IPv4/IPv6 addresses
-  - Physical hardware MAC addresses
-  - Wireless security keys, passwords, and sensitive credentials
-  - Custom interface names (while retaining standard context like `ether1` or `bridge`)
-  - Cloud DDNS names and domains
-  - Router system identity setting names
-- **Custom Side-by-Side Configuration Diff:** Instantly view redline comparison of original configurations (displaying redacted placeholders) versus the corrected configuration (with your private network details fully restored!).
-- **Copy-and-Paste Fix Commands:** Copy ready-to-run RouterOS CLI terminal commands directly to your clipboard to execute directly on your router.
-- **Multiple LLM Provider Support:** Integrates with OpenAI (GPT-4o/mini), Anthropic (Claude), OpenRouter, local Ollama, or any custom LAN OpenAI-compatible API endpoints.
-- **Secure Key Storage:** Your API keys and configuration preferences are saved securely in browser `localStorage` and never stored on the server.
+**Mik the Winbox Wizard** is your friendly, certified MikroTik network engineer, RouterOS expert, and packet-filtering wizard. He explains complex networking topics with a humorous wizard persona—referring to firewall rules as "protective wards," routing tables as "ancient maps," and configurations as "spells."
+
+Despite his lighthearted theme, his advice is professional, accurate, and completely aligned with the latest RouterOS syntax.
 
 ---
 
-## Project Structure
+## 🛡️ Privacy Shield Architecture
+
+To prevent third-party LLM providers from accessing your secure network context, all audits are pre-processed by a local privacy shield **completely inside your browser and the local Node proxy**:
 
 ```text
-MikrotikAssistant/
-├── public/
-│   ├── index.html        # Single Page Tailwind CSS Frontend UI
-│   └── app.js            # Main Frontend Javascript (Diff engine, settings & API handlers)
-├── server.js             # Express.js backend CORS proxy
-├── privacyShield.js      # Robust masking & restoration engine
-├── test.js               # Unit & integration test suite
-├── package.json          # Dependencies & scripts
-└── README.md             # This file
-```
-
----
-
-## Installation & Setup
-
-### Prerequisites
-
-- [Node.js](https://nodejs.org/) (v16.x or newer recommended)
-
-### Step 1: Install Dependencies
-
-Clone this repository and install the minimal required dependencies:
-
-```bash
-npm install
-```
-
-### Step 2: Start the Application
-
-Run the Express.js proxy server locally:
-
-```bash
-npm start
-```
-
-The application will launch and be available at: **[http://localhost:3000](http://localhost:3000)**.
-
----
-
-## How to Run Tests
-
-A custom lightweight, dependency-free test runner (`test.js`) is included to verify the Privacy Shield pipeline, subnet classification logic, masking precision, and response restoration capabilities without installing heavy devDependencies.
-
-To run the unit and integration tests:
-
-```bash
-npm test
-```
-
----
-
-## Privacy Shield Pipeline Architecture
-
-```text
-[User Config/Query Input]
+[User Config / Query Input]
           │
           ▼
    [Local Node Proxy] ──(Extracts & Redacts Secrets/IPs/MACs)──► [Generates Mapping Dictionary]
@@ -96,12 +32,82 @@ npm test
  [Displaying Explanation, Diff & Restored Commands]
 ```
 
-1. **Masking (Anonymization):** The chatbot scans configuration strings or user messages for patterns matching IPs, MACs, credentials, identity, custom interfaces, or domain names. It assigns dynamic placeholders like `[PRIV_IP_1]`, `[SECRET_1]`, etc., and logs the original value in an in-memory mapping dictionary.
-2. **LLM Query Execution:** The redacted text is combined with an elite MikroTik RouterOS system prompt and sent to your configured LLM provider.
-3. **De-anonymization (Restoration):** Once the LLM generates the response, the node proxy replaces the placeholders back with the exact original parameters, maintaining full privacy from LLM providers.
+### What gets masked?
+1. **IP Addresses:** Maps IPv4 & IPv6 subnets to `[PRIV_IP_x]` & `[PUB_IP_x]` placeholders.
+2. **MAC Hardware IDs:** Masks physical hex hardware addresses to `[MAC_x]`.
+3. **Secrets & Keys:** Stips passwords, wireless pre-shared keys (WPA/WPA2), PINs, and credentials.
+4. **Custom Interface Names:** Identifies and redacts bridge or custom names to `[IFACE_x]`, while retaining standard RouterOS interfaces (like `ether1` or `wlan1`) for network topology context.
+5. **Domains & DDNS:** Redacts dynamic DNS links and domain addresses.
+6. **Router Identity:** Obfuscates `/system identity` custom names.
+
+All placeholders are restored on-the-fly when Mik's explanation returns!
 
 ---
 
-## License
+## 🌟 Next-Gen Cyber WinBox UI Features
 
-This project is open-source and free to use.
+Our frontend features a premium, sleek **Cyber WinBox Neon Dark Theme** containing:
+
+- **Vertical Slim Sidebar:** Quick actions for session history, file uploads, and wizard help.
+- **Session History Drawer:** Saves your previous audits in `localStorage` with real-time search filtering and custom titles.
+- **Drag & Drop Upload Zone:** Effortlessly drop `.rsc`, `.txt`, or `.log` exports directly into the editor.
+- **Multilingual Support:** Select English 🇬🇧 or Italiano 🇮🇹 in the header for full UI translation.
+- **Dynamic LLM Language Support:**
+  - **Auto-Detect:** Automatically responds inside the `<<<EXPLANATION>>>` block in the same language as your question/log.
+  - **English / Italian:** Force Mik's explanations to be rendered in your preferred language.
+  - *All RouterOS configurations and CLI commands always remain in standard English RouterOS terminal syntax.*
+- **Interactive checklist CLI commands:** Check off applied CLI commands with dynamic line-through strikes and copy buttons, or view raw terminal commands.
+- **Split & Unified comparison toggles:** Toggle between unified red/green line comparisons or a classic WinBox side-by-side split view.
+- **Progressive Privacy Stepper:** Visual step-by-step progress showing credential scrubbing, AI transit, de-anonymization, and rendering.
+- **Floating Toast System:** Clean non-intrusive notifications for success and error tracking.
+
+---
+
+## 📂 Project Structure
+
+```text
+MikrotikAssistant/
+├── public/
+│   ├── index.html        # Single Page Tailwind CSS Frontend UI (Cyber WinBox layout)
+│   └── app.js            # Main Frontend Javascript (Localization, diff engines & history)
+├── server.js             # Express.js backend CORS proxy & system prompt injector
+├── privacyShield.js      # Robust regex masking & restoration engine
+├── test.js               # Unit & integration test suite
+├── package.json          # Dependencies & scripts
+└── README.md             # This comprehensive guide
+```
+
+---
+
+## 🚀 Installation & Setup
+
+### Prerequisites
+
+- [Node.js](https://nodejs.org/) (v16.x or newer recommended)
+
+### Step 1: Install Dependencies
+```bash
+npm install
+```
+
+### Step 2: Start the dev server
+```bash
+npm start
+```
+The application will launch and be available at: **[http://localhost:3000](http://localhost:3000)**.
+
+---
+
+## 🧪 Running Tests
+
+A lightweight, custom test suite is included to verify the Privacy Shield pipeline, masking precision, and response restoration capabilities without heavy dependency footprints:
+
+```bash
+npm test
+```
+
+---
+
+## ⚖️ License
+
+This project is open-source and free to use. Made with 🧙‍♂️ magic by Mik the Winbox Wizard.
