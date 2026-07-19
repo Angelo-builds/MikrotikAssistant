@@ -7,6 +7,7 @@ const i18n = {
     headerTitle: 'Mik the Winbox Wizard',
     headerBadge: "Mik's Privacy Shield Active",
     headerDesc: 'RouterOS Configuration Auditor & Safe Correction Suite',
+    newChat: 'New Chat',
     tooltipAudit: 'New Chat',
     tooltipHistory: 'Audit History',
     tooltipUpload: 'Upload File',
@@ -111,6 +112,7 @@ const i18n = {
     headerTitle: 'Mik il Mago di Winbox',
     headerBadge: 'Scudo della Privacy di Mik Attivo',
     headerDesc: 'Suite di Audit e Correzione Sicura della Configurazione RouterOS',
+    newChat: 'Nuova Chat',
     tooltipAudit: 'Nuova Chat',
     tooltipHistory: 'Cronologia degli Audit',
     tooltipUpload: 'Carica File',
@@ -218,6 +220,7 @@ const state = {
   commandMode: 'checklist', // 'checklist' | 'raw'
   language: 'auto',         // 'auto' | 'en' | 'it'
   theme: 'dark',            // 'dark' | 'light'
+  currentChatId: null,      // Unique session identifier for current chat stream
   settings: {
     provider: 'openai',
     model: 'gpt-4o-mini',
@@ -234,7 +237,7 @@ const state = {
   // Active response data
   analysisResult: null,
   pastedConfigRaw: '',
-  history: [], // List of { id, title, timestamp, pastedConfig, chatMessage, result, rosVersion, hardwareModel }
+  history: [], // List of { id, title, timestamp, messages: [{ role, chatMessage, pastedConfig, result }], rosVersion, hardwareModel }
   currentFile: null,
   isAttachmentDrawerOpen: false,
   isSidebarOpen: true,         // Toggle Sidebar state
@@ -288,6 +291,13 @@ const els = {
 
   // Chat message stream area
   chatMessagesStream: document.getElementById('chat-messages-stream'),
+  chatMessagesContainer: document.getElementById('chat-messages-container'),
+
+  // New Chat Triggers
+  btnNewChat: document.getElementById('btn-new-chat'),
+  btnHeaderNewChat: document.getElementById('btn-header-new-chat'),
+  uiBtnNewChat: document.getElementById('ui-btn-new-chat'),
+  uiBtnHeaderNewChat: document.getElementById('ui-btn-header-new-chat'),
 
   // Dropdown contexts
   selectRosVersion: document.getElementById('select-ros-version'),
@@ -463,6 +473,10 @@ function updateUILanguage() {
   if (els.uiLabelWelcomeDesc) els.uiLabelWelcomeDesc.innerHTML = t.welcomeDesc;
   if (els.uiLabelWelcomePrivacy) els.uiLabelWelcomePrivacy.textContent = t.welcomePrivacy;
 
+  // New Chat buttons
+  if (els.uiBtnNewChat) els.uiBtnNewChat.textContent = t.newChat;
+  if (els.uiBtnHeaderNewChat) els.uiBtnHeaderNewChat.textContent = t.newChat;
+
   // Diff Headers
   if (els.uiLabelDiffOriginal) els.uiLabelDiffOriginal.textContent = t.diffOriginalHeader;
   if (els.uiLabelDiffCorrected) els.uiLabelDiffCorrected.textContent = t.diffCorrectedHeader;
@@ -503,6 +517,31 @@ function updateUILanguage() {
   updatePrivacyShieldLabel();
   updateLLMStatusBadge();
   renderHistoryList();
+}
+
+// START NEW CHAT SESSIONS
+function startNewChat() {
+  state.currentChatId = null;
+  state.analysisResult = null;
+  state.pastedConfigRaw = '';
+
+  // Reset UI
+  if (els.chatMessagesContainer) {
+    els.chatMessagesContainer.innerHTML = '';
+  }
+  els.panelWelcome.classList.remove('hidden');
+
+  // Clear inputs
+  els.chatMessage.value = '';
+  adjustTextAreaHeight();
+
+  // Clear file attachment
+  state.currentFile = null;
+  els.pastedConfig.value = '';
+  els.fileInfoBar.classList.add('hidden');
+  closeAttachmentDrawer();
+
+  showToast('Wizard session refreshed. Magic is ready!', 'success');
 }
 
 // LOAD SETTINGS
@@ -789,6 +828,10 @@ function setupEventListeners() {
   // Clear Session History button
   els.btnClearHistory.addEventListener('click', clearHistory);
 
+  // New Chat triggers
+  els.btnNewChat.addEventListener('click', startNewChat);
+  els.btnHeaderNewChat.addEventListener('click', startNewChat);
+
   // History filtering input
   els.searchHistory.addEventListener('input', () => renderHistoryList(els.searchHistory.value));
 
@@ -899,6 +942,24 @@ function loadHistory() {
 }
 
 function saveHistoryItem(item) {
+  // If we are currently continuing an existing chat session (state.currentChatId is set)
+  if (state.currentChatId) {
+    const existingIndex = state.history.findIndex(h => h.id === state.currentChatId);
+    if (existingIndex !== -1) {
+      // Append the latest message pair to the existing history log
+      state.history[existingIndex].messages.push(...item.messages);
+      state.history[existingIndex].timestamp = item.timestamp;
+      // Bring updated history card to top
+      const updatedCard = state.history.splice(existingIndex, 1)[0];
+      state.history.unshift(updatedCard);
+      localStorage.setItem('mikrotik_chatbot_history', JSON.stringify(state.history));
+      renderHistoryList();
+      return;
+    }
+  }
+
+  // Otherwise, start a brand new chat item
+  state.currentChatId = item.id;
   state.history.unshift(item);
   if (state.history.length > 25) {
     state.history.pop();
@@ -917,8 +978,10 @@ function renderHistoryList(filterQuery = '') {
 
   const filtered = state.history.filter(item => {
     const q = filterQuery.toLowerCase();
-    return item.title.toLowerCase().includes(q) ||
-           (item.chatMessage && item.chatMessage.toLowerCase().includes(q));
+    const hasInMessages = item.messages && item.messages.some(m =>
+      (m.chatMessage && m.chatMessage.toLowerCase().includes(q))
+    );
+    return item.title.toLowerCase().includes(q) || hasInMessages;
   });
 
   if (state.history.length === 0) {
@@ -933,7 +996,7 @@ function renderHistoryList(filterQuery = '') {
 
   filtered.forEach((item) => {
     const card = document.createElement('div');
-    card.className = 'group/item relative p-3 bg-cyber-bg border border-cyber-border rounded-xl transition cursor-pointer flex flex-col gap-1';
+    card.className = 'group/item relative p-3 bg-cyber-bg border border-cyber-border rounded-xl transition-all duration-300 ease-out-apple cursor-pointer flex flex-col gap-1 hover:border-brand-500/30 hover:shadow-brand-glow active:scale-[0.98]';
 
     const deleteBtn = document.createElement('button');
     deleteBtn.className = 'absolute top-3 right-3 text-slate-500 hover:text-red-400 opacity-0 group-hover/item:opacity-100 transition p-1 hover:bg-red-500/10 rounded-md';
@@ -942,6 +1005,9 @@ function renderHistoryList(filterQuery = '') {
     deleteBtn.addEventListener('click', (e) => {
       e.stopPropagation();
       state.history = state.history.filter(h => h.id !== item.id);
+      if (state.currentChatId === item.id) {
+        startNewChat();
+      }
       localStorage.setItem('mikrotik_chatbot_history', JSON.stringify(state.history));
       renderHistoryList(filterQuery);
     });
@@ -960,9 +1026,12 @@ function renderHistoryList(filterQuery = '') {
     header.appendChild(title);
     header.appendChild(time);
 
+    // Grab first message description
+    const firstMsg = item.messages && item.messages[0] ? item.messages[0].chatMessage : '';
+
     const desc = document.createElement('p');
     desc.className = 'text-[10px] text-slate-500 dark:text-slate-400 line-clamp-1 leading-normal';
-    desc.textContent = item.chatMessage || t.historyNoDesc;
+    desc.textContent = firstMsg || t.historyNoDesc;
 
     card.appendChild(header);
     card.appendChild(desc);
@@ -978,27 +1047,31 @@ function renderHistoryList(filterQuery = '') {
 
 function restoreHistoryItem(item) {
   // Clear chat stream and restore a single conversation step
-  els.chatMessagesStream.innerHTML = '';
+  if (els.chatMessagesContainer) {
+    els.chatMessagesContainer.innerHTML = '';
+  }
   els.panelWelcome.classList.add('hidden');
 
-  state.analysisResult = item.result;
-  state.pastedConfigRaw = item.pastedConfig;
+  state.currentChatId = item.id;
 
   // Set selectors
   els.selectRosVersion.value = item.rosVersion || 'auto';
   els.selectHardware.value = item.hardwareModel || 'auto';
 
-  // Inject User Message
-  appendUserMessage(item.chatMessage, item.pastedConfig);
-
-  // Inject Assistant Response
-  appendAssistantResponse(item.result);
+  if (item.messages && item.messages.length > 0) {
+    item.messages.forEach(msg => {
+      state.analysisResult = msg.result;
+      state.pastedConfigRaw = msg.pastedConfig;
+      appendUserMessage(msg.chatMessage, msg.pastedConfig);
+      appendAssistantResponse(msg.result);
+    });
+  }
 
   if (window.innerWidth < 1024) {
     state.isSidebarOpen = false;
     renderSidebarState();
   }
-  showToast('Restored conversation from history!', 'success');
+  showToast('Restored conversation history stream!', 'success');
 }
 
 function clearHistory() {
@@ -1371,7 +1444,9 @@ function renderCommands(fixCommands) {
 // MARKDOWN RENDERING FOR EXPLANATIONS IN CHAT BUBBLE
 function renderMarkdown(text) {
   if (!text) return '';
-  let html = text;
+
+  // Clean up empty backticks/space patterns (such as ` `bash ... ` `) which cause ugly grey squares
+  let html = text.replace(/`[\s]*`/g, '');
 
   // Escape HTML tags
   html = html
@@ -1447,9 +1522,9 @@ window.copySnippetText = function(id, btn) {
 
 // APPEND USER BUBBLE
 function appendUserMessage(messageText, pastedConfigText) {
-  const stream = els.chatMessagesStream;
+  const container = els.chatMessagesContainer || els.chatMessagesStream;
   const bubble = document.createElement('div');
-  bubble.className = 'flex flex-col space-y-2.5 items-end max-w-3xl ml-auto w-full select-text';
+  bubble.className = 'flex flex-col space-y-2.5 items-end max-w-3xl ml-auto w-full select-text animate-apple-reveal';
 
   let attachmentHtml = '';
   if (pastedConfigText) {
@@ -1473,19 +1548,46 @@ function appendUserMessage(messageText, pastedConfigText) {
     ${attachmentHtml}
   `;
 
-  stream.appendChild(bubble);
+  container.appendChild(bubble);
   scrollStreamToBottom();
 }
 
 // APPEND ASSISTANT RESPONSE
 function appendAssistantResponse(result) {
-  const stream = els.chatMessagesStream;
-  const container = document.createElement('div');
-  container.className = 'flex flex-col space-y-2.5 items-start max-w-3xl mr-auto w-full select-text';
+  const container = els.chatMessagesContainer || els.chatMessagesStream;
+  const wrapper = document.createElement('div');
+  wrapper.className = 'flex flex-col space-y-2.5 items-start max-w-3xl mr-auto w-full select-text animate-apple-reveal';
 
   const explanationHtml = renderMarkdown(result.explanation || 'No explanation returned.');
 
-  container.innerHTML = `
+  // Determine if Config Diff is necessary
+  const hasDiff = result.correctedConfig && result.correctedConfig.trim().length > 0 &&
+                  state.pastedConfigRaw && state.pastedConfigRaw.trim().length > 0 &&
+                  result.correctedConfig.trim() !== state.pastedConfigRaw.trim();
+
+  // Determine if Fix Checklist is necessary
+  const rawLines = result.fixCommands ? result.fixCommands.split('\n') : [];
+  const hasCommands = rawLines.map(line => line.trim()).some(line => line.length > 0 && !line.startsWith('#'));
+
+  let actionButtonsHtml = '';
+  if (hasDiff || hasCommands) {
+    actionButtonsHtml = `
+      <div class="flex items-center gap-2 pt-4 border-t border-cyber-border mt-4 select-none">
+        ${hasDiff ? `
+        <button id="btn-show-diff-overlay" class="bg-brand-500 hover:bg-brand-600 border border-brand-100/10 text-white font-bold px-4 py-2 rounded-xl text-[10px] flex items-center gap-1.5 transition active:scale-95 shadow">
+          <span>🔎</span> View Config Diff
+        </button>
+        ` : ''}
+        ${hasCommands ? `
+        <button id="btn-show-checklist-overlay" class="bg-[#1e1b4b] hover:bg-indigo-900 border border-cyber-border text-slate-300 hover:text-white font-bold px-4 py-2 rounded-xl text-[10px] flex items-center gap-1.5 transition active:scale-95 shadow">
+          <span>📋</span> View Fix Checklist
+        </button>
+        ` : ''}
+      </div>
+    `;
+  }
+
+  wrapper.innerHTML = `
     <div class="flex items-center space-x-2 text-[10px] text-slate-500 font-semibold select-none">
       <span class="text-cyber-accent">🧙‍♂️ Mik the Winbox Wizard</span>
       <span>•</span>
@@ -1493,31 +1595,28 @@ function appendAssistantResponse(result) {
     </div>
     <div class="chat-bubble-assistant text-xs text-slate-700 dark:text-slate-300 p-5 rounded-2xl leading-relaxed shadow-xl max-w-full w-full">
       ${explanationHtml}
-
-      <!-- Bottom action overlays -->
-      <div class="flex items-center gap-2 pt-4 border-t border-cyber-border mt-4 select-none">
-        <button id="btn-show-diff-overlay" class="bg-brand-500 hover:bg-brand-600 border border-brand-100/10 text-white font-bold px-4 py-2 rounded-xl text-[10px] flex items-center gap-1.5 transition active:scale-95 shadow">
-          <span>🔎</span> View Config Diff
-        </button>
-        <button id="btn-show-checklist-overlay" class="bg-[#1e1b4b] hover:bg-indigo-900 border border-cyber-border text-slate-300 hover:text-white font-bold px-4 py-2 rounded-xl text-[10px] flex items-center gap-1.5 transition active:scale-95 shadow">
-          <span>📋</span> View Fix Checklist
-        </button>
-      </div>
+      ${actionButtonsHtml}
     </div>
   `;
 
-  // Bind the buttons inside the bubble
-  container.querySelector('#btn-show-diff-overlay').addEventListener('click', () => {
-    renderDiff(state.pastedConfigRaw, result.correctedConfig || '');
-    els.modalDiff.classList.remove('hidden');
-  });
+  // Bind the buttons inside the bubble if present
+  const btnDiff = wrapper.querySelector('#btn-show-diff-overlay');
+  if (btnDiff) {
+    btnDiff.addEventListener('click', () => {
+      renderDiff(state.pastedConfigRaw, result.correctedConfig || '');
+      els.modalDiff.classList.remove('hidden');
+    });
+  }
 
-  container.querySelector('#btn-show-checklist-overlay').addEventListener('click', () => {
-    renderCommands(result.fixCommands || '');
-    els.modalCommands.classList.remove('hidden');
-  });
+  const btnChecklist = wrapper.querySelector('#btn-show-checklist-overlay');
+  if (btnChecklist) {
+    btnChecklist.addEventListener('click', () => {
+      renderCommands(result.fixCommands || '');
+      els.modalCommands.classList.remove('hidden');
+    });
+  }
 
-  stream.appendChild(container);
+  container.appendChild(wrapper);
   scrollStreamToBottom();
 }
 
@@ -1602,7 +1701,8 @@ async function runStepperAndSubmit(submitPayload) {
   appendUserMessage(submitPayload.chatMessage, state.pastedConfigRaw);
 
   // Append inline loader card
-  els.chatMessagesStream.appendChild(loaderCard);
+  const activeContainer = els.chatMessagesContainer || els.chatMessagesStream;
+  activeContainer.appendChild(loaderCard);
   scrollStreamToBottom();
 
   const inlineProgressBar = loaderCard.querySelector('#inline-loader-progress-bar');
@@ -1721,17 +1821,28 @@ async function runStepperAndSubmit(submitPayload) {
 
   // Save conversation step in history list
   const timestamp = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-  const title = state.currentFile ? state.currentFile.name : `RouterOS Config ${state.history.length + 1}`;
+
+  let title = `RouterOS Config ${state.history.length + 1}`;
+  if (state.currentChatId) {
+    const existing = state.history.find(h => h.id === state.currentChatId);
+    if (existing) {
+      title = existing.title;
+    }
+  } else if (state.currentFile) {
+    title = state.currentFile.name;
+  }
 
   saveHistoryItem({
-    id: Date.now(),
+    id: state.currentChatId || Date.now(),
     title,
     timestamp,
-    pastedConfig: state.pastedConfigRaw,
-    chatMessage: submitPayload.chatMessage || 'Configuration audit request',
     rosVersion: submitPayload.routerOsVersion,
     hardwareModel: submitPayload.hardwareModel,
-    result: serverResponseData
+    messages: [{
+      chatMessage: submitPayload.chatMessage || 'Configuration audit request',
+      pastedConfig: state.pastedConfigRaw,
+      result: serverResponseData
+    }]
   });
 }
 
@@ -1765,9 +1876,25 @@ async function submitChat() {
     maskIdentity: state.settings.maskIdentity
   };
 
+  // Retrieve previous messages from the current conversation if continuing
+  let chatHistory = [];
+  if (state.currentChatId) {
+    const activeChat = state.history.find(h => h.id === state.currentChatId);
+    if (activeChat && activeChat.messages) {
+      chatHistory = activeChat.messages.map(msg => ({
+        chatMessage: msg.chatMessage,
+        pastedConfig: msg.pastedConfig,
+        explanation: msg.result ? msg.result.explanation : '',
+        correctedConfig: msg.result ? msg.result.correctedConfig : '',
+        fixCommands: msg.result ? msg.result.fixCommands : ''
+      }));
+    }
+  }
+
   const body = {
     pastedConfig: pastedVal,
     chatMessage: chatVal,
+    chatHistory,
     provider: state.settings.provider,
     apiKey: state.settings.apiKey,
     baseUrl: state.settings.baseUrl,

@@ -152,6 +152,38 @@
       background-color: var(--dropdown-bg) !important;
       color: var(--dropdown-text) !important;
     }
+
+    /* Apple-like Ease Out Exponential */
+    .ease-out-apple {
+      transition-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    /* Message Slide-Up & Fade-In Animation */
+    @keyframes apple-reveal {
+      from {
+        opacity: 0;
+        transform: translateY(12px) scale(0.99);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+    }
+
+    .animate-apple-reveal {
+      animation: apple-reveal 0.45s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+
+    /* Micro-interactions for buttons and list items */
+    .apple-btn-hover {
+      transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .apple-btn-hover:hover {
+      transform: scale(1.02);
+    }
+    .apple-btn-hover:active {
+      transform: scale(0.96);
+    }
   </style>
 </head>
 <body class="bg-cyber-bg text-slate-800 dark:text-slate-100 h-screen max-h-screen flex flex-col font-sans overflow-hidden">
@@ -191,6 +223,12 @@
 
     <!-- Right Header Connection Indicator Badge & Toggle -->
     <div class="flex items-center space-x-3 shrink-0">
+      <!-- New Chat Button in Header -->
+      <button id="btn-header-new-chat" class="hidden sm:flex items-center gap-1.5 px-3.5 py-1.5 bg-brand-500 hover:bg-brand-600 text-white text-xs font-bold rounded-xl shadow-brand-glow transition-all duration-300 ease-out-apple hover:scale-105 active:scale-95" title="Start a New Chat">
+        <span>✨</span>
+        <span id="ui-btn-header-new-chat">New Chat</span>
+      </button>
+
       <!-- Connection Indicator Badge -->
       <div id="llm-status" class="hidden sm:flex px-3 py-1.5 bg-cyber-bg border border-cyber-border rounded-xl text-xs text-slate-700 dark:text-slate-300 items-center space-x-2">
         <span id="llm-status-dot" class="w-2.5 h-2.5 bg-slate-500 rounded-full"></span>
@@ -256,6 +294,11 @@
             </button>
           </div>
 
+          <!-- New Chat Button inside Sidebar -->
+          <button id="btn-new-chat" class="w-full bg-brand-500/10 hover:bg-brand-500/20 text-brand-500 dark:text-brand-400 font-bold py-2.5 px-4 rounded-xl text-xs border border-brand-500/20 hover:border-brand-500/40 transition-all duration-300 ease-out-apple hover:scale-102 active:scale-95 flex items-center justify-center gap-2 shadow-sm" title="Start a New Chat">
+            <span>✨</span> <span id="ui-btn-new-chat">New Chat</span>
+          </button>
+
           <!-- Search in history -->
           <input id="search-history" type="text" class="w-full bg-cyber-bg border border-cyber-border text-slate-800 dark:text-slate-200 text-[11px] px-3 py-2 rounded-xl outline-none focus:border-brand-500/50 transition font-medium" placeholder="Search saved audits...">
 
@@ -300,11 +343,11 @@
               <span>🚀</span> Wizard Templates
             </h3>
             <div class="grid grid-cols-2 gap-2">
-              <button id="btn-quick-firewall" class="flex flex-col items-center p-2.5 bg-cyber-bg border border-cyber-border hover:border-brand-500 hover:bg-brand-500/5 rounded-xl transition text-center shadow-sm">
+              <button id="btn-quick-firewall" class="flex flex-col items-center p-2.5 bg-cyber-bg border border-cyber-border hover:border-brand-500 hover:bg-brand-500/5 rounded-xl transition-all duration-300 ease-out-apple hover:scale-105 active:scale-95 text-center shadow-sm">
                 <span class="text-sm">🛡️</span>
                 <span class="text-[10px] font-bold text-slate-800 dark:text-slate-200 mt-1">Firewall Audit</span>
               </button>
-              <button id="btn-quick-routing" class="flex flex-col items-center p-2.5 bg-cyber-bg border border-cyber-border hover:border-brand-500 hover:bg-brand-500/5 rounded-xl transition text-center shadow-sm">
+              <button id="btn-quick-routing" class="flex flex-col items-center p-2.5 bg-cyber-bg border border-cyber-border hover:border-brand-500 hover:bg-brand-500/5 rounded-xl transition-all duration-300 ease-out-apple hover:scale-105 active:scale-95 text-center shadow-sm">
                 <span class="text-sm">🗺️</span>
                 <span class="text-[10px] font-bold text-slate-800 dark:text-slate-200 mt-1">Gateway & DNS</span>
               </button>
@@ -456,7 +499,7 @@
         </div>
 
         <!-- Unified Save Preferences button -->
-        <button id="btn-save-settings" class="w-full bg-brand-500 hover:bg-brand-600 text-white font-bold py-2.5 rounded-xl text-xs transition active:scale-95 shadow-brand-glow flex items-center justify-center gap-1.5">
+        <button id="btn-save-settings" class="w-full bg-brand-500 hover:bg-brand-600 text-white font-bold py-2.5 rounded-xl text-xs transition-all duration-300 ease-out-apple hover:scale-[1.02] active:scale-[0.98] shadow-brand-glow flex items-center justify-center gap-1.5">
           <span id="ui-label-save-settings">Save Configuration</span>
         </button>
       </div>
@@ -493,7 +536,8 @@
           </div>
         </div>
 
-        <!-- Chat messages will be injected dynamically here -->
+        <!-- Chat messages container -->
+        <div id="chat-messages-container" class="space-y-6"></div>
       </section>
 
       <!-- COLLAPSIBLE ATTACHMENT BOX DRAWER (Opened via "+" trigger) -->
@@ -540,7 +584,7 @@
           <!-- Input bar text area -->
           <div class="flex items-end bg-cyber-bg border border-cyber-border rounded-2xl p-2 focus-within:border-brand-500 transition-all duration-300 relative shadow-inner">
             <!-- Toggle attachment Drawer button -->
-            <button id="btn-toggle-drawer" class="p-3 text-slate-500 hover:text-slate-800 dark:hover:text-white hover:bg-slate-300 dark:hover:bg-slate-800/20 rounded-xl transition shrink-0 active:scale-95" title="Attach Config RSC or Log">
+            <button id="btn-toggle-drawer" class="p-3 text-slate-500 hover:text-slate-800 dark:hover:text-white hover:bg-slate-300 dark:hover:bg-slate-800/20 rounded-xl transition-all duration-300 ease-out-apple hover:scale-105 active:scale-95 shrink-0" title="Attach Config RSC or Log">
               <svg class="w-5 h-5 text-cyber-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
             </button>
 
@@ -548,7 +592,7 @@
             <textarea id="chat-message" rows="1" style="min-height: 38px;" class="flex-1 max-h-32 bg-transparent text-slate-800 dark:text-slate-200 p-3 text-xs placeholder-slate-500 outline-none resize-none overflow-y-auto" placeholder="Describe the issue (e.g., 'Ospf isn't establishing peer' or 'Check if WAN ports are secure')"></textarea>
 
             <!-- Send button -->
-            <button id="btn-submit" class="bg-brand-500 hover:bg-brand-600 disabled:bg-slate-800 text-white disabled:text-slate-500 p-3 rounded-xl transition shadow-brand-glow flex items-center justify-center space-x-2 active:scale-95 shrink-0">
+            <button id="btn-submit" class="bg-brand-500 hover:bg-brand-600 disabled:bg-slate-800 text-white disabled:text-slate-500 p-3 rounded-xl transition-all duration-300 ease-out-apple hover:scale-105 active:scale-95 shadow-brand-glow flex items-center justify-center space-x-2 shrink-0">
               <svg id="submit-icon" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
               <svg id="loading-spinner" class="hidden animate-spin h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
                 <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>

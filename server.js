@@ -213,6 +213,7 @@ app.post('/api/chat', async (req, res) => {
     const {
       pastedConfig,
       chatMessage,
+      chatHistory,
       provider,
       apiKey,
       baseUrl,
@@ -228,8 +229,29 @@ app.post('/api/chat', async (req, res) => {
       return res.status(400).json({ error: 'Either chatMessage or pastedConfig is required' });
     }
 
+    let historyText = '';
+    if (chatHistory && chatHistory.length > 0) {
+      historyText += `[PRIOR CONVERSATION HISTORY]:\n`;
+      chatHistory.forEach((turn, index) => {
+        historyText += `--- Conversation Turn #${index + 1} ---\n`;
+        historyText += `[USER QUESTION]:\n${turn.chatMessage || '(No message)'}\n`;
+        if (turn.pastedConfig) {
+          historyText += `[USER ATTACHED RSC CONFIG]:\n${turn.pastedConfig}\n`;
+        }
+        historyText += `[ASSISTANT EXPLANATION]:\n${turn.explanation || '(No explanation)'}\n`;
+        if (turn.correctedConfig) {
+          historyText += `[ASSISTANT CORRECTED CONFIG]:\n${turn.correctedConfig}\n`;
+        }
+        if (turn.fixCommands) {
+          historyText += `[ASSISTANT FIX COMMANDS]:\n${turn.fixCommands}\n`;
+        }
+        historyText += `\n`;
+      });
+      historyText += `\n[CURRENT / NEW CONVERSATION TURN]:\n`;
+    }
+
     // Combine user message and pasted config into a single cohesive layout for the LLM
-    const combinedInput = `[USER QUESTION/ISSUE]:\n${chatMessage || 'Please analyze this configuration for errors or potential improvements.'}\n\n[ROUTEROS CONFIG / LOGS / EXPORT]:\n\`\`\`\n${pastedConfig || '(No configuration pasted)'}\n\`\`\`\n`;
+    const combinedInput = `${historyText}[USER QUESTION/ISSUE]:\n${chatMessage || 'Please analyze this configuration for errors or potential improvements.'}\n\n[ROUTEROS CONFIG / LOGS / EXPORT]:\n\`\`\`\n${pastedConfig || '(No configuration pasted)'}\n\`\`\`\n`;
 
     // Apply the Privacy Shield masking
     console.log('🛡️ [Mik\'s Privacy Shield] Casting masking spell on user input...');
