@@ -23,11 +23,11 @@
             },
             routeros: '#0f172a',
             cyber: {
-              bg: '#05070f',
-              panel: '#0c0f1d',
-              border: '#1e1b4b', // Deep indigo border
+              bg: 'var(--bg-color)',
+              panel: 'var(--panel-color)',
+              border: 'var(--border-color)',
               accent: '#22d3ee', // Cyan
-              emerald: '#34d399', // Emerald
+              emerald: '#10b981', // Emerald
               purple: '#a78bfa', // Violet
               amber: '#fbbf24', // Amber
               red: '#f87171'
@@ -35,7 +35,7 @@
           },
           boxShadow: {
             'cyber-glow': '0 0 15px rgba(34, 211, 238, 0.25)',
-            'emerald-glow': '0 0 15px rgba(52, 211, 153, 0.25)',
+            'emerald-glow': '0 0 15px rgba(16, 185, 129, 0.25)',
             'brand-glow': '0 0 20px rgba(124, 58, 237, 0.35)',
             'purple-glow': '0 0 20px rgba(167, 139, 250, 0.25)'
           }
@@ -44,42 +44,77 @@
     }
   </script>
   <style>
+    /* CSS Variables for Dark / Light Modes */
+    :root {
+      --bg-color: #05070f;
+      --panel-color: #0c0f1d;
+      --border-color: #1e1b4b;
+      --text-main: #f1f5f9;
+      --text-muted: #94a3b8;
+      --chat-bubble-user-bg: linear-gradient(135deg, #1e1b4b 0%, #31108f 100%);
+      --chat-bubble-user-border: rgba(167, 139, 250, 0.2);
+      --chat-bubble-assistant-bg: #0c0f1d;
+      --chat-bubble-assistant-border: rgba(34, 211, 238, 0.15);
+      --dropdown-bg: #0c0f1d;
+      --dropdown-text: #f1f5f9;
+    }
+
+    html.light {
+      --bg-color: #f1f5f9;
+      --panel-color: #ffffff;
+      --border-color: #cbd5e1;
+      --text-main: #0f172a;
+      --text-muted: #475569;
+      --chat-bubble-user-bg: linear-gradient(135deg, #7c3aed 0%, #4c1d95 100%);
+      --chat-bubble-user-border: rgba(124, 58, 237, 0.3);
+      --chat-bubble-assistant-bg: #ffffff;
+      --chat-bubble-assistant-border: rgba(34, 211, 238, 0.3);
+      --dropdown-bg: #ffffff;
+      --dropdown-text: #0f172a;
+    }
+
     /* Custom scrollbars */
     ::-webkit-scrollbar {
       width: 6px;
       height: 6px;
     }
     ::-webkit-scrollbar-track {
-      background: #05070f;
+      background: var(--bg-color);
     }
     ::-webkit-scrollbar-thumb {
-      background: #1e1b4b;
+      background: var(--border-color);
       border-radius: 4px;
     }
     ::-webkit-scrollbar-thumb:hover {
-      background: #312e81;
+      background: #475569;
     }
+
     .diff-deleted {
       background-color: rgba(248, 113, 113, 0.12);
       border-left: 3px solid #f87171;
     }
     .diff-inserted {
-      background-color: rgba(52, 211, 153, 0.12);
-      border-left: 3px solid #34d399;
+      background-color: rgba(16, 185, 129, 0.12);
+      border-left: 3px solid #10b981;
     }
     .diff-modified-left {
       background-color: rgba(251, 191, 36, 0.12);
       border-left: 3px solid #fbbf24;
     }
     .diff-modified-right {
-      background-color: rgba(52, 211, 153, 0.12);
-      border-left: 3px solid #34d399;
+      background-color: rgba(16, 185, 129, 0.12);
+      border-left: 3px solid #10b981;
     }
+
     .glass-effect {
       background: rgba(12, 15, 29, 0.85);
       backdrop-filter: blur(16px);
       -webkit-backdrop-filter: blur(16px);
     }
+    html.light .glass-effect {
+      background: rgba(241, 245, 249, 0.85);
+    }
+
     /* Stepper keyframe animations */
     @keyframes pulse-ring {
       0% { transform: scale(0.95); opacity: 1; }
@@ -89,14 +124,16 @@
     .pulse-ring-active {
       animation: pulse-ring 2s infinite ease-in-out;
     }
+
     .chat-bubble-user {
-      background: linear-gradient(135deg, #1e1b4b 0%, #31108f 100%);
-      border: 1px solid rgba(167, 139, 250, 0.2);
+      background: var(--chat-bubble-user-bg);
+      border: 1px solid var(--chat-bubble-user-border);
     }
     .chat-bubble-assistant {
-      background: #0c0f1d;
-      border: 1px solid rgba(34, 211, 238, 0.15);
+      background: var(--chat-bubble-assistant-bg);
+      border: 1px solid var(--chat-bubble-assistant-border);
     }
+
     .glow-border-purple {
       border: 1px solid rgba(167, 139, 250, 0.3);
       box-shadow: 0 0 10px rgba(167, 139, 250, 0.1);
@@ -105,19 +142,32 @@
       border: 1px solid rgba(34, 211, 238, 0.3);
       box-shadow: 0 0 10px rgba(34, 211, 238, 0.1);
     }
+
+    /* Legibility & Option overrides inside browser dropdown popup select elements */
+    select option {
+      background-color: var(--dropdown-bg) !important;
+      color: var(--dropdown-text) !important;
+    }
   </style>
 </head>
-<body class="bg-cyber-bg text-slate-100 min-h-screen flex flex-col font-sans overflow-hidden select-none">
+<body class="bg-cyber-bg text-slate-100 min-h-screen flex flex-col font-sans overflow-hidden">
 
   <!-- TOP HEADER -->
   <header class="bg-cyber-panel border-b border-cyber-border px-6 py-3.5 flex items-center justify-between shadow-lg relative z-40">
     <div class="flex items-center space-x-3">
-      <!-- Router/MikroTik Style Wizard Logo -->
-      <div class="bg-brand-500 text-white w-10 h-10 rounded-xl font-black tracking-wider text-sm flex items-center justify-center shadow-lg shadow-brand-500/25 border border-brand-100/20">
-        <span>🧙‍♂️</span>
+      <!-- High-Tech Animated Network Hub Logo -->
+      <div class="relative w-10 h-10 flex items-center justify-center shrink-0">
+        <!-- Outer rotating tech ring -->
+        <div class="absolute inset-0 border-2 border-dashed border-brand-500/40 rounded-xl animate-[spin_10s_linear_infinite]"></div>
+        <!-- Inner pulsing glowing router node -->
+        <div class="w-7 h-7 rounded-lg bg-brand-500 text-white flex items-center justify-center shadow-md shadow-brand-500/30 border border-brand-100/10 animate-[pulse_2s_ease-in-out_infinite]">
+          <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z"></path>
+          </svg>
+        </div>
       </div>
       <div>
-        <h1 class="text-base font-bold text-white tracking-wide flex items-center gap-2">
+        <h1 class="text-base font-bold text-slate-100 dark:text-white tracking-wide flex items-center gap-2">
           <span id="ui-header-title">Mik the Winbox Wizard</span>
           <span class="px-2 py-0.5 text-[10px] bg-cyber-emerald/10 text-cyber-emerald border border-cyber-emerald/20 rounded-full font-medium flex items-center gap-1">
             <span class="w-1.5 h-1.5 bg-cyber-emerald rounded-full animate-pulse"></span>
@@ -130,6 +180,14 @@
 
     <!-- Center/Right Status & Toolbar -->
     <div class="flex items-center space-x-3">
+      <!-- Light / Dark Mode Switcher -->
+      <button id="btn-theme-toggle" class="p-2 bg-cyber-bg hover:bg-slate-800/20 border border-cyber-border rounded-xl text-slate-300 hover:text-white transition active:scale-95" title="Switch Theme">
+        <!-- Sun icon -->
+        <svg id="theme-sun-icon" class="hidden w-4 h-4 text-cyber-amber" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364-6.364l-.707.707M6.343 17.657l-.707.707m0-12.728l.707.707m12.728 12.728l.707-.707M12 8a4 4 0 100 8 4 4 0 000-8z"></path></svg>
+        <!-- Moon icon -->
+        <svg id="theme-moon-icon" class="w-4 h-4 text-cyber-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path></svg>
+      </button>
+
       <!-- Connection Indicator Badge -->
       <div id="llm-status" class="px-3 py-1.5 bg-cyber-bg border border-cyber-border rounded-xl text-xs text-slate-300 flex items-center space-x-2">
         <span id="llm-status-dot" class="w-2.5 h-2.5 bg-slate-500 rounded-full"></span>
@@ -138,7 +196,7 @@
 
       <!-- Language Selector -->
       <div class="relative">
-        <select id="setting-language" class="bg-[#1e1b4b] hover:bg-indigo-900 text-slate-200 hover:text-white px-3 py-1.5 border border-cyber-border hover:border-slate-600 rounded-xl text-xs font-semibold transition-all duration-200 outline-none cursor-pointer shadow-sm">
+        <select id="setting-language" class="bg-cyber-bg hover:bg-slate-800/20 text-slate-200 hover:text-white px-3 py-1.5 border border-cyber-border hover:border-slate-600 rounded-xl text-xs font-semibold transition-all duration-200 outline-none cursor-pointer shadow-sm">
           <option value="auto">🌐 Auto-Detect</option>
           <option value="en">🇬🇧 English</option>
           <option value="it">🇮🇹 Italiano</option>
@@ -146,7 +204,7 @@
       </div>
 
       <!-- Settings Button (Right Drawer Toggle) -->
-      <button id="btn-settings" class="bg-[#1e1b4b] hover:bg-indigo-900 text-slate-200 hover:text-white px-4 py-1.5 border border-cyber-border hover:border-slate-600 rounded-xl text-xs font-semibold transition-all duration-200 flex items-center space-x-1.5 shadow-sm active:scale-95">
+      <button id="btn-settings" class="bg-cyber-bg hover:bg-slate-800/20 text-slate-200 hover:text-white px-4 py-1.5 border border-cyber-border hover:border-slate-600 rounded-xl text-xs font-semibold transition-all duration-200 flex items-center space-x-1.5 shadow-sm active:scale-95">
         <svg class="w-4 h-4 text-cyber-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
         <span id="ui-label-settings">Settings</span>
       </button>
@@ -208,7 +266,7 @@
       </div>
 
       <!-- History Items Scroll Container -->
-      <div id="history-items-container" class="flex-1 overflow-y-auto p-3 space-y-2 select-text">
+      <div id="history-items-container" class="flex-1 overflow-y-auto p-3 space-y-2">
         <div id="ui-history-empty" class="text-center py-8 text-slate-500 text-xs">No audits saved in this session yet.</div>
       </div>
     </div>
@@ -220,12 +278,22 @@
       <section id="chat-messages-stream" class="flex-1 overflow-y-auto p-6 space-y-6">
         <!-- WELCOME SCREEN (Renders initially when stream is empty) -->
         <div id="panel-welcome" class="flex flex-col items-center justify-center min-h-[60vh] text-center p-8 space-y-6 max-w-2xl mx-auto">
-          <div class="w-16 h-16 rounded-2xl bg-brand-500/10 border border-brand-500/20 text-brand-400 flex items-center justify-center text-3xl font-bold animate-bounce shadow-inner">
-            🧙‍♂️
+          <!-- High-Tech Central Network Hub -->
+          <div class="relative w-20 h-20 flex items-center justify-center shrink-0">
+            <!-- Outer spinning technical grid -->
+            <div class="absolute inset-0 rounded-full border border-dashed border-brand-500/30 animate-[spin_15s_linear_infinite]"></div>
+            <!-- Middle spinning interactive rings -->
+            <div class="absolute inset-2 rounded-full border-2 border-dotted border-cyber-accent/40 animate-[spin_8s_linear_infinite_reverse]"></div>
+            <!-- Central glowing network core -->
+            <div class="w-12 h-12 rounded-2xl bg-brand-500/10 border border-brand-500/30 flex items-center justify-center text-brand-400 shadow-xl shadow-brand-500/15 animate-[pulse_3s_ease-in-out_infinite]">
+              <svg class="w-6 h-6 text-brand-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 11c0 3.517-1.009 6.799-2.753 9.571m-3.44-2.04l.054-.09A13.916 13.916 0 009 11V5a2 2 0 00-2-2H5a2 2 0 00-2 2v6a13.978 13.978 0 003.07 8.757m.195-.04c.053.076.11.152.17.227m6.525-2.27A13.978 13.978 0 0115 11V5a2 2 0 012-2h2a2 2 0 012 2v6a13.978 13.978 0 01-3.07 8.757m-1.11 1.05A13.916 13.916 0 0115 11c0-1.802-.47-3.493-1.293-4.962m-1.414 4.962A14.02 14.02 0 0012 11m0 0a14.02 14.02 0 01-1.293-4.962m1.293 4.962c0-1.802.47-3.493 1.293-4.962m0 0A13.916 13.916 0 0115 11m-3 7a1 1 0 100-2 1 1 0 000 2z"></path>
+              </svg>
+            </div>
           </div>
           <div class="space-y-3">
-            <h3 id="ui-label-welcome-title" class="text-xl font-black text-white tracking-wide">Mik the Winbox Wizard is Ready to Cast Spells!</h3>
-            <p id="ui-label-welcome-desc" class="text-xs text-slate-400 leading-relaxed">
+            <h3 id="ui-label-welcome-title" class="text-xl font-black text-slate-800 dark:text-white tracking-wide">Mik the Winbox Wizard is Ready to Cast Spells!</h3>
+            <p id="ui-label-welcome-desc" class="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
               Configure your LLM provider in settings, paste your RouterOS `/export` config or log files, explain your problem, and let <strong class="text-brand-400">Mik</strong> audit your network config.
             </p>
             <p id="ui-label-welcome-privacy" class="text-xs text-cyber-emerald/90 font-medium bg-cyber-emerald/5 px-4 py-2.5 rounded-2xl border border-cyber-emerald/10">
@@ -235,15 +303,15 @@
 
           <!-- Quick Templates Selection Cards -->
           <div class="grid grid-cols-2 gap-4 w-full max-w-md pt-4">
-            <button id="btn-quick-firewall" class="flex flex-col items-center p-4 bg-cyber-panel hover:bg-[#1e1b4b]/40 border border-cyber-border rounded-2xl transition hover:border-brand-500 group text-center">
+            <button id="btn-quick-firewall" class="flex flex-col items-center p-4 bg-cyber-panel hover:bg-[#1e1b4b]/40 border border-cyber-border rounded-2xl transition hover:border-brand-500 group text-center shadow">
               <span class="text-lg mb-1.5">🛡️</span>
-              <span class="text-xs font-bold text-slate-200">Firewall Audit</span>
-              <span class="text-[10px] text-slate-500 mt-1">Audit security policy & rules</span>
+              <span class="text-xs font-bold text-slate-700 dark:text-slate-200">Firewall Audit</span>
+              <span class="text-[10px] text-slate-400 mt-1">Audit security policy & rules</span>
             </button>
-            <button id="btn-quick-routing" class="flex flex-col items-center p-4 bg-cyber-panel hover:bg-[#1e1b4b]/40 border border-cyber-border rounded-2xl transition hover:border-brand-500 group text-center">
+            <button id="btn-quick-routing" class="flex flex-col items-center p-4 bg-cyber-panel hover:bg-[#1e1b4b]/40 border border-cyber-border rounded-2xl transition hover:border-brand-500 group text-center shadow">
               <span class="text-lg mb-1.5">🗺️</span>
-              <span class="text-xs font-bold text-slate-200">Gateway & DNS</span>
-              <span class="text-[10px] text-slate-500 mt-1">Audit routing paths & lookups</span>
+              <span class="text-xs font-bold text-slate-700 dark:text-slate-200">Gateway & DNS</span>
+              <span class="text-[10px] text-slate-400 mt-1">Audit routing paths & lookups</span>
             </button>
           </div>
         </div>
@@ -264,14 +332,14 @@
         </div>
 
         <div id="drag-drop-zone" class="relative min-h-[140px] bg-cyber-bg border border-dashed border-cyber-border rounded-xl flex flex-col overflow-hidden transition-all duration-300">
-          <textarea id="pasted-config" class="w-full h-32 bg-transparent text-slate-200 p-3 font-mono text-xs placeholder-slate-600 resize-none outline-none z-10 select-text" placeholder="# Paste a .rsc export configuration here... (All IP/MAC/secrets will be masked locally before sending to AI, and restored instantly!)"></textarea>
+          <textarea id="pasted-config" class="w-full h-32 bg-transparent text-slate-700 dark:text-slate-200 p-3 font-mono text-xs placeholder-slate-500 resize-none outline-none z-10" placeholder="# Paste a .rsc export configuration here... (All IP/MAC/secrets will be masked locally before sending to AI, and restored instantly!)"></textarea>
 
           <!-- File upload success panel -->
-          <div id="file-info-bar" class="hidden absolute bottom-0 left-0 right-0 bg-[#1e1b4b] border-t border-cyber-border p-2 flex items-center justify-between z-20">
+          <div id="file-info-bar" class="hidden absolute bottom-0 left-0 right-0 bg-cyber-bg border-t border-cyber-border p-2 flex items-center justify-between z-20">
             <div class="flex items-center space-x-2 overflow-hidden mr-2">
               <svg class="w-4 h-4 text-cyber-emerald shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
               <div class="overflow-hidden">
-                <span id="file-name-label" class="block text-xs font-bold text-white truncate">config.rsc</span>
+                <span id="file-name-label" class="block text-xs font-bold text-slate-800 dark:text-white truncate">config.rsc</span>
                 <span id="file-size-label" class="block text-[10px] text-slate-400">12.5 KB</span>
               </div>
             </div>
@@ -283,7 +351,7 @@
       </section>
 
       <!-- BOTTOM CHAT INPUT BAR & PARAMETERS CONTROL -->
-      <section class="p-6 bg-cyber-panel/45 border-t border-cyber-border shrink-0">
+      <section class="p-6 bg-cyber-panel border-t border-cyber-border shrink-0">
         <div class="max-w-4xl mx-auto space-y-3">
 
           <!-- Dynamic RouterOS Version & Hardware selects -->
@@ -291,7 +359,7 @@
             <!-- Dropdown OS version -->
             <div class="flex items-center space-x-1.5 bg-cyber-bg px-3 py-1.5 border border-cyber-border rounded-xl">
               <span class="text-[10px] text-slate-400 font-bold uppercase tracking-wide">OS Version:</span>
-              <select id="select-ros-version" class="bg-transparent text-xs text-slate-200 outline-none cursor-pointer font-semibold">
+              <select id="select-ros-version" class="bg-transparent text-xs text-slate-700 dark:text-slate-200 outline-none cursor-pointer font-semibold">
                 <option value="auto">🔍 Auto-Detect Context</option>
                 <option value="v7">v7 (Latest ROS)</option>
                 <option value="v6">v6 (Legacy ROS)</option>
@@ -301,7 +369,7 @@
             <!-- Dropdown Hardware Model -->
             <div class="flex items-center space-x-1.5 bg-cyber-bg px-3 py-1.5 border border-cyber-border rounded-xl">
               <span class="text-[10px] text-slate-400 font-bold uppercase tracking-wide">Board:</span>
-              <select id="select-hardware" class="bg-transparent text-xs text-slate-200 outline-none cursor-pointer font-semibold">
+              <select id="select-hardware" class="bg-transparent text-xs text-slate-700 dark:text-slate-200 outline-none cursor-pointer font-semibold">
                 <option value="auto">🔍 Auto-Detect Context</option>
                 <option value="hEX">hEX / GR3</option>
                 <option value="CCR">CCR (Cloud Core)</option>
@@ -320,12 +388,12 @@
           <!-- Input bar text area -->
           <div class="flex items-end bg-cyber-bg border border-cyber-border rounded-2xl p-2 focus-within:border-brand-500 transition-all duration-300 relative shadow-inner">
             <!-- Toggle attachment Drawer button -->
-            <button id="btn-toggle-drawer" class="p-3 text-slate-400 hover:text-white hover:bg-indigo-950/40 rounded-xl transition shrink-0 active:scale-95" title="Attach Config RSC or Log">
+            <button id="btn-toggle-drawer" class="p-3 text-slate-400 hover:text-white hover:bg-slate-800/20 rounded-xl transition shrink-0 active:scale-95" title="Attach Config RSC or Log">
               <svg class="w-5 h-5 text-cyber-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
             </button>
 
             <!-- Text area -->
-            <textarea id="chat-message" rows="1" class="flex-1 max-h-32 bg-transparent text-slate-200 p-3 text-xs placeholder-slate-500 outline-none resize-none overflow-y-auto select-text" placeholder="Describe the issue (e.g., 'Ospf isn't establishing peer' or 'Check if WAN ports are secure')"></textarea>
+            <textarea id="chat-message" rows="1" style="min-height: 38px;" class="flex-1 max-h-32 bg-transparent text-slate-800 dark:text-slate-200 p-3 text-xs placeholder-slate-500 outline-none resize-none overflow-y-auto" placeholder="Describe the issue (e.g., 'Ospf isn't establishing peer' or 'Check if WAN ports are secure')"></textarea>
 
             <!-- Send button -->
             <button id="btn-submit" class="bg-brand-500 hover:bg-brand-600 disabled:bg-slate-800 text-white disabled:text-slate-500 p-3 rounded-xl transition-all duration-200 shadow-brand-glow flex items-center justify-center space-x-2 active:scale-95 shrink-0">
@@ -347,12 +415,12 @@
 
   <!-- MODAL: CONFIGURATION DIFF (POP UP INSTEAD OF HALF-SCREEN SPLIT) -->
   <div id="modal-diff" class="hidden fixed inset-0 z-50 flex items-center justify-center glass-effect p-4">
-    <div class="bg-cyber-panel border border-cyber-border rounded-2xl w-full max-w-6xl h-[85vh] flex flex-col overflow-hidden shadow-2xl relative select-text">
+    <div class="bg-cyber-panel border border-cyber-border rounded-2xl w-full max-w-6xl h-[85vh] flex flex-col overflow-hidden shadow-2xl relative">
       <!-- Header -->
       <div class="px-5 py-4 border-b border-cyber-border bg-cyber-panel flex items-center justify-between shrink-0">
         <div class="flex items-center space-x-2.5">
           <span class="text-lg">🔎</span>
-          <h3 class="text-xs font-black uppercase tracking-wider text-slate-200">Spell Comparison — Configuration Diff</h3>
+          <h3 class="text-xs font-black uppercase tracking-wider text-slate-700 dark:text-slate-200">Spell Comparison — Configuration Diff</h3>
         </div>
         <div class="flex items-center space-x-3">
           <!-- Split / Unified Toggle -->
@@ -389,12 +457,12 @@
 
   <!-- MODAL: FIX COMMANDS INTERACTIVE CHECKLIST -->
   <div id="modal-commands" class="hidden fixed inset-0 z-50 flex items-center justify-center glass-effect p-4">
-    <div class="bg-cyber-panel border border-cyber-border rounded-2xl w-full max-w-3xl h-[75vh] flex flex-col overflow-hidden shadow-2xl relative select-text">
+    <div class="bg-cyber-panel border border-cyber-border rounded-2xl w-full max-w-3xl h-[75vh] flex flex-col overflow-hidden shadow-2xl relative">
       <!-- Header -->
       <div class="px-5 py-4 border-b border-cyber-border bg-cyber-panel flex items-center justify-between shrink-0">
         <div class="flex items-center space-x-2.5">
           <span class="text-lg">📋</span>
-          <h3 class="text-xs font-black uppercase tracking-wider text-slate-200">Terminal Spell Checklist</h3>
+          <h3 class="text-xs font-black uppercase tracking-wider text-slate-700 dark:text-slate-200">Terminal Spell Checklist</h3>
         </div>
         <div class="flex items-center space-x-3">
           <!-- Raw/Checklist toggle -->
@@ -409,7 +477,7 @@
         </div>
       </div>
 
-      <div class="p-4 bg-cyber-bg border-b border-cyber-border text-slate-400 text-[11px] select-none flex items-center gap-1.5">
+      <div class="p-4 bg-cyber-bg border-b border-cyber-border text-slate-500 dark:text-slate-400 text-[11px] select-none flex items-center gap-1.5">
         <svg class="w-4 h-4 text-cyber-emerald shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
         <span id="ui-label-commands-tip">These are RouterOS terminal commands. Paste them directly into your MikroTik CLI window to apply the fix.</span>
       </div>
@@ -573,13 +641,13 @@
         <div id="settings-section-privacy" class="hidden space-y-3.5">
           <div class="flex items-center justify-between pb-1">
             <h4 id="ui-label-privacy-pipeline" class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">De-identification Pipeline</h4>
-            <span id="ui-label-privacy-local-tag" class="text-[9px] text-brand-400 font-bold bg-brand-500/10 px-2 py-0.5 rounded-full border border-brand-500/20">Runs Locally</span>
+            <span id="ui-label-privacy-local-tag" class="text-[9px] text-brand-400 font-bold bg-brand-500/10 px-2 py-0.5 rounded-full border border-cyber-border transition">Runs Locally</span>
           </div>
 
           <label class="flex items-start space-x-3 cursor-pointer bg-cyber-bg border border-cyber-border p-3 rounded-xl hover:border-slate-700 transition">
             <input type="checkbox" id="mask-ips" checked class="mt-1 accent-brand-500 h-4 w-4">
             <div>
-              <span id="ui-mask-ips-title" class="block text-xs font-bold text-white">Mask IP Addresses</span>
+              <span id="ui-mask-ips-title" class="block text-xs font-bold text-slate-800 dark:text-white">Mask IP Addresses</span>
               <span id="ui-mask-ips-desc" class="block text-[10px] text-slate-500 mt-0.5">Scans IPv4/6; maps to [PRIV_IP_x] & [PUB_IP_x]</span>
             </div>
           </label>
@@ -587,7 +655,7 @@
           <label class="flex items-start space-x-3 cursor-pointer bg-cyber-bg border border-cyber-border p-3 rounded-xl hover:border-slate-700 transition">
             <input type="checkbox" id="mask-macs" checked class="mt-1 accent-brand-500 h-4 w-4">
             <div>
-              <span id="ui-mask-macs-title" class="block text-xs font-bold text-white">Mask MAC Hardware ID</span>
+              <span id="ui-mask-macs-title" class="block text-xs font-bold text-slate-800 dark:text-white">Mask MAC Hardware ID</span>
               <span id="ui-mask-macs-desc" class="block text-[10px] text-slate-500 mt-0.5">Hides physical hex hardware interfaces</span>
             </div>
           </label>
@@ -595,7 +663,7 @@
           <label class="flex items-start space-x-3 cursor-pointer bg-cyber-bg border border-cyber-border p-3 rounded-xl hover:border-slate-700 transition">
             <input type="checkbox" id="mask-secrets" checked class="mt-1 accent-brand-500 h-4 w-4">
             <div>
-              <span id="ui-mask-secrets-title" class="block text-xs font-bold text-white">Mask Keys & Secrets</span>
+              <span id="ui-mask-secrets-title" class="block text-xs font-bold text-slate-800 dark:text-white">Mask Keys & Secrets</span>
               <span id="ui-mask-secrets-desc" class="block text-[10px] text-slate-500 mt-0.5">Hides security-profiles, passwords, pre-shared keys</span>
             </div>
           </label>
@@ -603,7 +671,7 @@
           <label class="flex items-start space-x-3 cursor-pointer bg-cyber-bg border border-cyber-border p-3 rounded-xl hover:border-slate-700 transition">
             <input type="checkbox" id="mask-interfaces" checked class="mt-1 accent-brand-500 h-4 w-4">
             <div>
-              <span id="ui-mask-interfaces-title" class="block text-xs font-bold text-white">Mask Custom Interface Names</span>
+              <span id="ui-mask-interfaces-title" class="block text-xs font-bold text-slate-800 dark:text-white">Mask Custom Interface Names</span>
               <span id="ui-mask-interfaces-desc" class="block text-[10px] text-slate-500 mt-0.5">Keeps standard interfaces like bridge, ether1; masks custom</span>
             </div>
           </label>
@@ -611,7 +679,7 @@
           <label class="flex items-start space-x-3 cursor-pointer bg-cyber-bg border border-cyber-border p-3 rounded-xl hover:border-slate-700 transition">
             <input type="checkbox" id="mask-domains" checked class="mt-1 accent-brand-500 h-4 w-4">
             <div>
-              <span id="ui-mask-domains-title" class="block text-xs font-bold text-white">Mask Domain Names</span>
+              <span id="ui-mask-domains-title" class="block text-xs font-bold text-slate-800 dark:text-white">Mask Domain Names</span>
               <span id="ui-mask-domains-desc" class="block text-[10px] text-slate-500 mt-0.5">Hides external server addresses & DDNS urls</span>
             </div>
           </label>
@@ -619,7 +687,7 @@
           <label class="flex items-start space-x-3 cursor-pointer bg-cyber-bg border border-cyber-border p-3 rounded-xl hover:border-slate-700 transition">
             <input type="checkbox" id="mask-identity" checked class="mt-1 accent-brand-500 h-4 w-4">
             <div>
-              <span id="ui-mask-identity-title" class="block text-xs font-bold text-white">Mask Router system identity</span>
+              <span id="ui-mask-identity-title" class="block text-xs font-bold text-slate-800 dark:text-white">Mask Router system identity</span>
               <span id="ui-mask-identity-desc" class="block text-[10px] text-slate-500 mt-0.5">Redacts custom system labels or hardware handles</span>
             </div>
           </label>

@@ -217,6 +217,7 @@ const state = {
   diffMode: 'split',        // 'split' | 'unified'
   commandMode: 'checklist', // 'checklist' | 'raw'
   language: 'auto',         // 'auto' | 'en' | 'it'
+  theme: 'dark',            // 'dark' | 'light'
   settings: {
     provider: 'openai',
     model: 'gpt-4o-mini',
@@ -246,6 +247,11 @@ const els = {
   btnSubmit: document.getElementById('btn-submit'),
   loadingSpinner: document.getElementById('loading-spinner'),
   submitIcon: document.getElementById('submit-icon'),
+
+  // Theme Toggles
+  btnThemeToggle: document.getElementById('btn-theme-toggle'),
+  themeSunIcon: document.getElementById('theme-sun-icon'),
+  themeMoonIcon: document.getElementById('theme-moon-icon'),
 
   // Sidebar controls
   sidebarBtnAudit: document.getElementById('sidebar-btn-audit'),
@@ -415,6 +421,7 @@ document.addEventListener('DOMContentLoaded', () => {
   updateLLMStatusBadge();
   updateUILanguage();
   adjustTextAreaHeight();
+  applyActiveTheme();
 });
 
 // DYNAMIC UI TRANSLATION / LOCALIZATION
@@ -535,6 +542,13 @@ function loadSettings() {
     state.language = 'auto';
   }
   els.settingLanguage.value = state.language;
+
+  const savedTheme = localStorage.getItem('mikrotik_chatbot_theme');
+  if (savedTheme) {
+    state.theme = savedTheme;
+  } else {
+    state.theme = 'dark';
+  }
 
   // Populate Inputs
   els.settingProvider.value = state.settings.provider;
@@ -833,6 +847,32 @@ function setupEventListeners() {
       submitChat();
     }
   });
+
+  // Theme Toggle Button
+  els.btnThemeToggle.addEventListener('click', toggleTheme);
+}
+
+// APPLY ACTIVE THEME
+function applyActiveTheme() {
+  const isLight = state.theme === 'light';
+  if (isLight) {
+    document.documentElement.classList.add('light');
+    document.documentElement.classList.remove('dark');
+    els.themeSunIcon.classList.add('hidden');
+    els.themeMoonIcon.classList.remove('hidden');
+  } else {
+    document.documentElement.classList.add('dark');
+    document.documentElement.classList.remove('light');
+    els.themeSunIcon.classList.remove('hidden');
+    els.themeMoonIcon.classList.add('hidden');
+  }
+}
+
+// TOGGLE THEME
+function toggleTheme() {
+  state.theme = state.theme === 'dark' ? 'light' : 'dark';
+  localStorage.setItem('mikrotik_chatbot_theme', state.theme);
+  applyActiveTheme();
 }
 
 function switchSettingsCategoryTab(catId) {
@@ -883,8 +923,8 @@ function closeAttachmentDrawer() {
 // TEXT AREA AUTO GROW
 function adjustTextAreaHeight() {
   const textarea = els.chatMessage;
-  textarea.style.height = 'auto';
-  textarea.style.height = Math.min(textarea.scrollHeight, 128) + 'px';
+  textarea.style.height = '38px';
+  textarea.style.height = Math.max(38, Math.min(textarea.scrollHeight, 128)) + 'px';
 }
 
 // LOCAL HISTORY PERSISTENCE
