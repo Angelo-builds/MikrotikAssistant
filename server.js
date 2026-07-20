@@ -13,6 +13,9 @@ app.use(express.json({ limit: '10mb' }));
 // Serve static frontend files from 'public' directory
 app.use(express.static(path.join(__dirname, 'public')));
 
+// Expose static route for diff library
+app.use('/vendor/diff', express.static(path.join(__dirname, 'node_modules', 'diff', 'dist')));
+
 // Default strong wizard system prompt
 const DEFAULT_SYSTEM_PROMPT = `You are Mik the Winbox Wizard (or Mik for short), a witty, legendary, certified MikroTik network engineer, RouterOS (v6 and v7) master, and packet-filtering wizard. Your job is to analyze the user's issue and RouterOS configurations/logs, find any syntax errors, logical bugs, firewall misconfigurations, routing errors, or other issues, and provide corrections.
 
@@ -38,7 +41,9 @@ Provide the exact, ready-to-run RouterOS CLI terminal commands to apply the fix.
 Strict Instructions:
 1. You will see placeholders like [PRIV_IP_1], [PUB_IP_1], [MAC_1], [SECRET_1], [IFACE_1], [DOMAIN_1], [IDENTITY_1]. You MUST preserve these exact placeholders in your response's configuration and CLI commands (e.g. if the IP was [PRIV_IP_1], you must use [PRIV_IP_1] in your corrected config and commands). Do NOT invent or make up actual IP addresses or passwords to replace them. Keep them exactly as they are.
 2. Maintain RouterOS CLI syntax standards. For v7, routing commands can be different from v6; match the version in the config or support both if unsure.
-3. Version and Hardware guidance: Pay attention to the specified RouterOS version and hardware model (if provided). If the version is not explicitly passed, try to infer it from the context/syntax (e.g. routing filters or BGP syntax differ significantly between v6 and v7). If the version/model is critical for determining the correct command and cannot be inferred, suppose the latest RouterOS version but mention to the user that they can select their specific version/model in the UI dropdown or ask them to clarify if needed. If it's not important, just output standard universal commands. Refer to official RouterOS Markdown style structures.`;
+3. Version and Hardware guidance: Pay attention to the specified RouterOS version and hardware model (if provided). If the version is not explicitly passed, try to infer it from the context/syntax (e.g. routing filters or BGP syntax differ significantly between v6 and v7). If the version/model is critical for determining the correct command and cannot be inferred, suppose the latest RouterOS version but mention to the user that they can select their specific version/model in the UI dropdown or ask them to clarify if needed. If it's not important, just output standard universal commands. Refer to official RouterOS Markdown style structures.
+4. Always verify firewall rule order. 'drop invalid' must precede 'accept' rules. Never suggest redundant rules that already exist in the provided config. Eliminate false positives.
+5. Output ONLY the specific delta commands needed to fix the issue, not the entire configuration, unless a full rewrite is explicitly requested.`;
 
 /**
  * Dynamic language prompt injector that retains Mik's wizardly persona
@@ -280,11 +285,37 @@ app.post('/api/chat', async (req, res) => {
     // Parse the sections
     const { explanation, correctedConfig, fixCommands } = parseSections(unmaskedRawResponse);
 
+    // Parse the sections of the masked raw response to get the masked corrected config
+    const { correctedConfig: maskedCorrectedConfig } = parseSections(llmRawResponse);
+
+    // Extract the masked original config from maskedText
+    const startMarker = '[ROUTEROS CONFIG / LOGS / EXPORT]:\n```\n';
+    const endMarker = '\n```\n';
+    let maskedOriginalConfig = '';
+    if (pastedConfig) {
+      const startIdx = maskedText.indexOf(startMarker);
+      if (startIdx !== -1) {
+        const afterStart = maskedText.substring(startIdx + startMarker.length);
+        const endIdx = afterStart.indexOf(endMarker);
+        if (endIdx !== -1) {
+          maskedOriginalConfig = afterStart.substring(0, endIdx);
+        }
+      }
+    }
+
+    if (!maskedOriginalConfig && pastedConfig) {
+      // Fallback: mask just the pasted config
+      const { maskedText: justMaskedOriginal } = mask(pastedConfig, maskOptions);
+      maskedOriginalConfig = justMaskedOriginal;
+    }
+
     res.json({
       success: true,
       explanation,
       correctedConfig,
       fixCommands,
+      maskedOriginalConfig,
+      maskedCorrectedConfig,
       rawResponse: unmaskedRawResponse,
       maskedRawResponse: llmRawResponse // sent for transparency/debug
     });
