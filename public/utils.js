@@ -183,6 +183,28 @@ function renderMarkdown(text) {
 }
 
 /**
+ * Extracts only the actionable RouterOS commands (lines starting with '/')
+ * from markdown, stripping out conversational text and backticks.
+ *
+ * @param {string} text
+ * @returns {string} extracted commands
+ */
+function extractRouterOsCommands(text) {
+  if (!text) return '';
+  const lines = text.split('\n');
+  const commands = [];
+  lines.forEach(line => {
+    let clean = line.trim();
+    // Strip leading/trailing backticks if present
+    clean = clean.replace(/^`+|`+$/g, '').trim();
+    if (clean.startsWith('/')) {
+      commands.push(clean);
+    }
+  });
+  return commands.join('\n');
+}
+
+/**
  * Standard debounce implementation to limit function invocation frequency.
  *
  * @param {Function} func
@@ -204,6 +226,7 @@ if (typeof module !== 'undefined' && module.exports) {
   module.exports = {
     computeLineDiff,
     renderMarkdown,
+    extractRouterOsCommands,
     debounce
   };
 }
