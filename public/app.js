@@ -1543,25 +1543,25 @@ function appendAssistantResponse(result) {
   let actionButtonsHtml = '';
   if (hasDiff || hasCommands || hasCorrectedConfig || hasExtracted) {
     actionButtonsHtml = `
-      <div class="flex flex-wrap gap-3 mt-4 pt-4 border-t border-cyber-border select-none">
+      <div class="flex flex-wrap items-center gap-2 mt-4 pt-4 border-t border-cyber-border/50 select-none">
         ${hasDiff ? `
-        <button id="btn-show-diff-overlay" class="px-4 py-2 text-sm font-medium rounded-lg flex items-center gap-2 transition active:scale-95 bg-brand-500 hover:bg-brand-600 text-white border border-brand-100/10 shadow">
-          <span>🔍</span> View Config Diff
+        <button id="btn-show-diff-overlay" class="px-3 py-1.5 text-xs font-medium rounded-md flex items-center gap-1.5 transition-all bg-brand-500/20 hover:bg-brand-500/30 text-brand-300 border border-brand-500/30 hover:border-brand-400/50">
+          <span>🔍</span> Diff
         </button>
         ` : ''}
         ${hasCommands ? `
-        <button id="btn-show-checklist-overlay" class="px-4 py-2 text-sm font-medium rounded-lg flex items-center gap-2 transition active:scale-95 bg-[#1e1b4b] hover:bg-indigo-900 text-slate-300 hover:text-white border border-cyber-border shadow">
-          <span>📋</span> View Fix Checklist
+        <button id="btn-show-checklist-overlay" class="px-3 py-1.5 text-xs font-medium rounded-md flex items-center gap-1.5 transition-all bg-slate-700/50 hover:bg-slate-700 text-slate-300 border border-slate-600/50 hover:border-slate-500">
+          <span>📋</span> Checklist
         </button>
         ` : ''}
         ${hasCorrectedConfig ? `
-        <button id="btn-download-rsc" class="px-4 py-2 text-sm font-medium rounded-lg flex items-center gap-2 transition active:scale-95 bg-emerald-600 hover:bg-emerald-700 text-white border border-emerald-500/20 shadow">
-          <span>💾</span> <span class="rsc-btn-label">${t.downloadRsc}</span>
+        <button id="btn-download-rsc" class="px-3 py-1.5 text-xs font-medium rounded-md flex items-center gap-1.5 transition-all bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-300 border border-emerald-500/30 hover:border-emerald-400/50">
+          <span>💾</span> <span class="rsc-btn-label">.rsc</span>
         </button>
         ` : ''}
         ${hasExtracted || hasCommands ? `
-        <button id="btn-copy-fix-commands" class="px-4 py-2 text-sm font-medium rounded-lg flex items-center gap-2 transition active:scale-95 bg-cyber-emerald hover:bg-emerald-600 text-white border border-brand-100/10 shadow">
-          <span>📋</span> Copy Fix Commands
+        <button id="btn-copy-fix-commands" class="px-3 py-1.5 text-xs font-medium rounded-md flex items-center gap-1.5 transition-all bg-cyber-emerald/20 hover:bg-cyber-emerald/30 text-emerald-300 border border-emerald-500/30 hover:border-emerald-400/50">
+          <span>📋</span> Copy
         </button>
         ` : ''}
       </div>
@@ -1581,75 +1581,13 @@ function appendAssistantResponse(result) {
     </div>
   `;
 
-  // Define openInteractiveMapModal function
-  function openInteractiveMapModal(graphContainer) {
-    const modal = document.createElement('div');
-    modal.className = 'fixed inset-0 z-50 bg-black/90 flex items-center justify-center p-8';
-    modal.id = 'interactive-map-modal';
-
-    const modalContent = document.createElement('div');
-    modalContent.className = 'bg-cyber-panel rounded-2xl p-6 max-w-[90vw] max-h-[90vh] overflow-auto relative';
-
-    const closeButton = document.createElement('button');
-    closeButton.className = 'absolute top-4 right-4 text-slate-400 hover:text-white text-2xl font-bold';
-    closeButton.innerHTML = '✕';
-    const closeModal = () => {
-      modal.remove();
-      document.removeEventListener('keydown', onEsc);
-    };
-    closeButton.addEventListener('click', closeModal);
-
-    const title = document.createElement('h3');
-    title.className = 'text-lg font-bold text-white mb-4';
-    title.textContent = 'VLAN Topology - Interactive Map';
-
-    const graphClone = graphContainer.cloneNode(true);
-    graphClone.style.minHeight = '500px';
-    graphClone.style.width = '100%';
-
-    modalContent.appendChild(closeButton);
-    modalContent.appendChild(title);
-    modalContent.appendChild(graphClone);
-    modal.appendChild(modalContent);
-
-    modal.addEventListener('click', (e) => {
-      if (e.target === modal) closeModal();
-    });
-
-    const onEsc = (e) => {
-      if (e.key === 'Escape') closeModal();
-    };
-    document.addEventListener('keydown', onEsc);
-
-    document.body.appendChild(modal);
-
-    // Re-render Mermaid in the modal
-    mermaid.run({
-      nodes: [graphClone],
-      suppressErrors: true
-    }).then(() => {
-      const svg = graphClone.querySelector('svg');
-      if (svg) {
-        svg.style.width = '100%';
-        svg.style.height = 'auto';
-        svg.style.maxWidth = '100%';
-      }
-    });
-  }
-
   // Render and handle Interactive Map button inside topology header if has VLAN data
   if (hasVlanData) {
     const btnPlaceholder = wrapper.querySelector('.interactive-map-btn-placeholder');
     if (btnPlaceholder) {
       const interactiveMapBtn = document.createElement('button');
-      interactiveMapBtn.className = 'bg-brand-500/10 hover:bg-brand-500/20 text-brand-400 border border-brand-500/30 px-3 py-1.5 rounded-lg text-xs font-medium transition';
+      interactiveMapBtn.className = 'interactive-map-btn bg-brand-500/10 hover:bg-brand-500/20 text-brand-400 border border-brand-500/30 px-3 py-1.5 rounded-lg text-xs font-medium transition';
       interactiveMapBtn.textContent = 'Interactive Map';
-      interactiveMapBtn.addEventListener('click', () => {
-        const graphContainer = wrapper.querySelector('.mermaid-graph-container');
-        if (graphContainer) {
-          openInteractiveMapModal(graphContainer);
-        }
-      });
       btnPlaceholder.replaceWith(interactiveMapBtn);
     }
   }
@@ -1658,6 +1596,12 @@ function appendAssistantResponse(result) {
   setTimeout(() => {
     window.renderMermaidGraphs(wrapper);
   }, 50);
+
+  // Bind the Interactive Map button trigger
+  const interactiveMapBtn = wrapper.querySelector('.interactive-map-btn');
+  if (interactiveMapBtn) {
+    interactiveMapBtn.addEventListener('click', openInteractiveMapModal);
+  }
 
   const btnDiff = wrapper.querySelector('#btn-show-diff-overlay');
   if (btnDiff) {
@@ -1713,51 +1657,63 @@ window.renderMermaidGraphs = function(container) {
   }
 
   const mermaidBlocks = container.querySelectorAll('.mermaid');
-  if (mermaidBlocks.length === 0) return;
+  mermaidBlocks.forEach((block, index) => {
+    const graphCode = block.textContent.trim();
 
-  try {
-    const isDark = document.documentElement.classList.contains('dark');
-    mermaid.initialize({
-      startOnLoad: false,
-      theme: isDark ? 'dark' : 'default',
-      flowchart: {
-        useMaxWidth: true,
-        htmlLabels: true,
-        curve: 'basis',
-        padding: 20
-      },
-      securityLevel: 'loose'
-    });
+    // Create a larger, responsive container
+    const graphWrapper = document.createElement('div');
+    graphWrapper.className = 'mermaid-wrapper w-full overflow-x-auto bg-cyber-panel/50 rounded-xl p-8 border border-cyber-border/50';
+    graphWrapper.style.minHeight = '400px';
+    graphWrapper.style.maxWidth = '100%';
 
-    mermaidBlocks.forEach((block, index) => {
-      const graphCode = block.textContent;
-      const graphContainer = document.createElement('div');
-      graphContainer.className = 'mermaid-graph-container bg-cyber-panel p-6 rounded-xl overflow-x-auto mt-4 w-full';
-      graphContainer.style.minHeight = '300px';
+    // Create the actual mermaid div
+    const graphDiv = document.createElement('div');
+    graphDiv.className = 'mermaid';
+    graphDiv.id = `mermaid-graph-${Date.now()}-${index}`;
+    graphDiv.textContent = graphCode;
 
-      const graphId = `mermaid-graph-${Date.now()}-${index}`;
-      graphContainer.id = graphId;
-      graphContainer.textContent = graphCode;
+    graphWrapper.appendChild(graphDiv);
+    block.parentNode.replaceChild(graphWrapper, block);
 
-      block.parentNode.replaceChild(graphContainer, block);
+    // Initialize and render
+    try {
+      mermaid.initialize({
+        startOnLoad: false,
+        theme: document.documentElement.classList.contains('dark') ? 'dark' : 'default',
+        flowchart: {
+          useMaxWidth: true,
+          htmlLabels: true,
+          curve: 'basis',
+          padding: 30,
+          nodeSpacing: 50,
+          rankSpacing: 70
+        },
+        themeVariables: {
+          fontSize: '16px'
+        }
+      });
 
       mermaid.run({
-        nodes: [graphContainer],
-        suppressErrors: true
+        nodes: [graphDiv],
+        suppressErrors: false
       }).then(() => {
-        const svg = graphContainer.querySelector('svg');
+        const svg = graphDiv.querySelector('svg');
         if (svg) {
           svg.style.width = '100%';
           svg.style.height = 'auto';
-          svg.style.maxWidth = '100%';
+          svg.style.minHeight = '350px';
           svg.style.display = 'block';
           svg.style.margin = '0 auto';
+
+          // Add zoom/pan capability
+          svg.setAttribute('viewBox', svg.getAttribute('viewBox') || '0 0 800 400');
         }
       });
-    });
-  } catch (err) {
-    console.error('Mermaid render failure:', err);
-  }
+    } catch (error) {
+      console.error('Mermaid rendering failed:', error);
+      graphWrapper.innerHTML = `<div class="text-red-400 text-sm p-4">Failed to render topology graph. Please check configuration.</div>`;
+    }
+  });
 };
 
 function scrollStreamToBottom() {
@@ -2391,6 +2347,77 @@ window.downloadRscFile = function(correctedConfig) {
 
   showToast('RSC file downloaded successfully!', 'success');
 };
+
+function openInteractiveMapModal() {
+  const graphContainer = document.querySelector('.mermaid-wrapper');
+  if (!graphContainer) {
+    alert('No topology graph available');
+    return;
+  }
+
+  const modal = document.createElement('div');
+  modal.className = 'fixed inset-0 z-[100] bg-black/95 flex items-center justify-center p-8 backdrop-blur-sm';
+  modal.id = 'topology-modal';
+
+  const modalContent = document.createElement('div');
+  modalContent.className = 'bg-cyber-panel rounded-2xl p-8 max-w-[95vw] max-h-[95vh] overflow-auto relative border border-cyber-border shadow-2xl';
+
+  const header = document.createElement('div');
+  header.className = 'flex items-center justify-between mb-6';
+  header.innerHTML = `
+    <h3 class="text-xl font-bold text-white">VLAN Topology - Interactive Map</h3>
+    <button class="text-slate-400 hover:text-white text-2xl font-bold transition" id="close-modal">×</button>
+  `;
+
+  const graphClone = graphContainer.cloneNode(true);
+  graphClone.style.minHeight = '600px';
+  graphClone.style.width = '100%';
+  graphClone.className = 'mermaid-wrapper w-full bg-cyber-panel/30 rounded-xl p-8';
+
+  modalContent.appendChild(header);
+  modalContent.appendChild(graphClone);
+  modal.appendChild(modalContent);
+
+  // Close handlers
+  const onEsc = (e) => {
+    if (e.key === 'Escape') {
+      modal.remove();
+      document.removeEventListener('keydown', onEsc);
+    }
+  };
+
+  modal.addEventListener('click', (e) => {
+    if (e.target === modal) {
+      modal.remove();
+      document.removeEventListener('keydown', onEsc);
+    }
+  });
+
+  document.addEventListener('keydown', onEsc);
+
+  document.body.appendChild(modal);
+
+  document.getElementById('close-modal').addEventListener('click', () => {
+    modal.remove();
+    document.removeEventListener('keydown', onEsc);
+  });
+
+  // Re-render Mermaid in modal with larger dimensions
+  setTimeout(() => {
+    const mermaidDiv = modal.querySelector('.mermaid');
+    if (mermaidDiv) {
+      mermaid.run({
+        nodes: [mermaidDiv],
+        suppressErrors: false
+      }).then(() => {
+        const svg = mermaidDiv.querySelector('svg');
+        if (svg) {
+          svg.style.minHeight = '550px';
+        }
+      });
+    }
+  }, 100);
+}
 
 /**
  * Global function to handle copying code block snippets.
