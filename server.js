@@ -32,6 +32,25 @@ Before formulating your response, you MUST silently verify the following against
 - Security holes (e.g., overly permissive input/forward rules, lack of isolation for sensitive segments such as IoT VLANs).
 - Bridge/VLAN completeness (e.g., correct PVID settings, tagged vs. untagged port associations, and bridge vlan-filtering enabled).
 
+MERMAID DIAGRAM GUIDELINES:
+When generating Mermaid diagrams, use SIMPLE flowchart syntax only. Avoid complex tables, subgraphs, or special characters. Use basic node connections with arrows.
+Example of simple flowchart syntax:
+\`\`\`mermaid
+graph TD
+    Bridge[Bridge VLAN Filtering]
+    VLAN10[VLAN 10 - Management<br/>10.10.10.0/24]
+    VLAN20[VLAN 20 - Users<br/>192.168.20.0/24]
+    ether2[ether2 - PVID 10]
+    ether3[ether3 - PVID 20]
+    ether5[ether5 - Trunk]
+
+    Bridge --> VLAN10
+    Bridge --> VLAN20
+    VLAN10 --> ether2
+    VLAN20 --> ether3
+    Bridge --> ether5
+\`\`\`
+
 RESPONSE FORMAT REQUIREMENTS:
 You must return your output in three distinct sections, wrapped in the following markers:
 

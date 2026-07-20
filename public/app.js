@@ -1411,12 +1411,86 @@ function appendUserMessage(messageText, pastedConfigText) {
   scrollStreamToBottom();
 }
 
+function parseAIResponse(rawText) {
+  if (!rawText) return { explanation: '', fixCommands: '', correctedConfig: '' };
+
+  // Convert literal \n string to actual line breaks
+  let text = rawText.replace(/\\n/g, '\n');
+
+  // Regexes to extract tags with any number of brackets (e.g. <<<TAG>>> or <<<TAG>>)
+  const fixRegex = /<<+FIX_COMMANDS>>+([\s\S]*?)<<+END_FIX_COMMANDS>>+/i;
+  const configRegex = /<<+CORRECTED_CONFIG>>+([\s\S]*?)<<+END_CORRECTED_CONFIG>>+/i;
+  const explanationRegex = /<<+EXPLANATION>>+([\s\S]*?)<<+END_EXPLANATION>>+/i;
+
+  let fixCommands = '';
+  let correctedConfig = '';
+  let explanation = '';
+
+  const fixMatch = fixRegex.exec(text);
+  if (fixMatch) {
+    fixCommands = fixMatch[1].trim();
+  }
+
+  const configMatch = configRegex.exec(text);
+  if (configMatch) {
+    correctedConfig = configMatch[1].trim();
+  }
+
+  const explanationMatch = explanationRegex.exec(text);
+  if (explanationMatch) {
+    explanation = explanationMatch[1].trim();
+  } else {
+    explanation = text;
+  }
+
+  // Strip matched blocks from explanation
+  explanation = explanation
+    .replace(fixRegex, '')
+    .replace(configRegex, '')
+    .replace(explanationRegex, '');
+
+  // Strip standalone tags from explanation
+  explanation = explanation
+    .replace(/<<+EXPLANATION>>+/gi, '')
+    .replace(/<<+END_EXPLANATION>>+/gi, '')
+    .replace(/<<+CORRECTED_CONFIG>>+/gi, '')
+    .replace(/<<+END_CORRECTED_CONFIG>>+/gi, '')
+    .replace(/<<+FIX_COMMANDS>>+/gi, '')
+    .replace(/<<+END_FIX_COMMANDS>>+/gi, '');
+
+  explanation = explanation.trim();
+
+  return { explanation, fixCommands, correctedConfig };
+}
+
 function appendAssistantResponse(result) {
   const container = els.chatMessagesContainer || els.chatMessagesStream;
   const wrapper = document.createElement('div');
   wrapper.className = 'flex flex-col space-y-2.5 items-start max-w-3xl mr-auto w-full select-text animate-apple-reveal';
 
   const t = LocalizationService.getTranslation();
+
+  // Robustly parse the response using helper parseAIResponse
+  const parsed = parseAIResponse(result.rawResponse || result.explanation || '');
+  if (parsed.explanation) result.explanation = parsed.explanation;
+  if (parsed.fixCommands) result.fixCommands = parsed.fixCommands;
+  if (parsed.correctedConfig) result.correctedConfig = parsed.correctedConfig;
+
+  // Masked corrected config should also be parsed cleanly for visual diffs
+  if (result.maskedRawResponse) {
+    const parsedMasked = parseAIResponse(result.maskedRawResponse);
+    if (parsedMasked.correctedConfig) {
+      result.maskedCorrectedConfig = parsedMasked.correctedConfig;
+    }
+  }
+
+  // Also convert \\n to actual \n in existing properties in case they were set directly
+  if (result.explanation) result.explanation = result.explanation.replace(/\\n/g, '\n');
+  if (result.fixCommands) result.fixCommands = result.fixCommands.replace(/\\n/g, '\n');
+  if (result.correctedConfig) result.correctedConfig = result.correctedConfig.replace(/\\n/g, '\n');
+  if (result.maskedOriginalConfig) result.maskedOriginalConfig = result.maskedOriginalConfig.replace(/\\n/g, '\n');
+  if (result.maskedCorrectedConfig) result.maskedCorrectedConfig = result.maskedCorrectedConfig.replace(/\\n/g, '\n');
+
   const explanationHtml = window.renderMarkdown(result.explanation || 'No explanation returned.');
   const pasted = stateStore.get('pastedConfigRaw');
 
