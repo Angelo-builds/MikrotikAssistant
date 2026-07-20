@@ -296,7 +296,8 @@ const i18n = {
     historyNoDesc: '(No description)',
     historyQueryEmpty: 'No history items match your search.',
     historyWipeToast: 'All history wiped successfully!',
-    copyLabel: 'Copy'
+    copyLabel: 'Copy',
+    downloadRsc: 'Download as .rsc'
   },
   it: {
     title: 'Mik il Mago di Winbox — Assistente Chatbot AI per la Privacy di MikroTik',
@@ -401,7 +402,8 @@ const i18n = {
     historyNoDesc: '(Nessuna descrizione)',
     historyQueryEmpty: 'Nessun elemento della cronologia corrisponde alla ricerca.',
     historyWipeToast: 'Cronologia interamente cancellata!',
-    copyLabel: 'Copia'
+    copyLabel: 'Copia',
+    downloadRsc: 'Scarica come .rsc'
   }
 };
 
@@ -469,6 +471,11 @@ class LocalizationService {
     if (els.uiLabelPromptOverride) els.uiLabelPromptOverride.textContent = t.settingsLabelPromptOverride;
     if (els.settingPrompt) els.settingPrompt.placeholder = t.settingsPromptPlaceholder;
     if (els.uiLabelSaveSettings) els.uiLabelSaveSettings.textContent = t.settingsBtnSave;
+
+    // Update any rendered download buttons labels
+    document.querySelectorAll('.rsc-btn-label').forEach(el => {
+      el.textContent = t.downloadRsc;
+    });
 
     // Trigger stateful components update
     updatePrivacyShieldLabel();
@@ -1409,6 +1416,7 @@ function appendAssistantResponse(result) {
   const wrapper = document.createElement('div');
   wrapper.className = 'flex flex-col space-y-2.5 items-start max-w-3xl mr-auto w-full select-text animate-apple-reveal';
 
+  const t = LocalizationService.getTranslation();
   const explanationHtml = window.renderMarkdown(result.explanation || 'No explanation returned.');
   const pasted = stateStore.get('pastedConfigRaw');
 
@@ -1418,6 +1426,7 @@ function appendAssistantResponse(result) {
 
   const rawLines = result.fixCommands ? result.fixCommands.split('\n') : [];
   const hasCommands = rawLines.map(line => line.trim()).some(line => line.length > 0 && !line.startsWith('#'));
+  const hasCorrectedConfig = result.correctedConfig && result.correctedConfig.trim().length > 0;
 
   const extractedCommands = window.extractRouterOsCommands(result.explanation || '');
   const hasExtracted = extractedCommands.trim().length > 0;
@@ -1460,9 +1469,9 @@ function appendAssistantResponse(result) {
   }
 
   let actionButtonsHtml = '';
-  if (hasDiff || hasCommands || hasExtracted) {
+  if (hasDiff || hasCommands || hasCorrectedConfig || hasExtracted) {
     actionButtonsHtml = `
-      <div class="flex items-center gap-2 pt-4 border-t border-cyber-border mt-4 select-none">
+      <div class="flex items-center gap-2 pt-4 border-t border-cyber-border mt-4 select-none flex-wrap">
         ${hasDiff ? `
         <button id="btn-show-diff-overlay" class="bg-brand-500 hover:bg-brand-600 border border-brand-100/10 text-white font-bold px-4 py-2 rounded-xl text-[10px] flex items-center gap-1.5 transition active:scale-95 shadow">
           <span>🔎</span> View Config Diff
@@ -1473,7 +1482,12 @@ function appendAssistantResponse(result) {
           <span>📋</span> View Fix Checklist
         </button>
         ` : ''}
-        ${hasExtracted ? `
+        ${hasCorrectedConfig ? `
+        <button id="btn-download-rsc" class="bg-emerald-600 hover:bg-emerald-700 border border-emerald-500/20 text-white font-bold px-4 py-2 rounded-xl text-[10px] flex items-center gap-1.5 transition active:scale-95 shadow">
+          <span>💾</span> <span class="rsc-btn-label">${t.downloadRsc}</span>
+        </button>
+        ` : ''}
+        ${hasExtracted || hasCommands ? `
         <button id="btn-copy-fix-commands" class="bg-cyber-emerald hover:bg-emerald-600 border border-brand-100/10 text-white font-bold px-4 py-2 rounded-xl text-[10px] flex items-center gap-1.5 transition active:scale-95 shadow">
           <span>📋</span> Copy Fix Commands
         </button>
@@ -1538,6 +1552,13 @@ function appendAssistantResponse(result) {
     btnChecklist.addEventListener('click', () => {
       renderCommands(result.fixCommands || '');
       els.modalCommands.classList.remove('hidden');
+    });
+  }
+
+  const btnDownloadRsc = wrapper.querySelector('#btn-download-rsc');
+  if (btnDownloadRsc) {
+    btnDownloadRsc.addEventListener('click', () => {
+      window.downloadRscFile(result.correctedConfig);
     });
   }
 
@@ -2124,6 +2145,72 @@ function setupEventListeners() {
 
   els.btnThemeToggle.addEventListener('click', toggleTheme);
 }
+
+/**
+ * Takes the AI's corrected configuration, ensures it has the proper MikroTik header,
+ * and triggers a browser download of a .rsc file.
+ */
+window.downloadRscFile = function(correctedConfig) {
+  if (!correctedConfig || correctedConfig.trim().length === 0) {
+    showToast('Cannot export an empty configuration!', 'error');
+    return;
+  }
+
+  const months = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec'];
+  const now = new Date();
+  const month = months[now.getMonth()];
+  const day = String(now.getDate()).padStart(2, '0');
+  const year = now.getFullYear();
+  const hours = String(now.getHours()).padStart(2, '0');
+  const minutes = String(now.getMinutes()).padStart(2, '0');
+  const seconds = String(now.getSeconds()).padStart(2, '0');
+
+  const rosVersion = els.selectRosVersion.value !== 'auto' ? els.selectRosVersion.value : 'v7';
+  const model = els.selectHardware.value !== 'auto' ? els.selectHardware.value : 'MikroTik Router';
+
+  // Construct the standardized MikroTik header
+  let header = `# ${month}/${day}/${year} ${hours}:${minutes}:${seconds} by RouterOS ${rosVersion}\n`;
+  header += `#\n`;
+  header += `# model = ${model}\n`;
+  header += `# generated by Mik the Winbox Wizard\n\n`;
+
+  // Clean up any duplicate initial headers from the AI's response to be clean and precise
+  let cleanConfig = correctedConfig.trim();
+  const headerRegex = /^#\s+[a-z]{3}\/\d{2}\/\d{4}\s+\d{2}:\d{2}:\d{2}\s+by\s+RouterOS[\s\S]*?\n\n/i;
+  if (headerRegex.test(cleanConfig)) {
+    cleanConfig = cleanConfig.replace(headerRegex, '');
+  } else {
+    // Strip other potential leading comments that might have been prepended
+    const lines = cleanConfig.split('\n');
+    let firstNonCommentIndex = 0;
+    while (firstNonCommentIndex < lines.length &&
+           (lines[firstNonCommentIndex].trim().startsWith('#') || lines[firstNonCommentIndex].trim() === '')) {
+      firstNonCommentIndex++;
+    }
+  }
+
+  const fileContent = header + cleanConfig;
+
+  // Trigger browser file download
+  const blob = new Blob([fileContent], { type: 'text/plain;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+
+  // Format file name elegantly
+  const sanitizedModel = model.replace(/[^a-zA-Z0-9_-]/g, '_').toLowerCase();
+  a.download = `mik_${sanitizedModel}_config.rsc`;
+
+  document.body.appendChild(a);
+  a.click();
+
+  setTimeout(() => {
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }, 0);
+
+  showToast('RSC file downloaded successfully!', 'success');
+};
 
 /**
  * Global function to handle copying code block snippets.
