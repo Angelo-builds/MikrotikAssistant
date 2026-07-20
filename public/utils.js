@@ -124,6 +124,14 @@ function renderMarkdown(text) {
   // Note: We MUST preserve the escaped HTML tags inside the <pre> tag to prevent security vulnerabilities (XSS)
   // and layout-breaking parsing when code blocks contain HTML/SVG text.
   html = html.replace(/```([a-zA-Z0-9_-]*)\n([\s\S]*?)```/g, (match, lang, code) => {
+    if (lang && lang.trim().toLowerCase() === 'mermaid') {
+      return `
+        <div class="mermaid bg-cyber-panel p-4 rounded-xl overflow-x-auto mt-4 select-none">
+          ${code.trim()}
+        </div>
+      `;
+    }
+
     const uniqueId = 'code-' + Math.random().toString(36).substr(2, 9);
 
     // Capitalize language name nicely

@@ -1448,11 +1448,9 @@ function appendAssistantResponse(result) {
   }
 
   const hasVlanData = parsedVlan && parsedVlan.length > 0;
-  let vlanContainerId = '';
   if (hasVlanData) {
-    vlanContainerId = 'vlan-viz-' + Math.random().toString(36).substr(2, 9);
     vlanHtml = `
-      <div class="mt-4 p-4 bg-slate-900/45 dark:bg-slate-950/40 border border-brand-500/20 rounded-2xl w-full" id="${vlanContainerId}">
+      <div class="mt-4 p-4 bg-slate-900/45 dark:bg-slate-950/40 border border-brand-500/20 rounded-2xl w-full">
         <div class="flex items-center justify-between mb-2 pb-2 border-b border-cyber-border select-none">
           <div class="flex items-center gap-2">
             <span class="text-sm">🕸️</span>
@@ -1461,8 +1459,8 @@ function appendAssistantResponse(result) {
           <span class="px-2 py-0.5 text-[9px] bg-cyber-accent/10 text-cyber-accent border border-cyber-accent/20 rounded-full font-bold">Interactive Map</span>
         </div>
         <p class="text-[10px] text-slate-500 mb-3">Dynamically extracted from active Bridge & Port configurations.</p>
-        <div class="mermaid-diagram-container overflow-auto bg-slate-100 dark:bg-slate-900 rounded-xl p-3 border border-cyber-border flex justify-center">
-          <pre class="mermaid text-center text-xs text-slate-600 dark:text-slate-300 select-none">${window.generateVlanMermaidGraph(parsedVlan)}</pre>
+        <div class="mermaid-diagram-container overflow-x-auto bg-slate-100 dark:bg-slate-900 rounded-xl p-3 border border-cyber-border flex justify-center">
+          <div class="mermaid w-full select-none">${window.generateVlanMermaidGraph(parsedVlan)}</div>
         </div>
       </div>
     `;
@@ -1471,24 +1469,24 @@ function appendAssistantResponse(result) {
   let actionButtonsHtml = '';
   if (hasDiff || hasCommands || hasCorrectedConfig || hasExtracted) {
     actionButtonsHtml = `
-      <div class="flex items-center gap-2 pt-4 border-t border-cyber-border mt-4 select-none flex-wrap">
+      <div class="flex flex-wrap gap-3 mt-4 pt-4 border-t border-cyber-border select-none">
         ${hasDiff ? `
-        <button id="btn-show-diff-overlay" class="bg-brand-500 hover:bg-brand-600 border border-brand-100/10 text-white font-bold px-4 py-2 rounded-xl text-[10px] flex items-center gap-1.5 transition active:scale-95 shadow">
+        <button id="btn-show-diff-overlay" class="bg-brand-500 hover:bg-brand-600 border border-brand-100/10 text-white font-medium px-4 py-2 rounded-lg text-sm flex items-center gap-2 transition active:scale-95 shadow">
           <span>🔎</span> View Config Diff
         </button>
         ` : ''}
         ${hasCommands ? `
-        <button id="btn-show-checklist-overlay" class="bg-[#1e1b4b] hover:bg-indigo-900 border border-cyber-border text-slate-300 hover:text-white font-bold px-4 py-2 rounded-xl text-[10px] flex items-center gap-1.5 transition active:scale-95 shadow">
+        <button id="btn-show-checklist-overlay" class="bg-[#1e1b4b] hover:bg-indigo-900 border border-cyber-border text-slate-300 hover:text-white font-medium px-4 py-2 rounded-lg text-sm flex items-center gap-2 transition active:scale-95 shadow">
           <span>📋</span> View Fix Checklist
         </button>
         ` : ''}
         ${hasCorrectedConfig ? `
-        <button id="btn-download-rsc" class="bg-emerald-600 hover:bg-emerald-700 border border-emerald-500/20 text-white font-bold px-4 py-2 rounded-xl text-[10px] flex items-center gap-1.5 transition active:scale-95 shadow">
+        <button id="btn-download-rsc" class="bg-emerald-600 hover:bg-emerald-700 border border-emerald-500/20 text-white font-medium px-4 py-2 rounded-lg text-sm flex items-center gap-2 transition active:scale-95 shadow">
           <span>💾</span> <span class="rsc-btn-label">${t.downloadRsc}</span>
         </button>
         ` : ''}
         ${hasExtracted || hasCommands ? `
-        <button id="btn-copy-fix-commands" class="bg-cyber-emerald hover:bg-emerald-600 border border-brand-100/10 text-white font-bold px-4 py-2 rounded-xl text-[10px] flex items-center gap-1.5 transition active:scale-95 shadow">
+        <button id="btn-copy-fix-commands" class="bg-cyber-emerald hover:bg-emerald-600 border border-brand-100/10 text-white font-medium px-4 py-2 rounded-lg text-sm flex items-center gap-2 transition active:scale-95 shadow">
           <span>📋</span> Copy Fix Commands
         </button>
         ` : ''}
@@ -1509,33 +1507,10 @@ function appendAssistantResponse(result) {
     </div>
   `;
 
-  // Initialize and run Mermaid parser on the newly added element safely
-  if (hasVlanData && typeof mermaid !== 'undefined') {
-    try {
-      mermaid.initialize({
-        startOnLoad: false,
-        theme: stateStore.get('theme') === 'dark' ? 'dark' : 'default',
-        securityLevel: 'loose'
-      });
-      // We must render it after appending to DOM so the element is in visual flow
-      setTimeout(() => {
-        try {
-          const targetCard = wrapper.querySelector(`#${vlanContainerId} .mermaid`);
-          if (targetCard) {
-            mermaid.init(undefined, targetCard);
-          }
-        } catch (mErr) {
-          console.warn('Mermaid initialization on card failed, falling back silently:', mErr);
-          const vCard = wrapper.querySelector(`#${vlanContainerId}`);
-          if (vCard) vCard.remove();
-        }
-      }, 50);
-    } catch (err) {
-      console.warn('Mermaid global configuration failed:', err);
-      const vCard = wrapper.querySelector(`#${vlanContainerId}`);
-      if (vCard) vCard.remove();
-    }
-  }
+  // Safely trigger dynamic dynamic rendering of all mermaid elements inside the bubble
+  setTimeout(() => {
+    window.renderMermaidGraphs(wrapper);
+  }, 50);
 
   const btnDiff = wrapper.querySelector('#btn-show-diff-overlay');
   if (btnDiff) {
@@ -1579,6 +1554,36 @@ function appendAssistantResponse(result) {
   container.appendChild(wrapper);
   scrollStreamToBottom();
 }
+
+/**
+ * Renders all Mermaid diagrams inside a given container dynamically.
+ * Standardizes styling, configures themes, and uses mermaid.run safely.
+ */
+window.renderMermaidGraphs = function(container) {
+  if (typeof mermaid === 'undefined') {
+    console.warn('Mermaid.js is not loaded yet.');
+    return;
+  }
+
+  const mermaidDivs = container.querySelectorAll('.mermaid');
+  if (mermaidDivs.length === 0) return;
+
+  try {
+    const isDark = document.documentElement.classList.contains('dark');
+    mermaid.initialize({
+      startOnLoad: false,
+      theme: isDark ? 'dark' : 'default',
+      securityLevel: 'loose'
+    });
+
+    // Run mermaid render on all nodes matching query
+    mermaid.run({
+      nodes: Array.from(mermaidDivs)
+    });
+  } catch (err) {
+    console.error('Mermaid render failure:', err);
+  }
+};
 
 function scrollStreamToBottom() {
   els.chatMessagesStream.scrollTop = els.chatMessagesStream.scrollHeight;
