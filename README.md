@@ -1,4 +1,4 @@
-# 🧙‍♂️ MikrotikAssistant: Intelligent RouterOS Assistant with Local Privacy Shielding
+# MikrotikAssistant: Intelligent RouterOS Assistant 
 
 <div align="center">
 
@@ -167,4 +167,4 @@ We welcome contributions from the network engineering and open-source communitie
 
 This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
 
-Developed with 🧙‍♂️ network wizardry for the MikroTik community.
+Developed with network wizardry for the MikroTik community.
