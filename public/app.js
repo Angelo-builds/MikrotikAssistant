@@ -1524,13 +1524,13 @@ function appendAssistantResponse(result) {
   const hasVlanData = parsedVlan && parsedVlan.length > 0;
   if (hasVlanData) {
     vlanHtml = `
-      <div class="mt-4 p-4 bg-slate-900/45 dark:bg-slate-950/40 border border-brand-500/20 rounded-2xl w-full">
+      <div class="mt-4 p-4 bg-slate-900/45 dark:bg-slate-950/40 border border-brand-500/20 rounded-2xl w-full vlan-topology-section">
         <div class="flex items-center justify-between mb-2 pb-2 border-b border-cyber-border select-none">
           <div class="flex items-center gap-2">
             <span class="text-sm">🕸️</span>
             <span class="text-xs font-black uppercase tracking-wider text-slate-800 dark:text-slate-200">Bridge VLAN Topology</span>
           </div>
-          <span class="px-2 py-0.5 text-[9px] bg-cyber-accent/10 text-cyber-accent border border-cyber-accent/20 rounded-full font-bold">Interactive Map</span>
+          <div class="interactive-map-btn-placeholder"></div>
         </div>
         <p class="text-[10px] text-slate-500 mb-3">Dynamically extracted from active Bridge & Port configurations.</p>
         <div class="mermaid-diagram-container overflow-x-auto bg-slate-100 dark:bg-slate-900 rounded-xl p-3 border border-cyber-border flex justify-center">
@@ -1545,22 +1545,22 @@ function appendAssistantResponse(result) {
     actionButtonsHtml = `
       <div class="flex flex-wrap gap-3 mt-4 pt-4 border-t border-cyber-border select-none">
         ${hasDiff ? `
-        <button id="btn-show-diff-overlay" class="bg-brand-500 hover:bg-brand-600 border border-brand-100/10 text-white font-medium px-4 py-2 rounded-lg text-sm flex items-center gap-2 transition active:scale-95 shadow">
-          <span>🔎</span> View Config Diff
+        <button id="btn-show-diff-overlay" class="px-4 py-2 text-sm font-medium rounded-lg flex items-center gap-2 transition active:scale-95 bg-brand-500 hover:bg-brand-600 text-white border border-brand-100/10 shadow">
+          <span>🔍</span> View Config Diff
         </button>
         ` : ''}
         ${hasCommands ? `
-        <button id="btn-show-checklist-overlay" class="bg-[#1e1b4b] hover:bg-indigo-900 border border-cyber-border text-slate-300 hover:text-white font-medium px-4 py-2 rounded-lg text-sm flex items-center gap-2 transition active:scale-95 shadow">
+        <button id="btn-show-checklist-overlay" class="px-4 py-2 text-sm font-medium rounded-lg flex items-center gap-2 transition active:scale-95 bg-[#1e1b4b] hover:bg-indigo-900 text-slate-300 hover:text-white border border-cyber-border shadow">
           <span>📋</span> View Fix Checklist
         </button>
         ` : ''}
         ${hasCorrectedConfig ? `
-        <button id="btn-download-rsc" class="bg-emerald-600 hover:bg-emerald-700 border border-emerald-500/20 text-white font-medium px-4 py-2 rounded-lg text-sm flex items-center gap-2 transition active:scale-95 shadow">
+        <button id="btn-download-rsc" class="px-4 py-2 text-sm font-medium rounded-lg flex items-center gap-2 transition active:scale-95 bg-emerald-600 hover:bg-emerald-700 text-white border border-emerald-500/20 shadow">
           <span>💾</span> <span class="rsc-btn-label">${t.downloadRsc}</span>
         </button>
         ` : ''}
         ${hasExtracted || hasCommands ? `
-        <button id="btn-copy-fix-commands" class="bg-cyber-emerald hover:bg-emerald-600 border border-brand-100/10 text-white font-medium px-4 py-2 rounded-lg text-sm flex items-center gap-2 transition active:scale-95 shadow">
+        <button id="btn-copy-fix-commands" class="px-4 py-2 text-sm font-medium rounded-lg flex items-center gap-2 transition active:scale-95 bg-cyber-emerald hover:bg-emerald-600 text-white border border-brand-100/10 shadow">
           <span>📋</span> Copy Fix Commands
         </button>
         ` : ''}
@@ -1580,6 +1580,79 @@ function appendAssistantResponse(result) {
       ${actionButtonsHtml}
     </div>
   `;
+
+  // Define openInteractiveMapModal function
+  function openInteractiveMapModal(graphContainer) {
+    const modal = document.createElement('div');
+    modal.className = 'fixed inset-0 z-50 bg-black/90 flex items-center justify-center p-8';
+    modal.id = 'interactive-map-modal';
+
+    const modalContent = document.createElement('div');
+    modalContent.className = 'bg-cyber-panel rounded-2xl p-6 max-w-[90vw] max-h-[90vh] overflow-auto relative';
+
+    const closeButton = document.createElement('button');
+    closeButton.className = 'absolute top-4 right-4 text-slate-400 hover:text-white text-2xl font-bold';
+    closeButton.innerHTML = '✕';
+    const closeModal = () => {
+      modal.remove();
+      document.removeEventListener('keydown', onEsc);
+    };
+    closeButton.addEventListener('click', closeModal);
+
+    const title = document.createElement('h3');
+    title.className = 'text-lg font-bold text-white mb-4';
+    title.textContent = 'VLAN Topology - Interactive Map';
+
+    const graphClone = graphContainer.cloneNode(true);
+    graphClone.style.minHeight = '500px';
+    graphClone.style.width = '100%';
+
+    modalContent.appendChild(closeButton);
+    modalContent.appendChild(title);
+    modalContent.appendChild(graphClone);
+    modal.appendChild(modalContent);
+
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal) closeModal();
+    });
+
+    const onEsc = (e) => {
+      if (e.key === 'Escape') closeModal();
+    };
+    document.addEventListener('keydown', onEsc);
+
+    document.body.appendChild(modal);
+
+    // Re-render Mermaid in the modal
+    mermaid.run({
+      nodes: [graphClone],
+      suppressErrors: true
+    }).then(() => {
+      const svg = graphClone.querySelector('svg');
+      if (svg) {
+        svg.style.width = '100%';
+        svg.style.height = 'auto';
+        svg.style.maxWidth = '100%';
+      }
+    });
+  }
+
+  // Render and handle Interactive Map button inside topology header if has VLAN data
+  if (hasVlanData) {
+    const btnPlaceholder = wrapper.querySelector('.interactive-map-btn-placeholder');
+    if (btnPlaceholder) {
+      const interactiveMapBtn = document.createElement('button');
+      interactiveMapBtn.className = 'bg-brand-500/10 hover:bg-brand-500/20 text-brand-400 border border-brand-500/30 px-3 py-1.5 rounded-lg text-xs font-medium transition';
+      interactiveMapBtn.textContent = 'Interactive Map';
+      interactiveMapBtn.addEventListener('click', () => {
+        const graphContainer = wrapper.querySelector('.mermaid-graph-container');
+        if (graphContainer) {
+          openInteractiveMapModal(graphContainer);
+        }
+      });
+      btnPlaceholder.replaceWith(interactiveMapBtn);
+    }
+  }
 
   // Safely trigger dynamic dynamic rendering of all mermaid elements inside the bubble
   setTimeout(() => {
@@ -1639,20 +1712,48 @@ window.renderMermaidGraphs = function(container) {
     return;
   }
 
-  const mermaidDivs = container.querySelectorAll('.mermaid');
-  if (mermaidDivs.length === 0) return;
+  const mermaidBlocks = container.querySelectorAll('.mermaid');
+  if (mermaidBlocks.length === 0) return;
 
   try {
     const isDark = document.documentElement.classList.contains('dark');
     mermaid.initialize({
       startOnLoad: false,
       theme: isDark ? 'dark' : 'default',
+      flowchart: {
+        useMaxWidth: true,
+        htmlLabels: true,
+        curve: 'basis',
+        padding: 20
+      },
       securityLevel: 'loose'
     });
 
-    // Run mermaid render on all nodes matching query
-    mermaid.run({
-      nodes: Array.from(mermaidDivs)
+    mermaidBlocks.forEach((block, index) => {
+      const graphCode = block.textContent;
+      const graphContainer = document.createElement('div');
+      graphContainer.className = 'mermaid-graph-container bg-cyber-panel p-6 rounded-xl overflow-x-auto mt-4 w-full';
+      graphContainer.style.minHeight = '300px';
+
+      const graphId = `mermaid-graph-${Date.now()}-${index}`;
+      graphContainer.id = graphId;
+      graphContainer.textContent = graphCode;
+
+      block.parentNode.replaceChild(graphContainer, block);
+
+      mermaid.run({
+        nodes: [graphContainer],
+        suppressErrors: true
+      }).then(() => {
+        const svg = graphContainer.querySelector('svg');
+        if (svg) {
+          svg.style.width = '100%';
+          svg.style.height = 'auto';
+          svg.style.maxWidth = '100%';
+          svg.style.display = 'block';
+          svg.style.margin = '0 auto';
+        }
+      });
     });
   } catch (err) {
     console.error('Mermaid render failure:', err);
