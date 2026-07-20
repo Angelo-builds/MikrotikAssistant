@@ -221,12 +221,217 @@ function debounce(func, delay) {
   };
 }
 
+/**
+ * VLAN Parser Utility for RouterOS Configuration logs.
+ * Extracts bridges, VLAN IDs, and tagged/untagged port mappings.
+ * Works progressively; if parsing fails, it fails gracefully.
+ *
+ * @param {string} configText
+ * @returns {Array<{bridge: string, vlanId: number, ports: string[]}>} parsed mappings
+ */
+function parseVlanConfig(configText) {
+  if (!configText) return [];
+  const results = [];
+  const lines = configText.split('\n');
+
+  // Let's look for:
+  // /interface bridge vlan
+  // add bridge=bridge1 tagged=ether1,ether2 untagged=ether3 vlan-ids=10
+  // Or:
+  // /interface vlan
+  // add interface=bridge1 name=vlan10 vlan-id=10
+  // Or:
+  // /interface bridge port
+  // add bridge=bridge1 interface=ether1 pvid=10
+
+  let currentSection = '';
+  const portPvids = {}; // port -> pvid
+  const vlanEntries = {}; // bridge_vlanid -> { bridge, vlanId, ports: Set }
+
+  for (let line of lines) {
+    let clean = line.trim();
+    if (!clean || clean.startsWith('#')) continue;
+
+    if (clean.startsWith('/')) {
+      // Parse section headers
+      if (clean.startsWith('/interface bridge vlan')) {
+        currentSection = 'bridge-vlan';
+      } else if (clean.startsWith('/interface bridge port')) {
+        currentSection = 'bridge-port';
+      } else if (clean.startsWith('/interface vlan')) {
+        currentSection = 'vlan';
+      } else {
+        currentSection = '';
+      }
+      continue;
+    }
+
+    if (clean.startsWith('add ')) {
+      if (currentSection === 'bridge-vlan') {
+        // e.g. add bridge=bridge tagged=ether1,ether2 untagged=ether3 vlan-ids=10
+        const bridgeMatch = /bridge=([^\s]+)/.exec(clean);
+        const vlanMatch = /vlan-ids=([0-9\-,]+)/.exec(clean);
+        const taggedMatch = /tagged=([^\s]+)/.exec(clean);
+        const untaggedMatch = /untagged=([^\s]+)/.exec(clean);
+
+        if (bridgeMatch && vlanMatch) {
+          const bridge = bridgeMatch[1].replace(/["']/g, '');
+          const vlanStr = vlanMatch[1].replace(/["']/g, '');
+
+          // vlan-ids can be single, list or range (e.g. 10, 10-20)
+          // We support list/single first
+          const vlanIds = [];
+          if (vlanStr.includes(',')) {
+            vlanStr.split(',').forEach(v => {
+              const parsedV = parseInt(v, 10);
+              if (!isNaN(parsedV)) vlanIds.push(parsedV);
+            });
+          } else if (vlanStr.includes('-')) {
+            const range = vlanStr.split('-');
+            const start = parseInt(range[0], 10);
+            const end = parseInt(range[1], 10);
+            if (!isNaN(start) && !isNaN(end)) {
+              for (let v = start; v <= end; v++) vlanIds.push(v);
+            }
+          } else {
+            const parsedV = parseInt(vlanStr, 10);
+            if (!isNaN(parsedV)) vlanIds.push(parsedV);
+          }
+
+          const portsList = [];
+          if (taggedMatch) {
+            taggedMatch[1].replace(/["']/g, '').split(',').forEach(p => {
+              if (p.trim()) portsList.push(p.trim() + ' (tagged)');
+            });
+          }
+          if (untaggedMatch) {
+            untaggedMatch[1].replace(/["']/g, '').split(',').forEach(p => {
+              if (p.trim()) portsList.push(p.trim() + ' (untagged)');
+            });
+          }
+
+          vlanIds.forEach(vlanId => {
+            const key = `${bridge}_${vlanId}`;
+            if (!vlanEntries[key]) {
+              vlanEntries[key] = { bridge, vlanId, ports: new Set() };
+            }
+            portsList.forEach(p => vlanEntries[key].ports.add(p));
+          });
+        }
+      } else if (currentSection === 'bridge-port') {
+        // e.g. add bridge=bridge1 interface=ether1 pvid=10
+        const bridgeMatch = /bridge=([^\s]+)/.exec(clean);
+        const ifaceMatch = /interface=([^\s]+)/.exec(clean);
+        const pvidMatch = /pvid=([0-9]+)/.exec(clean);
+
+        if (bridgeMatch && ifaceMatch) {
+          const bridge = bridgeMatch[1].replace(/["']/g, '');
+          const iface = ifaceMatch[1].replace(/["']/g, '');
+          const pvid = pvidMatch ? parseInt(pvidMatch[1], 10) : 1; // Default PVID is 1 if not specified
+
+          const key = `${bridge}_${pvid}`;
+          if (!vlanEntries[key]) {
+            vlanEntries[key] = { bridge, vlanId: pvid, ports: new Set() };
+          }
+          vlanEntries[key].ports.add(`${iface} (untagged/pvid)`);
+        }
+      } else if (currentSection === 'vlan') {
+        // e.g. add interface=bridge1 name=vlan10 vlan-id=10
+        const ifaceMatch = /interface=([^\s]+)/.exec(clean);
+        const nameMatch = /name=([^\s]+)/.exec(clean);
+        const vlanMatch = /vlan-id=([0-9]+)/.exec(clean);
+
+        if (ifaceMatch && vlanMatch) {
+          const parentIface = ifaceMatch[1].replace(/["']/g, '');
+          const vlanId = parseInt(vlanMatch[1], 10);
+          const name = nameMatch ? nameMatch[1].replace(/["']/g, '') : `vlan${vlanId}`;
+
+          // If the parent interface is a bridge, represent this VLAN interface connection
+          const key = `${parentIface}_${vlanId}`;
+          if (!vlanEntries[key]) {
+            vlanEntries[key] = { bridge: parentIface, vlanId, ports: new Set() };
+          }
+          vlanEntries[key].ports.add(`${name} (vlan-interface)`);
+        }
+      }
+    }
+  }
+
+  // Convert map to array
+  for (let key in vlanEntries) {
+    results.push({
+      bridge: vlanEntries[key].bridge,
+      vlanId: vlanEntries[key].vlanId,
+      ports: Array.from(vlanEntries[key].ports)
+    });
+  }
+
+  // Sort by Bridge, then VLAN ID
+  results.sort((a, b) => {
+    if (a.bridge !== b.bridge) return a.bridge.localeCompare(b.bridge);
+    return a.vlanId - b.vlanId;
+  });
+
+  return results;
+}
+
+/**
+ * Mermaid TD diagram code generator.
+ * Builds Mermaid code to represent the Bridge -> VLAN ID -> Port mappings.
+ *
+ * @param {Array<{bridge: string, vlanId: number, ports: string[]}>} parsed
+ * @returns {string} Mermaid.js markup text
+ */
+function generateVlanMermaidGraph(parsed) {
+  if (!parsed || parsed.length === 0) return '';
+
+  let code = 'graph TD\n';
+  code += '  %% Styles & Themes\n';
+  code += '  classDef bridgeStyle fill:#1e1b4b,stroke:#a78bfa,stroke-width:2px,color:#f1f5f9;\n';
+  code += '  classDef vlanStyle fill:#0f172a,stroke:#22d3ee,stroke-width:2px,color:#22d3ee;\n';
+  code += '  classDef portStyle fill:#022c22,stroke:#10b981,stroke-width:1px,color:#34d399;\n';
+
+  const nodesDefined = new Set();
+
+  parsed.forEach((item, index) => {
+    const bridgeId = `bridge_${item.bridge.replace(/[^a-zA-Z0-9]/g, '_')}`;
+    const vlanNodeId = `vlan_${bridgeId}_${item.vlanId}`;
+
+    // Define Bridge Node
+    if (!nodesDefined.has(bridgeId)) {
+      code += `  ${bridgeId}["🌉 Bridge: ${item.bridge}"]\n`;
+      code += `  class ${bridgeId} bridgeStyle;\n`;
+      nodesDefined.add(bridgeId);
+    }
+
+    // Define VLAN Node
+    code += `  ${vlanNodeId}["🏷️ VLAN ${item.vlanId}"]\n`;
+    code += `  class ${vlanNodeId} vlanStyle;\n`;
+
+    // Connect Bridge to VLAN
+    code += `  ${bridgeId} --> ${vlanNodeId}\n`;
+
+    // Define and Connect Port Nodes
+    item.ports.forEach((portStr, portIndex) => {
+      const portClean = portStr.replace(/[^a-zA-Z0-9\s()\-]/g, '');
+      const portNodeId = `port_${vlanNodeId}_${portIndex}`;
+      code += `  ${portNodeId}["🔌 ${portClean}"]\n`;
+      code += `  class ${portNodeId} portStyle;\n`;
+      code += `  ${vlanNodeId} --> ${portNodeId}\n`;
+    });
+  });
+
+  return code;
+}
+
 // Node.js Dual Compatibility Exports
 if (typeof module !== 'undefined' && module.exports) {
   module.exports = {
     computeLineDiff,
     renderMarkdown,
     extractRouterOsCommands,
-    debounce
+    debounce,
+    parseVlanConfig,
+    generateVlanMermaidGraph
   };
 }

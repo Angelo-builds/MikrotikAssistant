@@ -1422,6 +1422,43 @@ function appendAssistantResponse(result) {
   const extractedCommands = window.extractRouterOsCommands(result.explanation || '');
   const hasExtracted = extractedCommands.trim().length > 0;
 
+  // Progressive enhancement: parse VLAN configuration mapping
+  let vlanHtml = '';
+  let parsedVlan = [];
+  try {
+    const origConfig = pasted || '';
+    const correctedConfig = result.correctedConfig || '';
+
+    // Parse both original and corrected config to find Bridge VLAN items
+    parsedVlan = window.parseVlanConfig(correctedConfig);
+    if (!parsedVlan || parsedVlan.length === 0) {
+      parsedVlan = window.parseVlanConfig(origConfig);
+    }
+  } catch (err) {
+    console.warn('VLAN Parser failed or config does not contain VLAN maps:', err);
+  }
+
+  const hasVlanData = parsedVlan && parsedVlan.length > 0;
+  let vlanContainerId = '';
+  if (hasVlanData) {
+    vlanContainerId = 'vlan-viz-' + Math.random().toString(36).substr(2, 9);
+    vlanHtml = `
+      <div class="mt-4 p-4 bg-slate-900/45 dark:bg-slate-950/40 border border-brand-500/20 rounded-2xl w-full" id="${vlanContainerId}">
+        <div class="flex items-center justify-between mb-2 pb-2 border-b border-cyber-border select-none">
+          <div class="flex items-center gap-2">
+            <span class="text-sm">🕸️</span>
+            <span class="text-xs font-black uppercase tracking-wider text-slate-800 dark:text-slate-200">Bridge VLAN Topology</span>
+          </div>
+          <span class="px-2 py-0.5 text-[9px] bg-cyber-accent/10 text-cyber-accent border border-cyber-accent/20 rounded-full font-bold">Interactive Map</span>
+        </div>
+        <p class="text-[10px] text-slate-500 mb-3">Dynamically extracted from active Bridge & Port configurations.</p>
+        <div class="mermaid-diagram-container overflow-auto bg-slate-100 dark:bg-slate-900 rounded-xl p-3 border border-cyber-border flex justify-center">
+          <pre class="mermaid text-center text-xs text-slate-600 dark:text-slate-300 select-none">${window.generateVlanMermaidGraph(parsedVlan)}</pre>
+        </div>
+      </div>
+    `;
+  }
+
   let actionButtonsHtml = '';
   if (hasDiff || hasCommands || hasExtracted) {
     actionButtonsHtml = `
@@ -1453,9 +1490,38 @@ function appendAssistantResponse(result) {
     </div>
     <div class="chat-bubble-assistant text-xs text-slate-700 dark:text-slate-300 p-5 rounded-2xl leading-relaxed shadow-xl max-w-full w-full">
       ${explanationHtml}
+      ${vlanHtml}
       ${actionButtonsHtml}
     </div>
   `;
+
+  // Initialize and run Mermaid parser on the newly added element safely
+  if (hasVlanData && typeof mermaid !== 'undefined') {
+    try {
+      mermaid.initialize({
+        startOnLoad: false,
+        theme: stateStore.get('theme') === 'dark' ? 'dark' : 'default',
+        securityLevel: 'loose'
+      });
+      // We must render it after appending to DOM so the element is in visual flow
+      setTimeout(() => {
+        try {
+          const targetCard = wrapper.querySelector(`#${vlanContainerId} .mermaid`);
+          if (targetCard) {
+            mermaid.init(undefined, targetCard);
+          }
+        } catch (mErr) {
+          console.warn('Mermaid initialization on card failed, falling back silently:', mErr);
+          const vCard = wrapper.querySelector(`#${vlanContainerId}`);
+          if (vCard) vCard.remove();
+        }
+      }, 50);
+    } catch (err) {
+      console.warn('Mermaid global configuration failed:', err);
+      const vCard = wrapper.querySelector(`#${vlanContainerId}`);
+      if (vCard) vCard.remove();
+    }
+  }
 
   const btnDiff = wrapper.querySelector('#btn-show-diff-overlay');
   if (btnDiff) {
