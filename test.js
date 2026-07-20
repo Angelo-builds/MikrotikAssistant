@@ -1,5 +1,5 @@
 const { mask, unmask, isPrivateIPv4, isPrivateIPv6 } = require('./privacyShield');
-const { computeLineDiff, renderMarkdown, debounce } = require('./public/utils');
+const { computeLineDiff, renderMarkdown, extractRouterOsCommands, debounce } = require('./public/utils');
 
 function runAllTests() {
   console.log('=== STARTING INTEGRATION & UNIT TESTS ===');
@@ -108,6 +108,25 @@ function runAllTests() {
   assert(markdownHtml.includes('font-semibold'), 'renderMarkdown should render bold elements');
   assert(markdownHtml.includes('font-mono text-[11px]'), 'renderMarkdown should render high-contrast inline code blocks');
   assert(markdownHtml.includes('h5 class='), 'renderMarkdown should parse headers');
+
+  // Unit Test 6: extractRouterOsCommands
+  console.log('\n--- Unit Test 6: extractRouterOsCommands ---\n');
+  const markdownWithCommands = `
+    Hello network wizard! Here is the plan:
+    First, let's look at the firewall rules.
+    \`\`\`routeros
+    /ip firewall filter add chain=input action=drop comment="drop invalid"
+    \`\`\`
+    And we also want to add this interface to bridge:
+    /interface bridge port add bridge=bridge-local interface=ether2
+    Let me know if this works!
+  `;
+  const extracted = extractRouterOsCommands(markdownWithCommands);
+  console.log('Extracted commands:\n', extracted);
+  assert(extracted.includes('/ip firewall filter add chain=input action=drop comment="drop invalid"'), 'Should extract firewall command');
+  assert(extracted.includes('/interface bridge port add bridge=bridge-local interface=ether2'), 'Should extract interface command');
+  assert(!extracted.includes('Hello network wizard'), 'Should not contain conversational text');
+  assert(!extracted.includes('And we also want to add'), 'Should not contain conversational text');
 
   console.log('\n=======================================');
   if (failures === 0) {

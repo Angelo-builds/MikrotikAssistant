@@ -1157,7 +1157,9 @@ function switchDiffMode(modeId) {
   const analysis = stateStore.get('analysisResult');
   const pasted = stateStore.get('pastedConfigRaw');
   if (analysis) {
-    renderDiff(pasted, analysis.correctedConfig || '');
+    const origToDiff = analysis.maskedOriginalConfig || pasted || '';
+    const corrToDiff = analysis.maskedCorrectedConfig || analysis.correctedConfig || '';
+    renderDiff(origToDiff, corrToDiff);
   }
 }
 
@@ -1186,14 +1188,67 @@ function renderDiff(originalText, correctedText) {
   const tbody = els.diffTableBody;
   tbody.innerHTML = '';
 
-  const alignedLines = window.computeLineDiff(originalText, correctedText);
   const mode = stateStore.get('diffMode');
+
+  // Verify that Diff is available
+  if (typeof Diff === 'undefined') {
+    console.error('Diff library not loaded!');
+    return;
+  }
+
+  const changes = Diff.diffLines(originalText || '', correctedText || '');
+  const lines = [];
+  changes.forEach(change => {
+    const changeLines = change.value.split('\n');
+    if (changeLines[changeLines.length - 1] === '') {
+      changeLines.pop();
+    }
+    changeLines.forEach(line => {
+      lines.push({
+        text: line,
+        added: change.added || false,
+        removed: change.removed || false
+      });
+    });
+  });
 
   if (mode === 'split') {
     els.diffSplitHeaders.classList.remove('hidden');
     els.diffUnifiedHeader.classList.add('hidden');
 
-    alignedLines.forEach((row) => {
+    const leftSide = [];
+    const rightSide = [];
+
+    let idx = 0;
+    while (idx < lines.length) {
+      const current = lines[idx];
+      if (!current.added && !current.removed) {
+        leftSide.push({ text: current.text, type: 'equal' });
+        rightSide.push({ text: current.text, type: 'equal' });
+        idx++;
+      } else {
+        const removals = [];
+        const additions = [];
+        while (idx < lines.length && (lines[idx].removed || lines[idx].added)) {
+          if (lines[idx].removed) {
+            removals.push(lines[idx].text);
+          } else {
+            additions.push(lines[idx].text);
+          }
+          idx++;
+        }
+        const maxLen = Math.max(removals.length, additions.length);
+        for (let i = 0; i < maxLen; i++) {
+          leftSide.push(removals[i] !== undefined ? { text: removals[i], type: 'delete' } : null);
+          rightSide.push(additions[i] !== undefined ? { text: additions[i], type: 'insert' } : null);
+        }
+      }
+    }
+
+    for (let i = 0; i < leftSide.length; i++) {
+      const left = leftSide[i];
+      const right = rightSide[i];
+
       const tr = document.createElement('tr');
       tr.className = 'border-b border-slate-900/60 hover:bg-slate-900/40 text-slate-700 dark:text-slate-300';
 
@@ -1203,73 +1258,54 @@ function renderDiff(originalText, correctedText) {
       const tdRight = document.createElement('td');
       tdRight.className = 'w-1/2 p-2 whitespace-pre-wrap break-all select-text font-mono text-xs';
 
-      if (row.type === 'equal') {
-        tdLeft.textContent = row.left;
-        tdRight.textContent = row.right;
+      if (left && right && left.type === 'equal') {
+        tdLeft.textContent = left.text;
+        tdRight.textContent = right.text;
         tdLeft.className += ' text-slate-500 dark:text-slate-400';
         tdRight.className += ' text-slate-500 dark:text-slate-400';
-      } else if (row.type === 'delete') {
-        tdLeft.className += ' diff-deleted text-cyber-red font-medium';
-        tdLeft.textContent = row.left;
-        tdRight.textContent = '';
-      } else if (row.type === 'insert') {
-        tdLeft.textContent = '';
-        tdRight.className += ' diff-inserted text-cyber-emerald font-medium';
-        tdRight.textContent = row.right;
-      } else if (row.type === 'modify') {
-        tdLeft.className += ' diff-modified-left text-cyber-amber';
-        tdLeft.textContent = row.left;
-        tdRight.className += ' diff-modified-right text-cyber-emerald font-medium';
-        tdRight.textContent = row.right;
+      } else {
+        if (left) {
+          tdLeft.className += ' diff-deleted text-cyber-red font-medium';
+          tdLeft.textContent = left.text;
+        } else {
+          tdLeft.textContent = '';
+        }
+
+        if (right) {
+          tdRight.className += ' diff-inserted text-cyber-emerald font-medium';
+          tdRight.textContent = right.text;
+        } else {
+          tdRight.textContent = '';
+        }
       }
 
       tr.appendChild(tdLeft);
       tr.appendChild(tdRight);
       tbody.appendChild(tr);
-    });
+    }
   } else {
     els.diffSplitHeaders.classList.add('hidden');
     els.diffUnifiedHeader.classList.remove('hidden');
 
-    alignedLines.forEach((row) => {
+    lines.forEach((line) => {
       const tr = document.createElement('tr');
       tr.className = 'border-b border-slate-900 hover:bg-slate-900/40';
       const td = document.createElement('td');
       td.className = 'p-2 whitespace-pre-wrap break-all select-text font-mono text-xs';
 
-      if (row.type === 'equal') {
+      if (!line.added && !line.removed) {
         tr.className += ' text-slate-500';
-        td.textContent = `  ${row.left}`;
-        tr.appendChild(td);
-        tbody.appendChild(tr);
-      } else if (row.type === 'delete') {
+        td.textContent = `  ${line.text}`;
+      } else if (line.removed) {
         td.className += ' diff-deleted text-cyber-red font-medium';
-        td.textContent = `- ${row.left}`;
-        tr.appendChild(td);
-        tbody.appendChild(tr);
-      } else if (row.type === 'insert') {
+        td.textContent = `- ${line.text}`;
+      } else if (line.added) {
         td.className += ' diff-inserted text-cyber-emerald font-medium';
-        td.textContent = `+ ${row.right}`;
-        tr.appendChild(td);
-        tbody.appendChild(tr);
-      } else if (row.type === 'modify') {
-        // Red line followed by green line
-        const trDel = document.createElement('tr');
-        trDel.className = 'border-b border-slate-900 hover:bg-slate-900/40';
-        const tdDel = document.createElement('td');
-        tdDel.className = 'p-2 whitespace-pre-wrap break-all select-text font-mono text-xs diff-deleted text-cyber-red font-medium';
-        tdDel.textContent = `- ${row.left}`;
-        trDel.appendChild(tdDel);
-        tbody.appendChild(trDel);
-
-        const trIns = document.createElement('tr');
-        trIns.className = 'border-b border-slate-900 hover:bg-slate-900/40';
-        const tdIns = document.createElement('td');
-        tdIns.className = 'p-2 whitespace-pre-wrap break-all select-text font-mono text-xs diff-inserted text-cyber-emerald font-medium';
-        tdIns.textContent = `+ ${row.right}`;
-        trIns.appendChild(tdIns);
-        tbody.appendChild(trIns);
+        td.textContent = `+ ${line.text}`;
       }
+
+      tr.appendChild(td);
+      tbody.appendChild(tr);
     });
   }
 }
@@ -1392,8 +1428,11 @@ function appendAssistantResponse(result) {
   const hasCommands = rawLines.map(line => line.trim()).some(line => line.length > 0 && !line.startsWith('#'));
   const hasCorrectedConfig = result.correctedConfig && result.correctedConfig.trim().length > 0;
 
+  const extractedCommands = window.extractRouterOsCommands(result.explanation || '');
+  const hasExtracted = extractedCommands.trim().length > 0;
+
   let actionButtonsHtml = '';
-  if (hasDiff || hasCommands || hasCorrectedConfig) {
+  if (hasDiff || hasCommands || hasCorrectedConfig || hasExtracted) {
     actionButtonsHtml = `
       <div class="flex items-center gap-2 pt-4 border-t border-cyber-border mt-4 select-none flex-wrap">
         ${hasDiff ? `
@@ -1409,6 +1448,11 @@ function appendAssistantResponse(result) {
         ${hasCorrectedConfig ? `
         <button id="btn-download-rsc" class="bg-emerald-600 hover:bg-emerald-700 border border-emerald-500/20 text-white font-bold px-4 py-2 rounded-xl text-[10px] flex items-center gap-1.5 transition active:scale-95 shadow">
           <span>💾</span> <span class="rsc-btn-label">${t.downloadRsc}</span>
+        </button>
+        ` : ''}
+        ${hasExtracted || hasCommands ? `
+        <button id="btn-copy-fix-commands" class="bg-cyber-emerald hover:bg-emerald-600 border border-brand-100/10 text-white font-bold px-4 py-2 rounded-xl text-[10px] flex items-center gap-1.5 transition active:scale-95 shadow">
+          <span>📋</span> Copy Fix Commands
         </button>
         ` : ''}
       </div>
@@ -1430,7 +1474,9 @@ function appendAssistantResponse(result) {
   const btnDiff = wrapper.querySelector('#btn-show-diff-overlay');
   if (btnDiff) {
     btnDiff.addEventListener('click', () => {
-      renderDiff(pasted, result.correctedConfig || '');
+      const origToDiff = result.maskedOriginalConfig || pasted || '';
+      const corrToDiff = result.maskedCorrectedConfig || result.correctedConfig || '';
+      renderDiff(origToDiff, corrToDiff);
       els.modalDiff.classList.remove('hidden');
     });
   }
@@ -1447,6 +1493,20 @@ function appendAssistantResponse(result) {
   if (btnDownloadRsc) {
     btnDownloadRsc.addEventListener('click', () => {
       window.downloadRscFile(result.correctedConfig);
+    });
+  }
+
+  const btnCopyCommands = wrapper.querySelector('#btn-copy-fix-commands');
+  if (btnCopyCommands) {
+    btnCopyCommands.addEventListener('click', () => {
+      navigator.clipboard.writeText(extractedCommands).then(() => {
+        const origHtml = btnCopyCommands.innerHTML;
+        btnCopyCommands.innerHTML = '<span>✓</span> Copied!';
+        showToast('Fix commands copied to clipboard!', 'success');
+        setTimeout(() => {
+          btnCopyCommands.innerHTML = origHtml;
+        }, 2000);
+      });
     });
   }
 
