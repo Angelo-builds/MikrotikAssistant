@@ -128,6 +128,50 @@ function runAllTests() {
   assert(!extracted.includes('Hello network wizard'), 'Should not contain conversational text');
   assert(!extracted.includes('And we also want to add'), 'Should not contain conversational text');
 
+  // Unit Test 7: VLAN Config Parsing
+  console.log('\n--- Unit Test 7: parseVlanConfig ---\n');
+  const { parseVlanConfig, generateVlanMermaidGraph } = require('./public/utils');
+  const vlanConfigSample = `
+    /interface bridge vlan
+    add bridge=br-lan tagged=ether1,ether2 untagged=ether3 vlan-ids=10
+    add bridge=br-lan tagged=ether1 untagged=ether4 vlan-ids=20,30
+    /interface bridge port
+    add bridge=br-lan interface=ether5 pvid=40
+    /interface vlan
+    add interface=br-lan name=vlan-mgmt vlan-id=99
+  `;
+  const parsedVlans = parseVlanConfig(vlanConfigSample);
+  console.log('Parsed VLANs:', JSON.stringify(parsedVlans, null, 2));
+
+  assert(Array.isArray(parsedVlans), 'parseVlanConfig should return an array');
+  assert(parsedVlans.length > 0, 'parseVlanConfig should find elements');
+
+  const vlan10 = parsedVlans.find(v => v.vlanId === 10 && v.bridge === 'br-lan');
+  assert(!!vlan10, 'Should find vlan 10 entry');
+  assert(vlan10.ports.includes('ether1 (tagged)'), 'Vlan 10 should contain ether1 (tagged)');
+  assert(vlan10.ports.includes('ether3 (untagged)'), 'Vlan 10 should contain ether3 (untagged)');
+
+  const vlan20 = parsedVlans.find(v => v.vlanId === 20);
+  assert(!!vlan20, 'Should parse multiple/list vlan-ids (20)');
+  assert(vlan20.ports.includes('ether1 (tagged)'), 'Vlan 20 should contain ether1 (tagged)');
+
+  const vlan40 = parsedVlans.find(v => v.vlanId === 40);
+  assert(!!vlan40, 'Should extract from bridge port section (vlan 40)');
+  assert(vlan40.ports.includes('ether5 (untagged/pvid)'), 'Vlan 40 should contain ether5');
+
+  const vlan99 = parsedVlans.find(v => v.vlanId === 99);
+  assert(!!vlan99, 'Should parse /interface vlan interface entries (vlan 99)');
+  assert(vlan99.ports.includes('vlan-mgmt (vlan-interface)'), 'Vlan 99 should contain vlan-mgmt');
+
+  // Unit Test 8: VLAN Mermaid Graph Generation
+  console.log('\n--- Unit Test 8: generateVlanMermaidGraph ---\n');
+  const mermaidGraphCode = generateVlanMermaidGraph(parsedVlans);
+  console.log('Generated Mermaid graph:\n', mermaidGraphCode);
+  assert(mermaidGraphCode.includes('graph TD'), 'Should start with graph TD');
+  assert(mermaidGraphCode.includes('classDef bridgeStyle'), 'Should define bridge styling');
+  assert(mermaidGraphCode.includes('bridge_br_lan["🌉 Bridge: br-lan"]'), 'Should define br-lan node');
+  assert(mermaidGraphCode.includes('vlan_bridge_br_lan_10["🏷️ VLAN 10"]'), 'Should define vlan 10 node');
+
   console.log('\n=======================================');
   if (failures === 0) {
     console.log('🎉 ALL INTEGRATION & UNIT TESTS PASSED SUCCESSFULLY! 🎉');

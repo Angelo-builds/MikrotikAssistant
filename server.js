@@ -154,11 +154,20 @@ async function callLLM({ provider, apiKey, baseUrl, model, systemPrompt, promptT
 
   console.log(`🧙‍♂️ [Mik the Winbox Wizard] Proxying request to provider: ${provider}, URL: ${url}`);
 
-  const response = await fetch(url, {
-    method: 'POST',
-    headers: headers,
-    body: JSON.stringify(body)
-  });
+  let response;
+  try {
+    response = await fetch(url, {
+      method: 'POST',
+      headers: headers,
+      body: JSON.stringify(body)
+    });
+  } catch (fetchError) {
+    if (provider === 'ollama') {
+      const host = baseUrl || 'http://localhost:11434';
+      throw new Error(`Ollama local LLM is not running or unreachable at ${host}. Please make sure Ollama is started (run 'ollama serve') and the model '${model || 'llama3'}' is pulled. (Error: ${fetchError.message})`);
+    }
+    throw fetchError;
+  }
 
   if (!response.ok) {
     const errorText = await response.text();
@@ -215,7 +224,7 @@ function parseSections(response) {
  */
 app.post('/api/chat', async (req, res) => {
   try {
-    const {
+    let {
       pastedConfig,
       chatMessage,
       chatHistory,
@@ -232,6 +241,17 @@ app.post('/api/chat', async (req, res) => {
 
     if (!chatMessage && !pastedConfig) {
       return res.status(400).json({ error: 'Either chatMessage or pastedConfig is required' });
+    }
+
+    // Override or supply defaults from environment variables if set
+    if (process.env.LLM_PROVIDER) {
+      provider = process.env.LLM_PROVIDER;
+      if (process.env.LLM_MODEL) {
+        model = process.env.LLM_MODEL;
+      }
+      if (process.env.LLM_BASE_URL) {
+        baseUrl = process.env.LLM_BASE_URL;
+      }
     }
 
     let historyText = '';
@@ -331,7 +351,18 @@ app.post('/api/chat', async (req, res) => {
  */
 app.post('/api/test-connection', async (req, res) => {
   try {
-    const { provider, apiKey, baseUrl, model } = req.body;
+    let { provider, apiKey, baseUrl, model } = req.body;
+
+    // Support environmental override for connection test as well
+    if (process.env.LLM_PROVIDER) {
+      provider = process.env.LLM_PROVIDER;
+      if (process.env.LLM_MODEL) {
+        model = process.env.LLM_MODEL;
+      }
+      if (process.env.LLM_BASE_URL) {
+        baseUrl = process.env.LLM_BASE_URL;
+      }
+    }
 
     console.log(`[Connection Test] Testing connection to ${provider}...`);
 

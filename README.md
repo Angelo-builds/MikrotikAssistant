@@ -127,7 +127,65 @@ To customize your AI execution, open the **Wizard Control Center** sidebar, clic
 
 ---
 
+## 🖥️ Local LLM (Ollama) Integration Guide
+
+MikrotikAssistant supports absolute offline and on-premise execution using Ollama compatibility. This guarantees 100% data sovereign operations with zero WAN footprint.
+
+### 1. Set Up Ollama
+- Install Ollama on your machine (macOS, Linux, or Windows) from [ollama.com](https://ollama.com).
+- Start the background server:
+  ```bash
+  ollama serve
+  ```
+- Pull your preferred model (e.g., `llama3` or `mistral`):
+  ```bash
+  ollama pull llama3
+  ```
+
+### 2. Configure Environment Variables
+You can boot the application with predefined environmental variables to auto-route LLM requests locally:
+```bash
+# Set provider to ollama
+export LLM_PROVIDER=ollama
+
+# (Optional) Override default local model or server base URL
+export LLM_MODEL=llama3
+export LLM_BASE_URL=http://localhost:11434
+```
+Then start the server:
+```bash
+npm start
+```
+
+### 3. Setup in the UI Control Center
+Alternatively, you can switch providers dynamically directly inside the Wizard Control Center UI:
+1. Open the sidebar and click **Prefs**.
+2. Select **Local Ollama** as the LLM Provider.
+3. Keep or configure the Model Name (e.g., `llama3` or `mistral`) and the Base URL (`http://localhost:11434`).
+4. Click **Test Connection** to verify that your local instance is active and accessible.
+5. Click **Save Configuration**.
+
+---
+
+## 🕸️ Advanced VLAN Parsing & Topology Visualizer
+
+MikrotikAssistant features a sophisticated, local-first parser for RouterOS bridge and port-vlan architectures. It acts as a progressive enhancement:
+- **Parser Coverage:** Automatically detects and indexes `/interface bridge vlan`, `/interface bridge port`, and `/interface vlan` setups.
+- **Port Mapping:** Dynamically links tagged/untagged ports and virtual VLAN interfaces to their respective parent bridge nodes.
+- **Mermaid Graphing:** Automatically generates and compiles dynamic, responsive Mermaid topology graphs inline inside the wizard's chat flow.
+- **Robust Fallbacks:** If a configuration does not contain VLAN entries, or if parsing fails, the system fails silently and renders the standard conversational text.
+
+To test this feature, try pasting a standard MikroTik VLAN export:
+```text
+/interface bridge vlan
+add bridge=bridge1 tagged=ether1,ether2 untagged=ether3 vlan-ids=10
+add bridge=bridge1 tagged=ether1 untagged=ether4 vlan-ids=20
+```
+
+---
+
 ## 🧪 Verification and Testing
+
 
 To verify the integrity of the Privacy Shield engine and utility modules, run the zero-dependency test suite:
 
