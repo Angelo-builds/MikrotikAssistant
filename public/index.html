@@ -524,28 +524,93 @@
       <!-- CHAT CHRONOLOGICAL STREAM -->
       <section id="chat-messages-stream" class="flex-1 overflow-y-auto p-4 md:p-6 space-y-6" aria-label="Conversation Messages Stream">
         <!-- WELCOME SCREEN (Renders initially when stream is empty) -->
-        <div id="panel-welcome" class="flex flex-col items-center justify-center min-h-[60vh] text-center p-4 md:p-8 space-y-6 max-w-2xl mx-auto select-none">
+        <div id="panel-welcome" class="flex flex-col items-center justify-center min-h-[60vh] text-center p-4 md:p-8 space-y-8 max-w-3xl mx-auto select-none">
           <!-- High-Tech Central Network Hub -->
-          <div class="relative w-20 h-20 flex items-center justify-center shrink-0">
+          <div class="relative w-16 h-16 flex items-center justify-center shrink-0">
             <!-- Outer spinning technical grid -->
             <div class="absolute inset-0 rounded-full border border-dashed border-brand-500/30 animate-[spin_15s_linear_infinite]"></div>
             <!-- Middle spinning interactive rings -->
             <div class="absolute inset-2 rounded-full border-2 border-dotted border-cyber-accent/40 animate-[spin_8s_linear_infinite_reverse]"></div>
             <!-- Central glowing network core -->
-            <div class="w-12 h-12 rounded-2xl bg-brand-500/10 border border-brand-500/30 flex items-center justify-center text-brand-400 shadow-xl shadow-brand-500/15 animate-[pulse_3s_ease-in-out_infinite]">
-              <svg class="w-6 h-6 text-brand-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+            <div class="w-10 h-10 rounded-2xl bg-brand-500/10 border border-brand-500/30 flex items-center justify-center text-brand-400 shadow-xl shadow-brand-500/15 animate-[pulse_3s_ease-in-out_infinite]">
+              <svg class="w-5 h-5 text-brand-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 11c0 3.517-1.009 6.799-2.753 9.571m-3.44-2.04l.054-.09A13.916 13.916 0 009 11V5a2 2 0 00-2-2H5a2 2 0 00-2 2v6a13.978 13.978 0 003.07 8.757m.195-.04c.053.076.11.152.17.227m6.525-2.27A13.978 13.978 0 0115 11V5a2 2 0 012-2h2a2 2 0 012 2v6a13.978 13.978 0 01-3.07 8.757m-1.11 1.05A13.916 13.916 0 0115 11c0-1.802-.47-3.493-1.293-4.962m-1.414 4.962A14.02 14.02 0 0012 11m0 0a14.02 14.02 0 01-1.293-4.962m1.293 4.962c0-1.802.47-3.493 1.293-4.962m0 0A13.916 13.916 0 0115 11m-3 7a1 1 0 100-2 1 1 0 000 2z"></path>
               </svg>
             </div>
           </div>
-          <div class="space-y-3">
-            <h3 id="ui-label-welcome-title" class="text-lg md:text-xl font-black text-slate-800 dark:text-white tracking-wide">Mik the Winbox Wizard is Ready to Cast Spells!</h3>
-            <p id="ui-label-welcome-desc" class="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
-              Configure your LLM provider in settings, paste your RouterOS `/export` config or log files, explain your problem, and let <strong class="text-brand-400">Mik</strong> audit your network config.
+
+          <div class="space-y-4">
+            <h3 id="ui-label-welcome-title" class="text-xl md:text-2xl font-black text-slate-800 dark:text-white tracking-wide">MikrotikAssistant: The Privacy-First RouterOS Configuration Auditor & Generator</h3>
+            <p id="ui-label-welcome-desc" class="text-xs text-slate-600 dark:text-slate-400 max-w-xl mx-auto leading-relaxed">
+              Analyze, secure, and optimize your MikroTik configurations with absolute privacy.
             </p>
-            <p id="ui-label-welcome-privacy" class="text-xs text-cyber-emerald/90 font-medium bg-cyber-emerald/5 px-4 py-2.5 rounded-2xl border border-cyber-emerald/10">
-              🛡️ Fully Privacy Guarded: Mik's Privacy Shield ensures your passwords, IPs, MACs, custom interface names, and identities never leave this machine.
-            </p>
+          </div>
+
+          <!-- "How it Works" section emphasizing Privacy Shield -->
+          <div class="w-full grid grid-cols-1 md:grid-cols-3 gap-4 text-left border-y border-cyber-border/40 py-6 my-2">
+            <div class="p-4 bg-cyber-bg border border-cyber-border/25 rounded-2xl space-y-1.5 shadow-sm">
+              <div class="text-brand-400 text-sm font-bold flex items-center gap-2">
+                <span class="w-5 h-5 rounded-full bg-brand-500/10 flex items-center justify-center text-xs text-brand-500 font-mono">1</span>
+                <span id="ui-step-1-title" class="font-extrabold uppercase tracking-wider text-[11px]">Paste Config</span>
+              </div>
+              <p id="ui-step-1-desc" class="text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed font-medium">Paste your raw RouterOS export or logs safely into the secure attachment drawer.</p>
+            </div>
+            <div class="p-4 bg-cyber-bg border border-cyber-border/25 rounded-2xl space-y-1.5 shadow-sm">
+              <div class="text-cyber-emerald text-sm font-bold flex items-center gap-2">
+                <span class="w-5 h-5 rounded-full bg-cyber-emerald/10 flex items-center justify-center text-xs text-cyber-emerald font-mono">2</span>
+                <span id="ui-step-2-title" class="font-extrabold uppercase tracking-wider text-[11px]">Local Masking</span>
+              </div>
+              <p id="ui-step-2-desc" class="text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed font-medium">Our fully client-side Privacy Shield scrubs all passwords, secrets, IPs, and MACs before any transmission.</p>
+            </div>
+            <div class="p-4 bg-cyber-bg border border-cyber-border/25 rounded-2xl space-y-1.5 shadow-sm">
+              <div class="text-cyber-accent text-sm font-bold flex items-center gap-2">
+                <span class="w-5 h-5 rounded-full bg-cyber-accent/10 flex items-center justify-center text-xs text-cyber-accent font-mono">3</span>
+                <span id="ui-step-3-title" class="font-extrabold uppercase tracking-wider text-[11px]">Expert Audit</span>
+              </div>
+              <p id="ui-step-3-desc" class="text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed font-medium">The system diagnoses vulnerabilities, flags issues, and generates precise corrective RouterOS CLI delta commands.</p>
+            </div>
+          </div>
+
+          <!-- "Quick Start" scenario cards -->
+          <div class="w-full space-y-3 text-left">
+            <h4 id="ui-scenarios-header" class="text-[10px] font-black text-slate-600 dark:text-slate-400 uppercase tracking-wider select-none text-center">Quick Start Scenarios</h4>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <!-- Card 1 -->
+              <button id="btn-scenario-firewall" class="apple-btn-hover group flex items-start gap-3.5 p-4 bg-cyber-panel border border-cyber-border/60 hover:border-brand-500/40 rounded-2xl transition duration-200 outline-none focus:ring-2 focus:ring-brand-500 text-left w-full h-full shadow-sm hover:shadow-brand-glow">
+                <span class="text-xl shrink-0 p-2 bg-brand-500/5 rounded-xl border border-brand-500/10 group-hover:bg-brand-500/10 transition">🛡️</span>
+                <div class="space-y-1">
+                  <span id="ui-scenario-firewall-title" class="block text-xs font-bold text-slate-800 dark:text-slate-200">Audit my Firewall Security</span>
+                  <span id="ui-scenario-firewall-desc" class="block text-[10px] text-slate-500 leading-normal font-medium">Pre-fills a basic firewall configuration and requests a vulnerability audit.</span>
+                </div>
+              </button>
+
+              <!-- Card 2 -->
+              <button id="btn-scenario-vlan" class="apple-btn-hover group flex items-start gap-3.5 p-4 bg-cyber-panel border border-cyber-border/60 hover:border-brand-500/40 rounded-2xl transition duration-200 outline-none focus:ring-2 focus:ring-brand-500 text-left w-full h-full shadow-sm hover:shadow-brand-glow">
+                <span class="text-xl shrink-0 p-2 bg-cyber-emerald/5 rounded-xl border border-cyber-emerald/10 group-hover:bg-cyber-emerald/10 transition">🌐</span>
+                <div class="space-y-1">
+                  <span id="ui-scenario-vlan-title" class="block text-xs font-bold text-slate-800 dark:text-slate-200">Setup a Guest Wi-Fi VLAN</span>
+                  <span id="ui-scenario-vlan-desc" class="block text-[10px] text-slate-500 leading-normal font-medium">Pre-fills a step-by-step VLAN command generation scenario for VLAN 20.</span>
+                </div>
+              </button>
+
+              <!-- Card 3 -->
+              <button id="btn-scenario-queues" class="apple-btn-hover group flex items-start gap-3.5 p-4 bg-cyber-panel border border-cyber-border/60 hover:border-brand-500/40 rounded-2xl transition duration-200 outline-none focus:ring-2 focus:ring-brand-500 text-left w-full h-full shadow-sm hover:shadow-brand-glow">
+                <span class="text-xl shrink-0 p-2 bg-cyber-accent/5 rounded-xl border border-cyber-accent/10 group-hover:bg-cyber-accent/10 transition">🚀</span>
+                <div class="space-y-1">
+                  <span id="ui-scenario-queues-title" class="block text-xs font-bold text-slate-800 dark:text-slate-200">Optimize Bandwidth (Queues)</span>
+                  <span id="ui-scenario-queues-desc" class="block text-[10px] text-slate-500 leading-normal font-medium">Pre-fills a template for configuring Simple Queues to manage bandwidth.</span>
+                </div>
+              </button>
+
+              <!-- Card 4 -->
+              <button id="btn-scenario-pppoe" class="apple-btn-hover group flex items-start gap-3.5 p-4 bg-cyber-panel border border-cyber-border/60 hover:border-brand-500/40 rounded-2xl transition duration-200 outline-none focus:ring-2 focus:ring-brand-500 text-left w-full h-full shadow-sm hover:shadow-brand-glow">
+                <span class="text-xl shrink-0 p-2 bg-cyber-amber/5 rounded-xl border border-cyber-amber/10 group-hover:bg-cyber-amber/10 transition">🔍</span>
+                <div class="space-y-1">
+                  <span id="ui-scenario-pppoe-title" class="block text-xs font-bold text-slate-800 dark:text-cyber-slate-200">Fix my PPPoE / WAN Routing</span>
+                  <span id="ui-scenario-pppoe-desc" class="block text-[10px] text-slate-500 leading-normal font-medium">Pre-fills a template to diagnose and correct PPPoE WAN route failures.</span>
+                </div>
+              </button>
+            </div>
           </div>
         </div>
 
@@ -565,10 +630,19 @@
             <button id="sidebar-btn-upload" onclick="document.getElementById('file-input').click()" class="text-[10px] text-slate-500 hover:text-brand-500 font-bold transition flex items-center gap-1 focus:outline-none focus:ring-1 focus:ring-brand-500">
               <span>📎</span> Upload File
             </button>
+            <button id="btn-format-config" class="text-[10px] text-brand-500 hover:text-brand-600 transition font-bold focus:outline-none focus:ring-1 focus:ring-brand-500">
+              ✨ Format
+            </button>
             <button id="btn-clear-attachment" class="text-[10px] text-slate-500 hover:text-red-400 transition font-bold focus:outline-none focus:ring-1 focus:ring-red-400">
               Clear Export
             </button>
           </div>
+        </div>
+
+        <!-- Dynamic Config Summary Badge -->
+        <div id="config-summary-badge" class="hidden mb-3.5 px-3 py-1.5 bg-brand-500/10 text-brand-500 dark:text-brand-400 border border-brand-500/20 rounded-xl text-xs font-semibold flex items-center gap-1.5 self-start shadow-sm transition animate-apple-reveal select-none">
+          <span class="w-1.5 h-1.5 bg-brand-500 rounded-full animate-pulse"></span>
+          <span id="config-summary-badge-text">Detected: N/A</span>
         </div>
 
         <div id="drag-drop-zone" class="relative min-h-[140px] bg-cyber-bg border border-dashed border-cyber-border rounded-xl flex flex-col overflow-hidden transition-all duration-300">
@@ -593,6 +667,10 @@
       <!-- BOTTOM CHAT INPUT BAR & PARAMETERS CONTROL -->
       <section class="p-4 md:p-6 bg-cyber-panel border-t border-cyber-border shrink-0">
         <div class="max-w-4xl mx-auto">
+          <!-- Suggestion Chips Container -->
+          <div id="suggestion-chips-container" class="hidden mb-3.5 flex flex-wrap gap-2 select-none animate-apple-reveal">
+            <!-- Dynamic Chips inserted here -->
+          </div>
 
           <!-- Input bar text area -->
           <div class="flex items-end bg-cyber-bg border border-cyber-border rounded-2xl p-2 focus-within:border-brand-500 transition-all duration-300 relative shadow-inner">

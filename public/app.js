@@ -229,9 +229,24 @@ const i18n = {
     commandModeRaw: 'Raw Terminal',
     copyBtn: 'Copy Content',
     copiedText: 'Copied!',
-    welcomeTitle: 'Mik the Winbox Wizard is Ready to Cast Spells!',
-    welcomeDesc: 'Configure your LLM provider in settings, paste your RouterOS `/export` config or log files, explain your problem, and let <strong class="text-brand-400">Mik</strong> audit your network config.',
+    welcomeTitle: 'MikrotikAssistant: The Privacy-First RouterOS Configuration Auditor & Generator',
+    welcomeDesc: 'Analyze, secure, and optimize your MikroTik configurations with absolute privacy.',
     welcomePrivacy: "🛡️ Fully Privacy Guarded: Mik's Privacy Shield ensures your passwords, IPs, MACs, custom interface names, and identities never leave this machine.",
+    step1Title: 'Paste Config',
+    step1Desc: 'Paste your raw RouterOS export or logs safely into the secure attachment drawer.',
+    step2Title: 'Local Masking',
+    step2Desc: 'Our fully client-side Privacy Shield scrubs all passwords, secrets, IPs, and MACs before any transmission.',
+    step3Title: 'Expert Audit',
+    step3Desc: 'The system diagnoses vulnerabilities, flags issues, and generates precise corrective RouterOS CLI delta commands.',
+    scenariosHeader: 'Quick Start Scenarios',
+    scenarioFirewallTitle: 'Audit my Firewall Security',
+    scenarioFirewallDesc: 'Pre-fills a basic firewall configuration and requests a vulnerability audit.',
+    scenarioVlanTitle: 'Setup a Guest Wi-Fi VLAN',
+    scenarioVlanDesc: 'Pre-fills a step-by-step VLAN command generation scenario for VLAN 20.',
+    scenarioQueuesTitle: 'Optimize Bandwidth (Queues)',
+    scenarioQueuesDesc: 'Pre-fills a template for configuring Simple Queues to manage bandwidth.',
+    scenarioPppoeTitle: 'Fix my PPPoE / WAN Routing',
+    scenarioPppoeDesc: 'Pre-fills a template to diagnose and correct PPPoE WAN route failures.',
     diffOriginalHeader: 'Original Config (Redacted Display)',
     diffCorrectedHeader: 'Corrected Config (Fully Restored)',
     diffUnifiedDesc: 'Unified Diff Legend: <span class="text-red-400">Red Line = Original</span> | <span class="text-cyber-emerald">Green Line = Corrected</span>',
@@ -335,9 +350,24 @@ const i18n = {
     commandModeRaw: 'Terminale CLI',
     copyBtn: 'Copia Contenuto',
     copiedText: 'Copia eseguita!',
-    welcomeTitle: 'Mik il Mago di Winbox è pronto a lanciare incantesimi!',
-    welcomeDesc: 'Configura il tuo provider LLM nelle impostazioni, incolla la tua configurazione `/export` o file di log di RouterOS, spiega il problema e lascia che <strong class="text-brand-400">Mik</strong> verifichi il tuo dispositivo.',
+    welcomeTitle: 'MikrotikAssistant: L\'Auditor & Generatore di Configurazioni RouterOS Privato',
+    welcomeDesc: 'Analizza, proteggi e ottimizza le tue configurazioni MikroTik in assoluta privacy.',
     welcomePrivacy: '🛡️ Massima Privacy Garantita: lo Scudo di Mik assicura che password, IP, MAC, nomi di interfacce personalizzate e identità non lascino mai questa macchina.',
+    step1Title: 'Incolla Config',
+    step1Desc: 'Incolla il tuo export RouterOS o log in modo sicuro nel drawer degli allegati.',
+    step2Title: 'Mascheramento Locale',
+    step2Desc: 'Il nostro scudo privacy lato client cancella password, segreti, IP e MAC prima di ogni trasmissione.',
+    step3Title: 'Expert Audit',
+    step3Desc: 'Il sistema individua vulnerabilità, segnala problemi e genera comandi RouterOS CLI delta correttivi accurati.',
+    scenariosHeader: 'Scenari di Avvio Rapido',
+    scenarioFirewallTitle: 'Verifica la Sicurezza del Firewall',
+    scenarioFirewallDesc: 'Pre-compila una configurazione firewall di base e richiede un audit di vulnerabilità.',
+    scenarioVlanTitle: 'Configura una VLAN Wi-Fi Ospiti',
+    scenarioVlanDesc: 'Pre-compila uno scenario di generazione comandi VLAN passo-passo per la VLAN 20.',
+    scenarioQueuesTitle: 'Ottimizza la Banda (Queues)',
+    scenarioQueuesDesc: 'Pre-compila un modello per configurare le Simple Queues per gestire la banda.',
+    scenarioPppoeTitle: 'Risolvi PPPoE / WAN Routing',
+    scenarioPppoeDesc: 'Pre-compila un modello per diagnosticare e correggere i problemi di instradamento PPPoE WAN.',
     diffOriginalHeader: 'Config. Originale (Visualizzazione Oscurata)',
     diffCorrectedHeader: 'Config. Corretta (Completamente Ripristinata)',
     diffUnifiedDesc: 'Legenda Differenze: <span class="text-red-400">Linea Rossa = Originale</span> | <span class="text-cyber-emerald">Green Line = Corretta</span>',
@@ -437,7 +467,25 @@ class LocalizationService {
     // Welcome Section
     if (els.uiLabelWelcomeTitle) els.uiLabelWelcomeTitle.textContent = t.welcomeTitle;
     if (els.uiLabelWelcomeDesc) els.uiLabelWelcomeDesc.innerHTML = t.welcomeDesc;
-    if (els.uiLabelWelcomePrivacy) els.uiLabelWelcomePrivacy.textContent = t.welcomePrivacy;
+
+    // Steps
+    if (document.getElementById('ui-step-1-title')) document.getElementById('ui-step-1-title').textContent = t.step1Title;
+    if (document.getElementById('ui-step-1-desc')) document.getElementById('ui-step-1-desc').textContent = t.step1Desc;
+    if (document.getElementById('ui-step-2-title')) document.getElementById('ui-step-2-title').textContent = t.step2Title;
+    if (document.getElementById('ui-step-2-desc')) document.getElementById('ui-step-2-desc').textContent = t.step2Desc;
+    if (document.getElementById('ui-step-3-title')) document.getElementById('ui-step-3-title').textContent = t.step3Title;
+    if (document.getElementById('ui-step-3-desc')) document.getElementById('ui-step-3-desc').textContent = t.step3Desc;
+
+    // Quick Start Scenarios titles/descriptions
+    if (document.getElementById('ui-scenarios-header')) document.getElementById('ui-scenarios-header').textContent = t.scenariosHeader;
+    if (document.getElementById('ui-scenario-firewall-title')) document.getElementById('ui-scenario-firewall-title').textContent = t.scenarioFirewallTitle;
+    if (document.getElementById('ui-scenario-firewall-desc')) document.getElementById('ui-scenario-firewall-desc').textContent = t.scenarioFirewallDesc;
+    if (document.getElementById('ui-scenario-vlan-title')) document.getElementById('ui-scenario-vlan-title').textContent = t.scenarioVlanTitle;
+    if (document.getElementById('ui-scenario-vlan-desc')) document.getElementById('ui-scenario-vlan-desc').textContent = t.scenarioVlanDesc;
+    if (document.getElementById('ui-scenario-queues-title')) document.getElementById('ui-scenario-queues-title').textContent = t.scenarioQueuesTitle;
+    if (document.getElementById('ui-scenario-queues-desc')) document.getElementById('ui-scenario-queues-desc').textContent = t.scenarioQueuesDesc;
+    if (document.getElementById('ui-scenario-pppoe-title')) document.getElementById('ui-scenario-pppoe-title').textContent = t.scenarioPppoeTitle;
+    if (document.getElementById('ui-scenario-pppoe-desc')) document.getElementById('ui-scenario-pppoe-desc').textContent = t.scenarioPppoeDesc;
 
     // Buttons
     if (els.uiBtnNewChat) els.uiBtnNewChat.textContent = t.newChat;
@@ -674,6 +722,10 @@ const els = {
   attachmentDrawer: document.getElementById('attachment-drawer'),
   btnToggleDrawer: document.getElementById('btn-toggle-drawer'),
   btnClearAttachment: document.getElementById('btn-clear-attachment'),
+  btnFormatConfig: document.getElementById('btn-format-config'),
+  configSummaryBadge: document.getElementById('config-summary-badge'),
+  configSummaryBadgeText: document.getElementById('config-summary-badge-text'),
+  suggestionChipsContainer: document.getElementById('suggestion-chips-container'),
 
   chatMessagesStream: document.getElementById('chat-messages-stream'),
   chatMessagesContainer: document.getElementById('chat-messages-container'),
@@ -706,6 +758,10 @@ const els = {
   panelWelcome: document.getElementById('panel-welcome'),
   btnQuickFirewall: document.getElementById('btn-quick-firewall'),
   btnQuickRouting: document.getElementById('btn-quick-routing'),
+  btnScenarioFirewall: document.getElementById('btn-scenario-firewall'),
+  btnScenarioVlan: document.getElementById('btn-scenario-vlan'),
+  btnScenarioQueues: document.getElementById('btn-scenario-queues'),
+  btnScenarioPppoe: document.getElementById('btn-scenario-pppoe'),
 
   btnSaveSettings: document.getElementById('btn-save-settings'),
   btnTestConnection: document.getElementById('btn-test-connection'),
@@ -860,6 +916,7 @@ function startNewChat() {
   els.pastedConfig.value = '';
   els.fileInfoBar.classList.add('hidden');
   closeAttachmentDrawer();
+  updateConfigAnalysisUI();
 
   showToast('Wizard session refreshed. Magic is ready!', 'success');
 }
@@ -958,6 +1015,120 @@ function closeAttachmentDrawer() {
   els.btnToggleDrawer.classList.remove('bg-brand-500/10', 'text-brand-400');
 }
 
+/**
+ * Scans pasted config and updates UI badge and suggestion chips.
+ */
+function updateConfigAnalysisUI() {
+  const code = els.pastedConfig.value.trim();
+  if (code && typeof window.isValidRouterOsConfig === 'function' && window.isValidRouterOsConfig(code)) {
+    // 1. Config Summary Badge
+    const summary = window.detectConfigSummary(code);
+    if (els.configSummaryBadge && els.configSummaryBadgeText) {
+      els.configSummaryBadgeText.textContent = summary;
+      els.configSummaryBadge.classList.remove('hidden');
+    }
+
+    // 2. Dynamic Suggestion Chips
+    generateSuggestionChips(code);
+  } else {
+    if (els.configSummaryBadge) {
+      els.configSummaryBadge.classList.add('hidden');
+    }
+    if (els.suggestionChipsContainer) {
+      els.suggestionChipsContainer.classList.add('hidden');
+      els.suggestionChipsContainer.innerHTML = '';
+    }
+  }
+}
+
+/**
+ * Formats/indents pasted RouterOS config code.
+ */
+function handleFormatConfig() {
+  const code = els.pastedConfig.value;
+  if (!code) {
+    showToast('Nothing to format!', 'info');
+    return;
+  }
+  if (typeof window.formatRouterOsConfig === 'function') {
+    const formatted = window.formatRouterOsConfig(code);
+    els.pastedConfig.value = formatted;
+    showToast('Indented and formatted RouterOS config!', 'success');
+    updateConfigAnalysisUI();
+  }
+}
+
+/**
+ * Generates custom dynamic suggestion chips above the chat input.
+ */
+function generateSuggestionChips(configText) {
+  if (!els.suggestionChipsContainer) return;
+
+  const chips = [];
+
+  // Core smart suggestions
+  if (configText.includes('vlan-filtering=yes') || configText.includes('/interface bridge vlan')) {
+    chips.push({
+      label: '🛡️ Check VLAN Security',
+      query: 'Check if my VLAN security config is correct and if there are any isolated ports leaking.'
+    });
+  }
+
+  if (configText.includes('/ip firewall filter')) {
+    chips.push({
+      label: '🛡️ Audit Firewall Rules',
+      query: 'Audit my firewall rules. Are they in the correct order (e.g. drop invalid before accept) and secure?'
+    });
+  }
+
+  if (configText.includes('/ip firewall nat')) {
+    chips.push({
+      label: '🔍 Check Masquerade Rules',
+      query: 'Check if there are any redundant or duplicate NAT masquerade rules in this configuration.'
+    });
+  }
+
+  if (configText.includes('/ip dhcp-server') || configText.includes('/ip dns')) {
+    chips.push({
+      label: '🌐 Check DNS & DHCP',
+      query: 'Verify if DNS remote requests are configured safely and check the DHCP server config.'
+    });
+  }
+
+  if (configText.includes('/interface wireguard')) {
+    chips.push({
+      label: '🔑 Audit WireGuard VPN',
+      query: 'Audit the WireGuard configuration. Is endpoint and peer security set up correctly?'
+    });
+  }
+
+  if (chips.length === 0) {
+    chips.push({
+      label: '🚀 Audit Configuration',
+      query: 'Please perform a comprehensive best-practice security audit of this RouterOS configuration.'
+    });
+  }
+
+  els.suggestionChipsContainer.innerHTML = '';
+
+  chips.forEach(chip => {
+    const button = document.createElement('button');
+    button.className = 'px-3 py-1.5 bg-brand-500/10 text-brand-500 dark:text-brand-400 hover:bg-brand-500/20 border border-brand-500/20 hover:border-brand-500/40 rounded-full text-xs font-semibold transition active:scale-95 focus:outline-none focus:ring-2 focus:ring-brand-500';
+    button.textContent = chip.label;
+    button.title = chip.query;
+
+    button.addEventListener('click', () => {
+      els.chatMessage.value = chip.query;
+      adjustTextAreaHeight();
+      submitChat();
+    });
+
+    els.suggestionChipsContainer.appendChild(button);
+  });
+
+  els.suggestionChipsContainer.classList.remove('hidden');
+}
+
 function adjustTextAreaHeight() {
   const textarea = els.chatMessage;
   textarea.style.height = '38px';
@@ -1026,6 +1197,7 @@ function handleUploadedFile(file) {
 
     els.fileInfoBar.classList.remove('hidden');
     openAttachmentDrawer();
+    updateConfigAnalysisUI();
     showToast(t.toastFileUploadSuccess, 'success');
   };
   reader.readAsText(file);
@@ -2037,6 +2209,7 @@ async function runStepperAndSubmit(submitPayload, signal, isRetry = false) {
   stateStore.set('currentFile', null);
   els.fileInfoBar.classList.add('hidden');
   closeAttachmentDrawer();
+  updateConfigAnalysisUI();
 
   // Save conversation step in history list
   const timestamp = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
@@ -2101,6 +2274,7 @@ async function submitChat() {
   stateStore.set('currentFile', null);
   els.fileInfoBar.classList.add('hidden');
   closeAttachmentDrawer();
+  updateConfigAnalysisUI();
 
   // Setup active abort controller and button state
   activeAbortController = new AbortController();
@@ -2169,6 +2343,7 @@ async function submitChat() {
         els.fileSizeLabel.textContent = savedFileSize;
         els.fileInfoBar.classList.remove('hidden');
         openAttachmentDrawer();
+    updateConfigAnalysisUI();
       }
       showToast('Request stopped. Inputs restored!', 'info');
     }
@@ -2240,6 +2415,27 @@ function setupEventListeners() {
     stateStore.set('currentFile', null);
     els.fileInfoBar.classList.add('hidden');
     closeAttachmentDrawer();
+    updateConfigAnalysisUI();
+  });
+
+  els.btnFormatConfig.addEventListener('click', handleFormatConfig);
+
+  els.pastedConfig.addEventListener('input', updateConfigAnalysisUI);
+  els.pastedConfig.addEventListener('paste', () => {
+    setTimeout(updateConfigAnalysisUI, 50);
+  });
+  els.pastedConfig.addEventListener('change', updateConfigAnalysisUI);
+
+  // Smart Paste redirection for the main chat message textarea
+  els.chatMessage.addEventListener('paste', (e) => {
+    const pastedText = (e.clipboardData || window.clipboardData).getData('text');
+    if (pastedText && typeof window.isValidRouterOsConfig === 'function' && window.isValidRouterOsConfig(pastedText)) {
+      e.preventDefault();
+      els.pastedConfig.value = pastedText;
+      openAttachmentDrawer();
+      updateConfigAnalysisUI();
+      showToast('Smart Paste: Valid RouterOS config detected and attached!', 'success');
+    }
   });
 
   els.btnCloseDiff.addEventListener('click', () => els.modalDiff.classList.add('hidden'));
@@ -2261,6 +2457,45 @@ function setupEventListeners() {
 
   els.btnQuickFirewall.addEventListener('click', loadFirewallTemplate);
   els.btnQuickRouting.addEventListener('click', loadRoutingTemplate);
+
+  // Quick Start Contextual Scenarios Event Listeners
+  if (els.btnScenarioFirewall) {
+    els.btnScenarioFirewall.addEventListener('click', () => {
+      const isIt = stateStore.get('language') === 'it';
+      els.pastedConfig.value = `/ip firewall filter\nadd action=accept chain=input comment="defconf: accept established,related" connection-state=established,related\nadd action=drop chain=input comment="defconf: drop invalid" connection-state=invalid\nadd action=accept chain=input protocol=icmp\nadd action=drop chain=input comment="defconf: drop WAN access" in-interface-list=WAN\nadd action=accept chain=forward comment="defconf: accept in-interface=ether1" in-interface=ether1`;
+      els.chatMessage.value = isIt ? "Audita le mie regole di firewall. Ci sono vulnerabilità o porte non protette?" : "Please audit my firewall configuration and perform a vulnerability/security check on it.";
+      openAttachmentDrawer();
+      adjustTextAreaHeight();
+      showToast(isIt ? 'Configurazione firewall pre-compilata!' : 'Firewall configuration pre-filled!', 'success');
+    });
+  }
+
+  if (els.btnScenarioVlan) {
+    els.btnScenarioVlan.addEventListener('click', () => {
+      const isIt = stateStore.get('language') === 'it';
+      els.chatMessage.value = isIt ? "Come posso configurare una VLAN Wi-Fi ospiti (VLAN ID: 20) passo-passo con i relativi comandi RouterOS?" : "How do I configure a Guest Wi-Fi VLAN (VLAN ID: 20) step-by-step? Please generate the correct RouterOS commands.";
+      adjustTextAreaHeight();
+      showToast(isIt ? 'Modello VLAN Wi-Fi ospiti caricato!' : 'Guest Wi-Fi VLAN prompt template loaded!', 'success');
+    });
+  }
+
+  if (els.btnScenarioQueues) {
+    els.btnScenarioQueues.addEventListener('click', () => {
+      const isIt = stateStore.get('language') === 'it';
+      els.chatMessage.value = isIt ? "Spiegami come posso ottimizzare la banda per diversi dispositivi e creare Simple Queues su MikroTik." : "Explain how I can optimize bandwidth for different devices and set up Simple Queues on MikroTik.";
+      adjustTextAreaHeight();
+      showToast(isIt ? 'Modello Simple Queues caricato!' : 'Simple Queues optimization prompt template loaded!', 'success');
+    });
+  }
+
+  if (els.btnScenarioPppoe) {
+    els.btnScenarioPppoe.addEventListener('click', () => {
+      const isIt = stateStore.get('language') === 'it';
+      els.chatMessage.value = isIt ? "Aiutami a diagnosticare e correggere i problemi di instradamento con PPPoE sulla mia interfaccia WAN MikroTik." : "Help me diagnose and fix PPPoE / WAN Routing issues on my MikroTik router.";
+      adjustTextAreaHeight();
+      showToast(isIt ? 'Modello PPPoE / WAN Routing caricato!' : 'PPPoE / WAN Routing diagnosis prompt template loaded!', 'success');
+    });
+  }
 
   els.btnClearHistory.addEventListener('click', () => HistoryManager.clearAll());
   els.btnNewChat.addEventListener('click', startNewChat);
