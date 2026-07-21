@@ -432,6 +432,164 @@ function generateVlanMermaidGraph(parsed) {
   return code;
 }
 
+/**
+ * Detects if a given text is a valid RouterOS configuration export.
+ *
+ * @param {string} text
+ * @returns {boolean}
+ */
+function isValidRouterOsConfig(text) {
+  if (!text || typeof text !== 'string') return false;
+  const trimmed = text.trim();
+  if (trimmed.startsWith('#')) return true;
+
+  const patterns = [
+    /\/interface/,
+    /\/ip/,
+    /\/system/,
+    /\/routing/,
+    /\/queue/,
+    /\/tool/,
+    /\/user/,
+    /\/ipv6/
+  ];
+  return patterns.some(pattern => pattern.test(trimmed));
+}
+
+/**
+ * Scans RouterOS config text and detects various active components/features.
+ *
+ * @param {string} text
+ * @returns {string} summary description
+ */
+function detectConfigSummary(text) {
+  if (!text || typeof text !== 'string') return '';
+  const components = [];
+
+  // 1. VLANs detection
+  const vlanIds = new Set();
+  const vlanIdRegex = /vlan-id[s]?=([0-9\-,]+)/g;
+  let match;
+  while ((match = vlanIdRegex.exec(text)) !== null) {
+    const val = match[1];
+    if (val.includes(',')) {
+      val.split(',').forEach(v => {
+        const parsed = parseInt(v.trim(), 10);
+        if (!isNaN(parsed)) vlanIds.add(parsed);
+      });
+    } else if (val.includes('-')) {
+      const range = val.split('-');
+      const start = parseInt(range[0], 10);
+      const end = parseInt(range[1], 10);
+      if (!isNaN(start) && !isNaN(end)) {
+        for (let i = start; i <= end; i++) vlanIds.add(i);
+      }
+    } else {
+      const parsed = parseInt(val, 10);
+      if (!isNaN(parsed)) vlanIds.add(parsed);
+    }
+  }
+  if (vlanIds.size > 0) {
+    components.push(`${vlanIds.size} VLAN${vlanIds.size > 1 ? 's' : ''}`);
+  } else if (text.includes('/interface vlan') || text.includes('/interface bridge vlan')) {
+    components.push('VLANs');
+  }
+
+  // 2. Firewall Rules
+  if (text.includes('/ip firewall filter')) {
+    const lines = text.split('\n');
+    let filterCount = 0;
+    let inFilter = false;
+    for (const line of lines) {
+      const trimmed = line.trim();
+      if (trimmed.startsWith('/ip firewall filter')) {
+        inFilter = true;
+      } else if (trimmed.startsWith('/')) {
+        inFilter = false;
+      } else if (inFilter && trimmed.startsWith('add')) {
+        filterCount++;
+      }
+    }
+    if (filterCount > 0) {
+      components.push(`${filterCount} Firewall Rule${filterCount > 1 ? 's' : ''}`);
+    } else {
+      components.push('Firewall Rules');
+    }
+  } else if (text.includes('/ip firewall')) {
+    components.push('Firewall Rules');
+  }
+
+  // 3. PPPoE Client
+  if (text.includes('/interface pppoe-client')) {
+    components.push('PPPoE Client');
+  }
+
+  // 4. DHCP Server
+  if (text.includes('/ip dhcp-server')) {
+    components.push('DHCP Server');
+  }
+
+  // 5. NAT Rules
+  if (text.includes('/ip firewall nat')) {
+    components.push('NAT Rules');
+  }
+
+  // 6. OSPF Routing
+  if (text.includes('/routing ospf')) {
+    components.push('OSPF Routing');
+  }
+
+  // 7. WireGuard VPN
+  if (text.includes('/interface wireguard')) {
+    components.push('WireGuard VPN');
+  }
+
+  // 8. Simple Queues
+  if (text.includes('/queue simple') || text.includes('/queue tree')) {
+    components.push('Queues');
+  }
+
+  if (components.length === 0) {
+    return 'Detected: RouterOS Config';
+  }
+
+  return `Detected: ${components.join(', ')}`;
+}
+
+/**
+ * Neatly formats and indents RouterOS configuration code.
+ *
+ * @param {string} code
+ * @returns {string}
+ */
+function formatRouterOsConfig(code) {
+  if (!code || typeof code !== 'string') return '';
+  const lines = code.split('\n');
+  const formatted = [];
+  let isContinuation = false;
+
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i].trim();
+    if (line === '') {
+      if (formatted.length > 0 && formatted[formatted.length - 1] !== '') {
+        formatted.push('');
+      }
+      continue;
+    }
+
+    let indent = 0;
+    if (line.startsWith('/') || line.startsWith('#') || line.startsWith(':')) {
+      indent = 0;
+    } else {
+      indent = isContinuation ? 8 : 4;
+    }
+
+    formatted.push(' '.repeat(indent) + line);
+    isContinuation = line.endsWith('\\');
+  }
+  return formatted.join('\n');
+}
+
 // Node.js Dual Compatibility Exports
 if (typeof module !== 'undefined' && module.exports) {
   module.exports = {
@@ -440,6 +598,9 @@ if (typeof module !== 'undefined' && module.exports) {
     extractRouterOsCommands,
     debounce,
     parseVlanConfig,
-    generateVlanMermaidGraph
+    generateVlanMermaidGraph,
+    isValidRouterOsConfig,
+    detectConfigSummary,
+    formatRouterOsConfig
   };
 }

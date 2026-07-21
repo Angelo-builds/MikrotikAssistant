@@ -172,6 +172,60 @@ function runAllTests() {
   assert(mermaidGraphCode.includes('bridge_br_lan["🌉 Bridge: br-lan"]'), 'Should define br-lan node');
   assert(mermaidGraphCode.includes('vlan_bridge_br_lan_10["🏷️ VLAN 10"]'), 'Should define vlan 10 node');
 
+  // Unit Test 9: isValidRouterOsConfig
+  console.log('\n--- Unit Test 9: isValidRouterOsConfig ---\n');
+  const { isValidRouterOsConfig, detectConfigSummary, formatRouterOsConfig } = require('./public/utils');
+
+  assert(isValidRouterOsConfig('# aug/14/2023 by RouterOS') === true, 'Should detect comment headers as valid RouterOS config');
+  assert(isValidRouterOsConfig('/interface bridge add name=bridge1') === true, 'Should detect commands with /interface as valid');
+  assert(isValidRouterOsConfig('/ip firewall filter add') === true, 'Should detect /ip command as valid');
+  assert(isValidRouterOsConfig('plain chat message text') === false, 'Should reject plain conversational message');
+
+  // Unit Test 10: detectConfigSummary
+  console.log('\n--- Unit Test 10: detectConfigSummary ---\n');
+  const sampleSummaryText1 = `
+    /interface bridge vlan
+    add bridge=br-lan tagged=ether1 vlan-ids=10,20
+    /ip firewall filter
+    add action=drop chain=input
+    add action=accept chain=forward
+    /interface pppoe-client
+    add name=pppoe-out1
+  `;
+  const summary1 = detectConfigSummary(sampleSummaryText1);
+  console.log('Summary 1:', summary1);
+  assert(summary1.includes('2 VLANs'), 'Summary should contain "2 VLANs"');
+  assert(summary1.includes('2 Firewall Rules'), 'Summary should contain "2 Firewall Rules"');
+  assert(summary1.includes('PPPoE Client'), 'Summary should contain "PPPoE Client"');
+
+  const sampleSummaryText2 = `
+    /ip dhcp-server
+    add name=dhcp1
+    /ip firewall nat
+    add chain=srcnat action=masquerade
+  `;
+  const summary2 = detectConfigSummary(sampleSummaryText2);
+  console.log('Summary 2:', summary2);
+  assert(summary2.includes('DHCP Server'), 'Summary should contain "DHCP Server"');
+  assert(summary2.includes('NAT Rules'), 'Summary should contain "NAT Rules"');
+
+  // Unit Test 11: formatRouterOsConfig
+  console.log('\n--- Unit Test 11: formatRouterOsConfig ---\n');
+  const unformattedConfig = `
+/ip firewall filter
+add action=drop chain=input \\
+comment="drop invalid"
+add action=accept chain=input
+  `;
+  const formattedConfig = formatRouterOsConfig(unformattedConfig);
+  console.log('Formatted Config:\n', formattedConfig);
+
+  const formattedLines = formattedConfig.split('\n');
+  assert(formattedLines[0] === '/ip firewall filter', 'Section headers should not be indented');
+  assert(formattedLines[1] === '    add action=drop chain=input \\', 'Commands should be indented by 4 spaces');
+  assert(formattedLines[2] === '        comment="drop invalid"', 'Continuations should be indented by 8 spaces');
+  assert(formattedLines[3] === '    add action=accept chain=input', 'Normal commands should be indented by 4 spaces');
+
   console.log('\n=======================================');
   if (failures === 0) {
     console.log('🎉 ALL INTEGRATION & UNIT TESTS PASSED SUCCESSFULLY! 🎉');
