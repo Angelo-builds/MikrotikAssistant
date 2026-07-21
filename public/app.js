@@ -281,6 +281,17 @@ const i18n = {
     toastPipelineComplete: 'Auditing pipeline complete!',
     toastFileUploadSuccess: 'File uploaded successfully!',
     toastFileUploadError: 'Only text, .rsc, or .log files are supported!',
+    toastQueueGenerated: 'Simple Queue command generated instantly!',
+    queueHeader: 'Queue Generator',
+    queueTargetName: 'Target Name',
+    queueTargetIp: 'Target IP or Address List',
+    queueMaxUpload: 'Max Upload (Mbps)',
+    queueMaxDownload: 'Max Download (Mbps)',
+    queuePriority: 'Priority (1-8)',
+    queueGenerateBtn: 'Generate',
+    queueOutputTitle: 'Ready CLI Command',
+    queueCopyBtn: 'Copy to Terminal',
+    queueValidationErr: 'Please fill out all fields first!',
     settingsPanelTitle: 'Engine Settings Panel',
     settingsTabAi: 'AI Provider',
     settingsTabPrivacy: 'Privacy Shields',
@@ -402,6 +413,17 @@ const i18n = {
     toastPipelineComplete: 'Pipeline di auditing completata!',
     toastFileUploadSuccess: 'File caricato con successo!',
     toastFileUploadError: 'Sono supportati solo file di testo, .rsc o .log!',
+    toastQueueGenerated: 'Comando Simple Queue generato istantaneamente!',
+    queueHeader: 'Generatore di Code (Queue)',
+    queueTargetName: 'Nome Target',
+    queueTargetIp: 'IP Target o Lista Indirizzi',
+    queueMaxUpload: 'Upload Max (Mbps)',
+    queueMaxDownload: 'Download Max (Mbps)',
+    queuePriority: 'Priorità (1-8)',
+    queueGenerateBtn: 'Genera',
+    queueOutputTitle: 'Comando CLI Pronto',
+    queueCopyBtn: 'Copia per il Terminale',
+    queueValidationErr: 'Compila tutti i campi prima!',
     settingsPanelTitle: 'Pannello Impostazioni',
     settingsTabAi: 'Provider IA',
     settingsTabPrivacy: 'Scudi Privacy',
@@ -519,6 +541,17 @@ class LocalizationService {
     if (els.uiLabelPromptOverride) els.uiLabelPromptOverride.textContent = t.settingsLabelPromptOverride;
     if (els.settingPrompt) els.settingPrompt.placeholder = t.settingsPromptPlaceholder;
     if (els.uiLabelSaveSettings) els.uiLabelSaveSettings.textContent = t.settingsBtnSave;
+
+    // Queue Generator localized inputs
+    if (document.getElementById('ui-queue-header')) document.getElementById('ui-queue-header').innerHTML = `<span>🚀</span> ${t.queueHeader}`;
+    if (document.getElementById('ui-label-queue-name')) document.getElementById('ui-label-queue-name').textContent = t.queueTargetName;
+    if (document.getElementById('ui-label-queue-ip')) document.getElementById('ui-label-queue-ip').textContent = t.queueTargetIp;
+    if (document.getElementById('ui-label-queue-upload')) document.getElementById('ui-label-queue-upload').textContent = t.queueMaxUpload;
+    if (document.getElementById('ui-label-queue-download')) document.getElementById('ui-label-queue-download').textContent = t.queueMaxDownload;
+    if (document.getElementById('ui-label-queue-priority')) document.getElementById('ui-label-queue-priority').textContent = t.queuePriority;
+    if (document.getElementById('ui-label-queue-generate-btn')) document.getElementById('ui-label-queue-generate-btn').textContent = t.queueGenerateBtn;
+    if (document.getElementById('ui-queue-output-title')) document.getElementById('ui-queue-output-title').textContent = t.queueOutputTitle;
+    if (document.getElementById('ui-label-queue-copy-btn')) document.getElementById('ui-label-queue-copy-btn').textContent = t.queueCopyBtn;
 
     // Update any rendered download buttons labels
     document.querySelectorAll('.rsc-btn-label').forEach(el => {
@@ -703,9 +736,21 @@ const els = {
   sidebarTabHistory: document.getElementById('sidebar-tab-history'),
   sidebarTabContext: document.getElementById('sidebar-tab-context'),
   sidebarTabPreferences: document.getElementById('sidebar-tab-preferences'),
+  sidebarTabQueues: document.getElementById('sidebar-tab-queues'),
   sidebarSectionHistory: document.getElementById('sidebar-section-history'),
   sidebarSectionContext: document.getElementById('sidebar-section-context'),
   sidebarSectionPreferences: document.getElementById('sidebar-section-preferences'),
+  sidebarSectionQueues: document.getElementById('sidebar-section-queues'),
+
+  queueTargetName: document.getElementById('queue-target-name'),
+  queueTargetIp: document.getElementById('queue-target-ip'),
+  queueMaxUpload: document.getElementById('queue-max-upload'),
+  queueMaxDownload: document.getElementById('queue-max-download'),
+  queuePriority: document.getElementById('queue-priority'),
+  btnQueueGenerate: document.getElementById('btn-queue-generate'),
+  queueCodeOutputContainer: document.getElementById('queue-code-output-container'),
+  queueCodeBlock: document.getElementById('queue-code-block'),
+  btnQueueCopy: document.getElementById('btn-queue-copy'),
 
   btnClearHistory: document.getElementById('btn-clear-history'),
   searchHistory: document.getElementById('search-history'),
@@ -974,19 +1019,40 @@ function switchSidebarTab(tabId) {
   stateStore.set('activeSidebarTab', tabId);
 
   // Reset visual tab active/inactive states
-  [els.sidebarTabHistory, els.sidebarTabContext, els.sidebarTabPreferences].forEach(el => {
-    el.className = 'py-1.5 px-1 text-[10px] font-bold rounded-lg text-slate-500 hover:text-slate-900 dark:hover:text-white transition truncate text-center';
+  [els.sidebarTabHistory, els.sidebarTabContext, els.sidebarTabPreferences, els.sidebarTabQueues].forEach(el => {
+    if (el) {
+      el.className = 'py-1.5 px-1 text-[10px] font-bold rounded-lg text-slate-500 hover:text-slate-900 dark:hover:text-white transition truncate text-center focus:outline-none focus:ring-2 focus:ring-brand-500';
+    }
   });
 
   els.sidebarSectionHistory.classList.add('hidden');
   els.sidebarSectionContext.classList.add('hidden');
   els.sidebarSectionPreferences.classList.add('hidden');
+  if (els.sidebarSectionQueues) els.sidebarSectionQueues.classList.add('hidden');
 
-  const activeBtn = tabId === 'history' ? els.sidebarTabHistory : (tabId === 'context' ? els.sidebarTabContext : els.sidebarTabPreferences);
-  activeBtn.className = 'py-1.5 px-1 text-[10px] font-bold rounded-lg bg-slate-200 dark:bg-slate-800/80 text-brand-600 dark:text-brand-400 border border-cyber-border hover:text-brand-500 transition truncate text-center';
+  let activeBtn = els.sidebarTabHistory;
+  let activeSection = els.sidebarSectionHistory;
 
-  const activeSection = tabId === 'history' ? els.sidebarSectionHistory : (tabId === 'context' ? els.sidebarSectionContext : els.sidebarSectionPreferences);
-  activeSection.classList.remove('hidden');
+  if (tabId === 'history') {
+    activeBtn = els.sidebarTabHistory;
+    activeSection = els.sidebarSectionHistory;
+  } else if (tabId === 'context') {
+    activeBtn = els.sidebarTabContext;
+    activeSection = els.sidebarSectionContext;
+  } else if (tabId === 'preferences') {
+    activeBtn = els.sidebarTabPreferences;
+    activeSection = els.sidebarSectionPreferences;
+  } else if (tabId === 'queues') {
+    activeBtn = els.sidebarTabQueues;
+    activeSection = els.sidebarSectionQueues;
+  }
+
+  if (activeBtn) {
+    activeBtn.className = 'py-1.5 px-1 text-[10px] font-bold rounded-lg bg-slate-200 dark:bg-slate-800/80 text-brand-600 dark:text-brand-400 border border-cyber-border hover:text-brand-500 transition truncate text-center focus:outline-none focus:ring-2 focus:ring-brand-500';
+  }
+  if (activeSection) {
+    activeSection.classList.remove('hidden');
+  }
 }
 
 /**
@@ -2386,6 +2452,9 @@ function setupEventListeners() {
   els.sidebarTabHistory.addEventListener('click', () => switchSidebarTab('history'));
   els.sidebarTabContext.addEventListener('click', () => switchSidebarTab('context'));
   els.sidebarTabPreferences.addEventListener('click', () => switchSidebarTab('preferences'));
+  if (els.sidebarTabQueues) {
+    els.sidebarTabQueues.addEventListener('click', () => switchSidebarTab('queues'));
+  }
 
   els.settingProvider.addEventListener('change', () => {
     stateStore.updateModelDefaults(els.settingProvider.value);
@@ -2515,6 +2584,63 @@ function setupEventListeners() {
   });
 
   els.btnThemeToggle.addEventListener('click', toggleTheme);
+
+  // Queue Generator logic event wiring
+  if (els.btnQueueGenerate) {
+    els.btnQueueGenerate.addEventListener('click', () => {
+      const name = els.queueTargetName.value.trim();
+      const target = els.queueTargetIp.value.trim();
+      const upload = els.queueMaxUpload.value.trim();
+      const download = els.queueMaxDownload.value.trim();
+      const priority = els.queuePriority.value;
+
+      const t = LocalizationService.getTranslation();
+
+      if (!name || !target || !upload || !download) {
+        showToast(t.queueValidationErr || 'Please fill out all fields first!', 'error');
+        return;
+      }
+
+      // Exact correct syntax of ready-to-copy RouterOS Simple Queue command
+      const cmd = `/queue simple add name="${name}" target="${target}" max-limit="${upload}M/${download}M" priority=${priority}`;
+
+      if (els.queueCodeBlock) {
+        els.queueCodeBlock.textContent = cmd;
+      }
+
+      if (els.queueCodeOutputContainer) {
+        els.queueCodeOutputContainer.classList.remove('hidden');
+      }
+
+      showToast(t.toastQueueGenerated || 'Simple Queue command generated instantly!', 'success');
+    });
+  }
+
+  if (els.btnQueueCopy) {
+    els.btnQueueCopy.addEventListener('click', () => {
+      const cmd = els.queueCodeBlock ? els.queueCodeBlock.textContent : '';
+      if (!cmd) return;
+
+      const t = LocalizationService.getTranslation();
+
+      navigator.clipboard.writeText(cmd).then(() => {
+        const copyLabelEl = document.getElementById('ui-label-queue-copy-btn');
+        const origLabel = copyLabelEl ? copyLabelEl.textContent : 'Copy to Terminal';
+
+        if (copyLabelEl) {
+          copyLabelEl.textContent = t.copiedText || 'Copied!';
+        }
+
+        showToast(t.toastCopySuccess || 'Command copied!', 'success');
+
+        setTimeout(() => {
+          if (copyLabelEl) {
+            copyLabelEl.textContent = origLabel;
+          }
+        }, 2000);
+      });
+    });
+  }
 }
 
 /**
