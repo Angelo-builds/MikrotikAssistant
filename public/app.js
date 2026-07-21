@@ -674,6 +674,10 @@ const els = {
   attachmentDrawer: document.getElementById('attachment-drawer'),
   btnToggleDrawer: document.getElementById('btn-toggle-drawer'),
   btnClearAttachment: document.getElementById('btn-clear-attachment'),
+  btnFormatConfig: document.getElementById('btn-format-config'),
+  configSummaryBadge: document.getElementById('config-summary-badge'),
+  configSummaryBadgeText: document.getElementById('config-summary-badge-text'),
+  suggestionChipsContainer: document.getElementById('suggestion-chips-container'),
 
   chatMessagesStream: document.getElementById('chat-messages-stream'),
   chatMessagesContainer: document.getElementById('chat-messages-container'),
@@ -860,6 +864,7 @@ function startNewChat() {
   els.pastedConfig.value = '';
   els.fileInfoBar.classList.add('hidden');
   closeAttachmentDrawer();
+  updateConfigAnalysisUI();
 
   showToast('Wizard session refreshed. Magic is ready!', 'success');
 }
@@ -958,6 +963,120 @@ function closeAttachmentDrawer() {
   els.btnToggleDrawer.classList.remove('bg-brand-500/10', 'text-brand-400');
 }
 
+/**
+ * Scans pasted config and updates UI badge and suggestion chips.
+ */
+function updateConfigAnalysisUI() {
+  const code = els.pastedConfig.value.trim();
+  if (code && typeof window.isValidRouterOsConfig === 'function' && window.isValidRouterOsConfig(code)) {
+    // 1. Config Summary Badge
+    const summary = window.detectConfigSummary(code);
+    if (els.configSummaryBadge && els.configSummaryBadgeText) {
+      els.configSummaryBadgeText.textContent = summary;
+      els.configSummaryBadge.classList.remove('hidden');
+    }
+
+    // 2. Dynamic Suggestion Chips
+    generateSuggestionChips(code);
+  } else {
+    if (els.configSummaryBadge) {
+      els.configSummaryBadge.classList.add('hidden');
+    }
+    if (els.suggestionChipsContainer) {
+      els.suggestionChipsContainer.classList.add('hidden');
+      els.suggestionChipsContainer.innerHTML = '';
+    }
+  }
+}
+
+/**
+ * Formats/indents pasted RouterOS config code.
+ */
+function handleFormatConfig() {
+  const code = els.pastedConfig.value;
+  if (!code) {
+    showToast('Nothing to format!', 'info');
+    return;
+  }
+  if (typeof window.formatRouterOsConfig === 'function') {
+    const formatted = window.formatRouterOsConfig(code);
+    els.pastedConfig.value = formatted;
+    showToast('Indented and formatted RouterOS config!', 'success');
+    updateConfigAnalysisUI();
+  }
+}
+
+/**
+ * Generates custom dynamic suggestion chips above the chat input.
+ */
+function generateSuggestionChips(configText) {
+  if (!els.suggestionChipsContainer) return;
+
+  const chips = [];
+
+  // Core smart suggestions
+  if (configText.includes('vlan-filtering=yes') || configText.includes('/interface bridge vlan')) {
+    chips.push({
+      label: '🛡️ Check VLAN Security',
+      query: 'Check if my VLAN security config is correct and if there are any isolated ports leaking.'
+    });
+  }
+
+  if (configText.includes('/ip firewall filter')) {
+    chips.push({
+      label: '🛡️ Audit Firewall Rules',
+      query: 'Audit my firewall rules. Are they in the correct order (e.g. drop invalid before accept) and secure?'
+    });
+  }
+
+  if (configText.includes('/ip firewall nat')) {
+    chips.push({
+      label: '🔍 Check Masquerade Rules',
+      query: 'Check if there are any redundant or duplicate NAT masquerade rules in this configuration.'
+    });
+  }
+
+  if (configText.includes('/ip dhcp-server') || configText.includes('/ip dns')) {
+    chips.push({
+      label: '🌐 Check DNS & DHCP',
+      query: 'Verify if DNS remote requests are configured safely and check the DHCP server config.'
+    });
+  }
+
+  if (configText.includes('/interface wireguard')) {
+    chips.push({
+      label: '🔑 Audit WireGuard VPN',
+      query: 'Audit the WireGuard configuration. Is endpoint and peer security set up correctly?'
+    });
+  }
+
+  if (chips.length === 0) {
+    chips.push({
+      label: '🚀 Audit Configuration',
+      query: 'Please perform a comprehensive best-practice security audit of this RouterOS configuration.'
+    });
+  }
+
+  els.suggestionChipsContainer.innerHTML = '';
+
+  chips.forEach(chip => {
+    const button = document.createElement('button');
+    button.className = 'px-3 py-1.5 bg-brand-500/10 text-brand-500 dark:text-brand-400 hover:bg-brand-500/20 border border-brand-500/20 hover:border-brand-500/40 rounded-full text-xs font-semibold transition active:scale-95 focus:outline-none focus:ring-2 focus:ring-brand-500';
+    button.textContent = chip.label;
+    button.title = chip.query;
+
+    button.addEventListener('click', () => {
+      els.chatMessage.value = chip.query;
+      adjustTextAreaHeight();
+      submitChat();
+    });
+
+    els.suggestionChipsContainer.appendChild(button);
+  });
+
+  els.suggestionChipsContainer.classList.remove('hidden');
+}
+
 function adjustTextAreaHeight() {
   const textarea = els.chatMessage;
   textarea.style.height = '38px';
@@ -1026,6 +1145,7 @@ function handleUploadedFile(file) {
 
     els.fileInfoBar.classList.remove('hidden');
     openAttachmentDrawer();
+    updateConfigAnalysisUI();
     showToast(t.toastFileUploadSuccess, 'success');
   };
   reader.readAsText(file);
@@ -2037,6 +2157,7 @@ async function runStepperAndSubmit(submitPayload, signal, isRetry = false) {
   stateStore.set('currentFile', null);
   els.fileInfoBar.classList.add('hidden');
   closeAttachmentDrawer();
+  updateConfigAnalysisUI();
 
   // Save conversation step in history list
   const timestamp = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
@@ -2101,6 +2222,7 @@ async function submitChat() {
   stateStore.set('currentFile', null);
   els.fileInfoBar.classList.add('hidden');
   closeAttachmentDrawer();
+  updateConfigAnalysisUI();
 
   // Setup active abort controller and button state
   activeAbortController = new AbortController();
@@ -2169,6 +2291,7 @@ async function submitChat() {
         els.fileSizeLabel.textContent = savedFileSize;
         els.fileInfoBar.classList.remove('hidden');
         openAttachmentDrawer();
+    updateConfigAnalysisUI();
       }
       showToast('Request stopped. Inputs restored!', 'info');
     }
@@ -2240,6 +2363,27 @@ function setupEventListeners() {
     stateStore.set('currentFile', null);
     els.fileInfoBar.classList.add('hidden');
     closeAttachmentDrawer();
+    updateConfigAnalysisUI();
+  });
+
+  els.btnFormatConfig.addEventListener('click', handleFormatConfig);
+
+  els.pastedConfig.addEventListener('input', updateConfigAnalysisUI);
+  els.pastedConfig.addEventListener('paste', () => {
+    setTimeout(updateConfigAnalysisUI, 50);
+  });
+  els.pastedConfig.addEventListener('change', updateConfigAnalysisUI);
+
+  // Smart Paste redirection for the main chat message textarea
+  els.chatMessage.addEventListener('paste', (e) => {
+    const pastedText = (e.clipboardData || window.clipboardData).getData('text');
+    if (pastedText && typeof window.isValidRouterOsConfig === 'function' && window.isValidRouterOsConfig(pastedText)) {
+      e.preventDefault();
+      els.pastedConfig.value = pastedText;
+      openAttachmentDrawer();
+      updateConfigAnalysisUI();
+      showToast('Smart Paste: Valid RouterOS config detected and attached!', 'success');
+    }
   });
 
   els.btnCloseDiff.addEventListener('click', () => els.modalDiff.classList.add('hidden'));
