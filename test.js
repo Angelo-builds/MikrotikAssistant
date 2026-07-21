@@ -172,6 +172,33 @@ function runAllTests() {
   assert(mermaidGraphCode.includes('bridge_br_lan["🌉 Bridge: br-lan"]'), 'Should define br-lan node');
   assert(mermaidGraphCode.includes('vlan_bridge_br_lan_10["🏷️ VLAN 10"]'), 'Should define vlan 10 node');
 
+  // Unit Test 9: Context Injector Verification
+  console.log('\n--- Unit Test 9: injectContext ---\n');
+  const { injectContext, summaries } = require('./mikrotik-wiki-context');
+  const basePrompt = "Original System Prompt";
+
+  // Test 9a: No keywords matched
+  const resNoMatch = injectContext(basePrompt, "no match", "no match config");
+  assert(resNoMatch === basePrompt, "Should return original system prompt when no keywords match");
+
+  // Test 9b: Case-insensitive match on single keyword (firewall)
+  const resFirewall = injectContext(basePrompt, "FiReWaLl config help", "other config");
+  assert(resFirewall.includes(summaries.firewall), "Should inject firewall summary when keyword 'firewall' is present case-insensitively");
+  assert(resFirewall.endsWith(basePrompt), "Injected prompt should end with the original prompt");
+
+  // Test 9c: Multiple keywords matched (vlan and queue)
+  const resMulti = injectContext(basePrompt, "set up a VLAN", "simple queue configuration");
+  assert(resMulti.includes(summaries.vlan), "Should inject vlan summary");
+  assert(resMulti.includes(summaries.queue), "Should inject queue summary");
+  assert(resMulti.includes(summaries.vlan) && resMulti.includes(summaries.queue), "Should inject both summaries");
+
+  // Test 9d: Graceful handling of undefined/null inputs
+  const resNull = injectContext(null, null, null);
+  assert(resNull === "", "Should return empty string if no keywords match and systemPrompt is null");
+
+  const resNullWithKeyword = injectContext(null, "use OSPF", null);
+  assert(resNullWithKeyword.includes(summaries.ospf), "Should inject OSPF summary even if systemPrompt and pastedConfig are null");
+
   console.log('\n=======================================');
   if (failures === 0) {
     console.log('🎉 ALL INTEGRATION & UNIT TESTS PASSED SUCCESSFULLY! 🎉');
