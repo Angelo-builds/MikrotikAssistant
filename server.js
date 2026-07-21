@@ -2,6 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const path = require('path');
 const { mask, unmask } = require('./privacyShield');
+const { injectContext } = require('./mikrotik-wiki-context');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -310,6 +311,9 @@ app.post('/api/chat', async (req, res) => {
 
     // Combine user message and pasted config into a single cohesive layout for the LLM
     const combinedInput = `${historyText}[USER QUESTION/ISSUE]:\n${chatMessage || 'Please analyze this configuration for errors or potential improvements.'}\n\n[ROUTEROS CONFIG / LOGS / EXPORT]:\n\`\`\`\n${pastedConfig || '(No configuration pasted)'}\n\`\`\`\n`;
+
+    // Inject custom best practice wiki context if keywords are present in chatMessage or pastedConfig
+    systemPrompt = injectContext(systemPrompt || DEFAULT_SYSTEM_PROMPT, chatMessage, pastedConfig);
 
     // Apply the Privacy Shield masking
     console.log('🛡️ [Mik\'s Privacy Shield] Casting masking spell on user input...');
