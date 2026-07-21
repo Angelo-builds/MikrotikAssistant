@@ -723,6 +723,7 @@ const els = {
   btnToggleDrawer: document.getElementById('btn-toggle-drawer'),
   btnClearAttachment: document.getElementById('btn-clear-attachment'),
   btnFormatConfig: document.getElementById('btn-format-config'),
+  btnAnalyzeShadows: document.getElementById('btn-analyze-shadows'),
   configSummaryBadge: document.getElementById('config-summary-badge'),
   configSummaryBadgeText: document.getElementById('config-summary-badge-text'),
   suggestionChipsContainer: document.getElementById('suggestion-chips-container'),
@@ -1636,6 +1637,11 @@ function parseAIResponse(rawText) {
 }
 
 function appendAssistantResponse(result) {
+  if (result && result.shadowDetectorResult) {
+    renderShadowDetectorResults(result.shadowDetectorResult);
+    return;
+  }
+
   const container = els.chatMessagesContainer || els.chatMessagesStream;
   const wrapper = document.createElement('div');
   wrapper.className = 'flex flex-col space-y-2.5 items-start max-w-3xl mr-auto w-full select-text animate-apple-reveal';
@@ -1986,6 +1992,256 @@ async function retryChat(submitPayload) {
     activeAbortController = null;
     setButtonState('send');
   }
+}
+
+/**
+ * ============================================================================
+ * FIREWALL SHADOW DETECTOR CONTROLLER
+ * ============================================================================
+ */
+async function analyzeFirewallShadows() {
+  const pastedVal = els.pastedConfig.value.trim();
+  if (!pastedVal) {
+    showToast('Please attach or paste a RouterOS configuration export first!', 'error');
+    return;
+  }
+
+  // Setup abort controller & button state
+  activeAbortController = new AbortController();
+  setButtonState('loading');
+
+  const settings = stateStore.get('settings');
+  const maskOptions = {
+    maskIPs: settings.maskIPs,
+    maskMACs: settings.maskMACs,
+    maskSecrets: settings.maskSecrets,
+    maskInterfaces: settings.maskInterfaces,
+    maskDomains: settings.maskDomains,
+    maskIdentity: settings.maskIdentity
+  };
+
+  const body = {
+    pastedConfig: pastedVal,
+    provider: settings.provider,
+    apiKey: settings.apiKey,
+    baseUrl: settings.baseUrl,
+    model: settings.model,
+    language: stateStore.get('language'),
+    maskOptions,
+    routerOsVersion: els.selectRosVersion.value,
+    hardwareModel: els.selectHardware.value
+  };
+
+  const loaderCard = document.createElement('div');
+  loaderCard.id = 'inline-loader-card';
+  loaderCard.className = 'flex flex-col space-y-3.5 items-start max-w-2xl mr-auto w-full select-none p-5 rounded-2xl bg-cyber-panel border border-brand-500/30 shadow-brand-glow animate-pulse';
+
+  loaderCard.innerHTML = `
+    <div class="flex items-center space-x-2.5">
+      <div class="relative w-7 h-7 flex items-center justify-center shrink-0">
+        <div class="absolute inset-0 border-2 border-dashed border-brand-500/50 rounded-lg animate-[spin_4s_linear_infinite]"></div>
+        <div class="w-4 h-4 rounded-md bg-brand-500 text-white flex items-center justify-center border border-brand-100/10">
+          <svg class="w-2.5 h-2.5 text-white animate-spin" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+          </svg>
+        </div>
+      </div>
+      <div>
+        <h4 class="text-xs font-black text-slate-800 dark:text-white uppercase tracking-wider">Firewall Shadow Detector</h4>
+        <p class="text-[9px] text-slate-500">Executing deep rule-dependency mapping...</p>
+      </div>
+    </div>
+    <div class="w-full bg-cyber-bg rounded-full h-2.5 border border-cyber-border overflow-hidden relative">
+      <div id="inline-loader-progress-bar" class="bg-brand-500 h-full w-[0%] transition-all duration-300 shadow-cyber-glow"></div>
+    </div>
+    <div class="flex justify-between w-full text-[10px] font-bold text-slate-500">
+      <span id="inline-loader-log-text">Analyzing rule sequence ordering...</span>
+      <span id="inline-loader-percentage" class="text-brand-400 font-mono">0%</span>
+    </div>
+  `;
+
+  appendUserMessage("Analyze Firewall Shadows", pastedVal);
+
+  const activeContainer = els.chatMessagesContainer || els.chatMessagesStream;
+  activeContainer.appendChild(loaderCard);
+  scrollStreamToBottom();
+
+  const inlineProgressBar = loaderCard.querySelector('#inline-loader-progress-bar');
+  const inlineLogText = loaderCard.querySelector('#inline-loader-log-text');
+  const inlinePercentage = loaderCard.querySelector('#inline-loader-percentage');
+
+  let currentProgress = 0;
+  let targetProgress = 30;
+  let progressInterval = setInterval(() => {
+    if (activeAbortController.signal.aborted) {
+      clearInterval(progressInterval);
+      return;
+    }
+    if (currentProgress < targetProgress) {
+      currentProgress += Math.min(2, targetProgress - currentProgress);
+      if (inlineProgressBar) inlineProgressBar.style.width = currentProgress + '%';
+      if (inlinePercentage) inlinePercentage.textContent = Math.round(currentProgress) + '%';
+    } else if (targetProgress === 85) {
+      currentProgress += (85 - currentProgress) * 0.02;
+      if (inlineProgressBar) inlineProgressBar.style.width = currentProgress + '%';
+      if (inlinePercentage) inlinePercentage.textContent = Math.round(currentProgress) + '%';
+    }
+  }, 100);
+
+  try {
+    await delay(500, activeAbortController.signal);
+    if (inlineLogText) inlineLogText.textContent = "Dispatched query to secure sandbox...";
+    targetProgress = 85;
+
+    const res = await fetch('/api/analyze-shadows', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+      signal: activeAbortController.signal
+    });
+
+    if (!res.ok) {
+      const errData = await res.json();
+      throw new Error(errData.error || `Server error ${res.status}`);
+    }
+
+    const data = await res.json();
+
+    clearInterval(progressInterval);
+    if (inlineProgressBar) inlineProgressBar.style.width = '100%';
+    if (inlinePercentage) inlinePercentage.textContent = '100%';
+    if (inlineLogText) inlineLogText.textContent = "Formatting visualization cards...";
+    await delay(300, activeAbortController.signal);
+
+    loaderCard.remove();
+    els.panelWelcome.classList.add('hidden');
+
+    renderShadowDetectorResults(data);
+
+    // Save conversation step in history list
+    const timestamp = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    let title = `Firewall Shadows ${stateStore.get('history').length + 1}`;
+    const currentChatId = stateStore.get('currentChatId');
+
+    HistoryManager.saveItem({
+      id: currentChatId || Date.now(),
+      title,
+      timestamp,
+      rosVersion: els.selectRosVersion.value,
+      hardwareModel: els.selectHardware.value,
+      messages: [{
+        chatMessage: "Analyze Firewall Shadows",
+        pastedConfig: pastedVal,
+        result: {
+          explanation: data.explanation,
+          shadowDetectorResult: data
+        }
+      }]
+    });
+
+    // Reset inputs
+    els.pastedConfig.value = '';
+    stateStore.set('currentFile', null);
+    els.fileInfoBar.classList.add('hidden');
+    closeAttachmentDrawer();
+    updateConfigAnalysisUI();
+
+  } catch (err) {
+    clearInterval(progressInterval);
+    loaderCard.remove();
+    if (err.name === 'AbortError') {
+      showToast('Shadow analysis stopped.', 'info');
+      return;
+    }
+    showToast(err.message, 'error');
+    appendInlineErrorCard(err.message, () => {
+      analyzeFirewallShadows();
+    });
+  } finally {
+    activeAbortController = null;
+    setButtonState('send');
+  }
+}
+
+function renderShadowDetectorResults(data) {
+  const container = els.chatMessagesContainer || els.chatMessagesStream;
+  const wrapper = document.createElement('div');
+  wrapper.className = 'flex flex-col space-y-2.5 items-start max-w-3xl mr-auto w-full select-text animate-apple-reveal';
+
+  const explanationHtml = window.renderMarkdown(data.explanation || 'No explanations found.');
+  const shadowRules = data.shadowRules || [];
+
+  let cardsHtml = '';
+  if (shadowRules.length === 0) {
+    cardsHtml = `
+      <div class="mt-4 p-4 rounded-xl border border-emerald-500/30 bg-emerald-950/10 text-emerald-200 w-full flex items-center space-x-3 shadow-emerald-glow">
+        <span class="text-xl">🛡️</span>
+        <div>
+          <h4 class="font-bold text-xs uppercase tracking-wide text-emerald-400">Perfect Order Detected</h4>
+          <p class="text-[11px] leading-relaxed font-medium mt-1">Excellent! No shadowed or redundant firewall filter or NAT rules were detected. Your traffic ordering is secure and clean.</p>
+        </div>
+      </div>
+    `;
+  } else {
+    cardsHtml = '<div class="space-y-3.5 w-full mt-4">';
+    shadowRules.forEach((rule, idx) => {
+      cardsHtml += `
+        <div class="p-4 rounded-xl border border-cyber-border/85 bg-cyber-panel flex flex-col space-y-3 shadow-lg select-text">
+          <div class="flex items-center justify-between pb-2 border-b border-cyber-border/40 select-none">
+            <span class="px-2 py-0.5 text-[9px] bg-red-500/15 text-red-400 font-extrabold uppercase rounded-full">Shadowed Rule #${idx + 1}</span>
+            <span class="text-[10px] text-slate-500 font-bold">Rule Sequence Conflict</span>
+          </div>
+
+          <div class="space-y-2">
+            <!-- Shadowed Rule -->
+            <div class="flex flex-col space-y-1">
+              <span class="text-[10px] uppercase font-black tracking-wider text-red-400 select-none">🔴 The Shadowed Rule (Will never be hit)</span>
+              <div class="p-2.5 rounded-lg bg-red-950/20 border border-red-500/20 text-red-300 font-mono text-[11px] leading-normal break-all select-all">
+                ${rule.shadowedRule}
+              </div>
+            </div>
+
+            <!-- Causing Rule -->
+            <div class="flex flex-col space-y-1">
+              <span class="text-[10px] uppercase font-black tracking-wider text-amber-400 select-none">🟡 Rule Causing the Shadow (Precedes & blocks)</span>
+              <div class="p-2.5 rounded-lg bg-amber-950/20 border border-amber-500/20 text-amber-300 font-mono text-[11px] leading-normal break-all select-all">
+                ${rule.causingRule}
+              </div>
+            </div>
+
+            <!-- Recommended Fix -->
+            <div class="flex flex-col space-y-1 pt-1">
+              <span class="text-[10px] uppercase font-black tracking-wider text-cyber-accent select-none">🟢 Recommended Rule Alignment</span>
+              <div class="p-2.5 rounded-lg bg-brand-500/10 border border-cyber-accent/20 text-cyan-200 font-bold text-xs leading-relaxed select-all">
+                ${rule.fix}
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+    });
+    cardsHtml += '</div>';
+  }
+
+  wrapper.innerHTML = `
+    <div class="flex items-center space-x-2 text-[10px] text-slate-500 font-semibold select-none">
+      <span class="text-cyber-accent">🧙‍♂️ Mik the Winbox Wizard</span>
+      <span>•</span>
+      <span>${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+    </div>
+    <div class="chat-bubble-assistant text-xs text-slate-700 dark:text-slate-300 p-5 rounded-2xl leading-relaxed shadow-xl max-w-full w-full">
+      <div class="mb-4 pb-3 border-b border-cyber-border/40 flex items-center space-x-2 select-none">
+        <span class="text-lg">🛡️</span>
+        <h3 class="text-xs font-black uppercase tracking-wider text-cyber-accent">Firewall Shadow Detector Analysis</h3>
+      </div>
+      ${explanationHtml}
+      ${cardsHtml}
+    </div>
+  `;
+
+  container.appendChild(wrapper);
+  scrollStreamToBottom();
 }
 
 /**
@@ -2419,6 +2675,9 @@ function setupEventListeners() {
   });
 
   els.btnFormatConfig.addEventListener('click', handleFormatConfig);
+  if (els.btnAnalyzeShadows) {
+    els.btnAnalyzeShadows.addEventListener('click', analyzeFirewallShadows);
+  }
 
   els.pastedConfig.addEventListener('input', updateConfigAnalysisUI);
   els.pastedConfig.addEventListener('paste', () => {

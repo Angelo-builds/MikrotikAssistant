@@ -5,6 +5,32 @@ const { mask, unmask } = require('./privacyShield');
 const { injectContext } = require('./mikrotik-wiki-context');
 
 const app = express();
+
+/**
+ * Extracts only the /ip firewall filter and /ip firewall nat sections from a RouterOS configuration.
+ */
+function extractFirewallSections(configText) {
+  if (!configText) return '';
+  const lines = configText.split('\n');
+  let inTargetSection = false;
+  const extractedLines = [];
+
+  for (let line of lines) {
+    const trimmed = line.trim();
+    if (trimmed.startsWith('/')) {
+      const lower = trimmed.toLowerCase();
+      if (lower.startsWith('/ip firewall filter') || lower.startsWith('/ip firewall nat')) {
+        inTargetSection = true;
+        extractedLines.push(line);
+      } else {
+        inTargetSection = false;
+      }
+    } else if (inTargetSection) {
+      extractedLines.push(line);
+    }
+  }
+  return extractedLines.join('\n');
+}
 const PORT = process.env.PORT || 3000;
 
 // Enable CORS and JSON parsing
@@ -384,6 +410,134 @@ app.post('/api/chat', async (req, res) => {
 });
 
 /**
+ * Endpoint: Firewall Shadow Detector Analysis
+ */
+app.post('/api/analyze-shadows', async (req, res) => {
+  try {
+    let {
+      pastedConfig,
+      provider,
+      apiKey,
+      baseUrl,
+      model,
+      language,
+      maskOptions,
+      routerOsVersion,
+      hardwareModel
+    } = req.body;
+
+    if (!pastedConfig) {
+      return res.status(400).json({ error: 'RouterOS configuration is required to analyze' });
+    }
+
+    // Extract only firewall and NAT sections
+    const firewallSection = extractFirewallSections(pastedConfig);
+    if (!firewallSection.trim()) {
+      return res.status(400).json({ error: 'No /ip firewall filter or /ip firewall nat sections found in configuration.' });
+    }
+
+    // Prepare system prompt for shadow rules analysis
+    const SHADOW_SYSTEM_PROMPT = `You are Mik the Winbox Wizard (or Mik for short), an authoritative, certified Senior MikroTik Network Security Expert. Your task is to analyze RouterOS firewall rule ordering and identify any "shadowed" rules (rules that will never be hit because a previous, broader rule already accepts or drops the traffic).
+
+TONE & PERSONALITY Guidelines:
+1. STRICTLY PROFESSIONAL & TECHNICAL: Remove ALL fantasy metaphors.
+2. Be direct, concise, and authoritative. Speak and act like a Senior Network Engineer.
+3. NEVER output conversational filler or friendly/lighthearted greetings. Get straight to the analysis.
+
+You MUST analyze the rules and return your output in two distinct sections, wrapped in the following markers:
+
+<<<EXPLANATION>>>
+Provide a professional, technical explanation explaining why the shadowed rules occur and what the overall security or logical impact is.
+<<<END_EXPLANATION>>>
+
+<<<SHADOW_RULES>>>
+Provide a valid JSON array of identified shadowed rules, matching this schema exactly:
+[
+  {
+    "shadowedRule": "Rule details (e.g. add chain=input action=accept protocol=tcp port=22)",
+    "causingRule": "Rule details (e.g. add chain=input action=drop)",
+    "fix": "Move rule X above rule Y"
+  }
+]
+If there are no shadowed rules found, return exactly an empty array: []
+Do not add any Markdown formatting or backticks around the JSON array inside the <<<SHADOW_RULES>>> tags. Just pure JSON.
+<<<END_SHADOW_RULES>>>
+
+Strict Instructions:
+1. You will see placeholders like [PRIV_IP_1], [PUB_IP_1], [MAC_1], [SECRET_1], [IFACE_1], [DOMAIN_1], [IDENTITY_1]. You MUST preserve these exact placeholders in your response.
+2. Only identify true shadowed rules (where traffic matching the shadowed rule is guaranteed to have already been handled by a broader previous rule in the same chain). Avoid false positives.`;
+
+    // Override or supply defaults from environment variables if set
+    if (process.env.LLM_PROVIDER) {
+      provider = process.env.LLM_PROVIDER;
+      if (process.env.LLM_MODEL) {
+        model = process.env.LLM_MODEL;
+      }
+      if (process.env.LLM_BASE_URL) {
+        baseUrl = process.env.LLM_BASE_URL;
+      }
+    }
+
+    const promptText = `Analyze this RouterOS firewall rule order. Identify any 'shadowed' rules (rules that will never be hit because a previous, broader rule already accepts or drops the traffic). Explain why and suggest the correct order.\n\n[FIREWALL RULES TO ANALYZE]:\n\`\`\`\n${firewallSection}\n\`\`\`\n`;
+
+    // Apply the Privacy Shield masking
+    console.log('🛡️ [Mik\'s Privacy Shield] Masking firewall config for shadow analysis...');
+    const { maskedText, mapping } = mask(promptText, maskOptions);
+
+    // Send to LLM
+    const llmRawResponse = await callLLM({
+      provider,
+      apiKey,
+      baseUrl,
+      model,
+      systemPrompt: SHADOW_SYSTEM_PROMPT,
+      promptText: maskedText,
+      language: language || 'auto',
+      routerOsVersion,
+      hardwareModel
+    });
+
+    console.log('🔮 [Mik the Winbox Wizard] Shadow analysis complete! Unmasking response...');
+    const unmaskedRawResponse = unmask(llmRawResponse, mapping);
+
+    // Parse sections
+    let explanation = '';
+    let shadowRulesStr = '[]';
+
+    const expMatch = /<<<EXPLANATION>>>([\s\S]*?)<<<END_EXPLANATION>>>/i.exec(unmaskedRawResponse);
+    if (expMatch) explanation = expMatch[1].trim();
+
+    const rulesMatch = /<<<SHADOW_RULES>>>([\s\S]*?)<<<END_SHADOW_RULES>>>/i.exec(unmaskedRawResponse);
+    if (rulesMatch) shadowRulesStr = rulesMatch[1].trim();
+
+    // Fallback if formatting was ignored by LLM
+    if (!explanation && !rulesMatch) {
+      explanation = unmaskedRawResponse;
+    }
+
+    let shadowRules = [];
+    try {
+      // Clean potential JSON markdown wrapper if LLM mistakenly added it
+      let cleanJson = shadowRulesStr.replace(/```json/gi, '').replace(/```/g, '').trim();
+      shadowRules = JSON.parse(cleanJson);
+    } catch (parseErr) {
+      console.warn('Failed to parse shadow rules JSON from LLM:', parseErr, shadowRulesStr);
+    }
+
+    res.json({
+      success: true,
+      explanation,
+      shadowRules,
+      firewallSection
+    });
+
+  } catch (error) {
+    console.error('[Error] Shadow analysis failed:', error);
+    res.status(500).json({ error: error.message || 'An error occurred during shadow analysis' });
+  }
+});
+
+/**
  * Endpoint: Test Connection to Provider
  */
 app.post('/api/test-connection', async (req, res) => {
@@ -425,6 +579,13 @@ app.post('/api/test-connection', async (req, res) => {
 });
 
 // Start server
-app.listen(PORT, () => {
-  console.log(`🧙‍♂️ 🚀 Mik the Winbox Wizard is running at http://localhost:${PORT}`);
-});
+if (require.main === module) {
+  app.listen(PORT, () => {
+    console.log(`🧙‍♂️ 🚀 Mik the Winbox Wizard is running at http://localhost:${PORT}`);
+  });
+}
+
+module.exports = {
+  extractFirewallSections,
+  app
+};
