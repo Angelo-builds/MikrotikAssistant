@@ -1,219 +1,211 @@
-# 🧙‍♂️ Mik the Winbox Wizard — MikroTik Privacy AI Chatbot Assistant
+# MikrotikAssistant
 
 <div align="center">
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-[![Node.js Version](https://img.shields.io/badge/node-%3E%3D%2016.x-green.svg)](https://nodejs.org/)
-[![Privacy-Focused](https://img.shields.io/badge/Privacy-100%25%20Shielded-brightgreen.svg)](#-security--privacy-shield)
-[![Build Status](https://img.shields.io/badge/build-passing-brightgreen.svg)](#)
+[![Node.js Version](https://img.shields.io/badge/Node.js-%3E%3D%2018.x-green.svg)](https://nodejs.org/)
+[![Privacy-Focused](https://img.shields.io/badge/Privacy-Local%20Shield-brightgreen.svg)](#-privacy-shield)
+[![AI-Powered](https://img.shields.io/badge/AI--Powered-Multi--Agent-orange.svg)](#-multi-agent-orchestrator)
 
-**An enterprise-grade, privacy-first AI-powered assistant designed for MikroTik RouterOS (v6 & v7) configuration auditing, secure debugging, and script generation.**
+**The Privacy-First, Multi-Agent RouterOS Configuration Auditor & Generator.**
 
 </div>
 
 ---
 
-## 🚀 Overview
+## ⚡ Executive Summary
 
-**Mik the Winbox Wizard** (or **Mik** for short) is a professional, secure AI network assistant built specifically for MikroTik administrators and network engineers. It combines a state-of-the-art technical conversational interface with an uncompromising local **Privacy Shield** pre-processing pipeline.
-
-With **Mik**, you can audit complex firewall rules, troubleshoot OSPF or BGP peer routing issues, or request configuration scripts tailored exactly to your RouterOS version and hardware model without ever exposing sensitive corporate data (such as passwords, public/private IP addresses, MAC coordinates, or system identity) to third-party LLMs.
+**MikrotikAssistant** is an enterprise-grade, privacy-centric utility designed specifically for network engineers, systems administrators, and security auditors managing MikroTik RouterOS (v6 & v7) deployments. Far beyond a generic chatbot, it represents a specialized diagnostic suite that couples a local **Privacy Shield** data scrubbing engine with a **Multi-Agent AI Orchestrator**. This ensures that complex configuration file audits, security vulnerability assessments, and target-syntax CLI script generation are executed without ever transmitting sensitive network coordinates or credential secrets to external LLMs.
 
 ---
 
-## 🛡️ Security & Privacy Shield
+## ✨ Key Features
 
-Security is our core foundation. Mik implements a robust, locally executed data-cleansing pipeline. Before any request is dispatched over the WAN to cloud LLM providers, sensitive context variables are immediately stripped, recorded, and mapped to anonymous placeholders. Once the LLM generates the response in our secure sandbox, the local server restores original values instantly inside your browser.
+### 🔒 Privacy Shield
+The local sanitization pipeline completely strips network identity markers and secrets before dispatching payloads over the network.
+* **Contextual Tokenization**: Automatically translates private/public IPv4 & IPv6 networks, MAC addresses, custom interface structures, routing tables, and device identities into generic, consistent tokens (e.g., `[PRIV_IP_1]`, `[IFACE_2]`).
+* **Absolute Security**: Cryptographic credentials, SSH keys, passwords, and WPA pre-shared keys are instantly scrubbed in local memory.
+* **In-Memory Demapping**: The translation dictionary remains strictly inside your local runtime context. When responses return from the LLM, original variables are seamlessly unmasked and displayed in the user interface.
 
-### 🔒 Privacy Shield Flow
+### 🤖 Multi-Agent Orchestrator
+When running in **Deep Dive Mode**, a dedicated orchestration system parallelizes the auditing pipeline:
+* **Task Delegation**: Requests are split across specialized sub-agents focused on **Security Audit** (firewall rule shadows, vulnerable ports), **VLAN/Layer-2 Topology** (bridge configurations, trunk mismatches), and **Routing & WAN** (NAT rules, PPPoE/OSPF setups).
+* **Synthesis & Reconciliation**: The orchestrator automatically aggregates parallel agent diagnostics into an actionable Executive Summary.
+* **Unified Output**: Creates a singular, safe, and logically ordered RouterOS CLI script to execute the remediation delta.
 
-The diagram below illustrates how sensitive information is guarded during transit:
+### ⚡ Smart UX & Intent Detection
+Engineered for rapid terminal integration, the interface adapts dynamically to operator behavior:
+* **Smart Paste & Intent Detection**: Pasting or entering terminal configurations over 300 characters triggers keyword detection, auto-rendering dynamic suggestion chips, and generating brief configuration summaries.
+* **Slash Commands**: Execute specialized workflows instantly (e.g., `/audit`, `/explain`).
+* **Context Modifiers**: Tailor the technical depth of explanations and output scripts in real-time by appending `@strict` (enforces strict syntax & security standards) or `@beginner` (includes educational, verbose explanations).
+
+### 🛠️ Pro Tools
+* **RSC Script Export**: One-click export for corrected configurations in native MikroTik `.rsc` script format, complete with formatted metadata headers.
+* **Visual Diff Viewer**: Interactive, line-by-line split (side-by-side) or unified differential comparison of original masked vs. corrected masked configurations.
+* **Mermaid.js VLAN Topology Visualizer**: Automatically parses active Layer-2 configurations and renders standard, interactive, zoomable Mermaid.js topologies.
+* **Firewall Shadow Rule Detector**: A specialized diagnostic route `/api/analyze-shadows` that parses rule blocks and flags unreachable, redundant, or shadowed firewall and NAT configurations.
+
+---
+
+## 📐 Architecture & Workflow
+
+MikrotikAssistant splits execution pipelines to deliver an optimal balance of latency and depth. Simple queries traverse the **Fast Lane** (quick, single-agent interactions), while complete configuration files utilize the **Deep Dive** multi-agent pipeline.
+
+### Data Flow Diagram
 
 ```mermaid
 graph TD
-    A[User Raw Config / Query] -->|Local Processing| B[Privacy Shield Masking]
-    B -->|Generates Redacted Text| C[Masked Input sent to LLM]
-    B -->|Records Maps Locally| D[(Local Mapping Registry)]
-    C -->|AI Sandbox Generation| E[Redacted Solution Response]
-    E -->|Browser De-anonymizer| F[Original Values Restored]
-    D -->|Injects Private Subnets/Secrets| F
-    F --> G[Display Explanation, Diff & Restored Commands]
+    User["User Console (Config / Issue)"] --> Masker["Local Privacy Shield (Masking)"]
+    Masker --> Registry[("Local Mapping Registry (In-Memory Only)")]
+    Masker -->|"Sanitized Payload"| Orchestrator{"Orchestrator Mode Check"}
 
-    style B fill:#1e1b4b,stroke:#a78bfa,stroke-width:2px,color:#fff
-    style D fill:#0c0f1d,stroke:#10b981,stroke-width:2px,color:#fff
-    style C fill:#0f172a,stroke:#fbbf24,stroke-width:1px,stroke-dasharray: 5 5,color:#fff
-    style E fill:#0f172a,stroke:#fbbf24,stroke-width:1px,stroke-dasharray: 5 5,color:#fff
-    style F fill:#1e1b4b,stroke:#22d3ee,stroke-width:2px,color:#fff
-    style G fill:#0c0f1d,stroke:#7c3aed,stroke-width:2px,color:#fff
+    %% Fast Lane
+    Orchestrator -->|"Single Query"| FastLLM["Single Agent (Fast Lane)"]
+    FastLLM -->|"Raw Response"| Unmasker["Local Privacy Shield (Unmasking)"]
+
+    %% Deep Dive Multi-Agent Flow
+    Orchestrator -->|"Configuration Audit"| Dispatcher["Multi-Agent Dispatcher (Deep Dive)"]
+
+    subgraph Parallel Agents
+        Dispatcher --> SecurityAgent["Security Agent (Firewall Order & Shadows)"]
+        Dispatcher --> VlanAgent["VLAN Agent (L2 Bridge & Port Mapping)"]
+        Dispatcher --> RoutingAgent["Routing Agent (NAT, WAN & Gateway)"]
+    end
+
+    SecurityAgent --> Aggregator["Executive Summarizer & Script Combiner"]
+    VlanAgent --> Aggregator
+    RoutingAgent --> Aggregator
+
+    Aggregator -->|"Unified Sanitized Response"| Unmasker
+    Registry -.->|"In-Memory Mapping Restoration"| Unmasker
+    Unmasker --> Screen["Interactive Winbox UI (Diffs, Checklists & RSC Scripts)"]
+
+    style Masker fill:#1e293b,stroke:#3b82f6,stroke-width:2px,color:#fff
+    style Registry fill:#0f172a,stroke:#f59e0b,stroke-width:2px,color:#fff
+    style Parallel Agents fill:#111827,stroke:#6b7280,stroke-width:1px,color:#fff
+    style Unmasker fill:#1e293b,stroke:#10b981,stroke-width:2px,color:#fff
+    style Screen fill:#111827,stroke:#8b5cf6,stroke-width:2px,color:#fff
 ```
-
-### 🔒 Redaction Coverage
-
-The local masking engine automatically identifies and obfuscates:
-* **IP Addresses**: Scans IPv4/IPv6 subnets and maps them contextually to `[PRIV_IP_x]` or `[PUB_IP_x]` placeholders.
-* **MAC Hardware IDs**: Redacts raw physical network interface addresses to `[MAC_x]`.
-* **Credentials & Keys**: Scrubs passwords, WPA/WPA2 pre-shared keys, shared secrets, PINs, and authentication keys.
-* **Interface Names**: Protects custom naming topology (e.g. `bridge-lan-office` to `[IFACE_x]`) while preserving generic terms like `ether1` and `bridge` for layout context.
-* **Domains & Dynamic DNS**: Maps DDNS addresses and external lookups to `[DOMAIN_x]`.
-* **Router Identity**: Redacts customized system identity hostnames.
 
 ---
 
-## ✨ Features
+## 🖥️ UI Previews
 
-* 🔒 **Local-First Privacy**: Absolute data sanitization occurs strictly before leaving your local server.
-* 📁 **RSC File Export**: Download fully corrected configurations directly in native MikroTik `.rsc` script format, packaged with an official standard MikroTik metadata comment header.
-* 📊 **Comparative Colored Diff**: High-contrast, interactive unified or split-screen comparisons to visually review configuration modifications before applying them.
-* 📋 **CLI Checklist Modal**: Interactively review ready-to-run terminal commands, checking them off as they are pasted into your WinBox CLI terminal.
-* 🎨 **Micro-Interactive Cyber WinBox UI**: Premium Apple-inspired easing, fade-in transition cues, theme variables (Light/Dark Modes), and localized interface options.
-* 🌐 **Dynamic Multilingual Support**: Deep-integrated dictionaries for English and Italian, matching both system terminology and localized conversational AI output.
-* 🕒 **Multi-Turn Persistent Streams**: Store conversation history safely in browser `localStorage`, allowing long-term troubleshooting sessions.
+### Smart Chips Intent Detection
+The application detects when raw CLI dumps or config backups are pasted into the console, instantly updating the context summary and rendering smart selection chips.
+![Smart Chips Intent Detection](docs/screenshots/smart-chips.png)
 
----
+### Multi-Agent Audit Dashboard
+Deep Dive auditing splits workloads across specialized AI engineers, compiling comprehensive parallel reports side-by-side.
+![Multi-Agent Dashboard](docs/screenshots/multi-agent.png)
 
-## 📂 Project Directory Structure
-
-```text
-MikrotikAssistant/
-├── public/
-│   ├── index.html        # Single Page Tailwind CSS Frontend UI (Cyber WinBox layout)
-│   ├── app.js            # Main Frontend Javascript (Localization, diff engines & history)
-│   └── utils.js          # Pure utility functions (diff computation, Markdown rendering)
-├── privacyShield.js      # Robust regex masking & restoration engine
-├── server.js             # Express.js backend CORS proxy & system prompt injector
-├── test.js               # Lightweight unit & integration test suite
-├── LICENSE               # Open-source MIT License
-├── CONTRIBUTING.md       # Guidelines for adding masking rules or parsing features
-├── package.json          # Dependency definition and operational scripts
-└── README.md             # Project documentation and guide
-```
+### Visual Diff Viewer
+Verify exactly what changes are being proposed before copy-pasting code into production environments using the built-in diff utility.
+![Visual Diff Viewer](docs/screenshots/diff-viewer.png)
 
 ---
 
 ## 🚀 Quick Start
 
-Follow these steps to launch Mik the Winbox Wizard on your local machine in under two minutes:
-
 ### Prerequisites
-* **Node.js** (v16.x or newer is highly recommended)
-* **npm** (comes packaged with Node.js)
+* **Node.js**: `v18.x` or newer.
+* **npm**: Managed alongside Node.js.
+* **Ollama (Optional)**: For local, offline LLM inference.
 
 ### Installation
 
-Clone the repository and install the dependencies:
+Clone the repository and install standard dependencies:
 
 ```bash
 # Clone the repository
 git clone https://github.com/yourusername/MikrotikAssistant.git
 
-# Navigate into the project folder
+# Navigate to the workspace root
 cd MikrotikAssistant
 
-# Install dependencies
+# Install lightweight dependencies
 npm install
 ```
 
-### Running the Application
+### Run the Application
 
-To start the backend proxy server locally:
+Start the Express backend proxy on port `3000`:
 
 ```bash
 npm start
 ```
 
-Once running, the application will be accessible at: **[http://localhost:3000](http://localhost:3000)**.
-
-To customize your AI execution, open the **Wizard Control Center** sidebar, click on the **Prefs** tab, and enter your LLM provider credentials (supports OpenAI, Anthropic, OpenRouter, Local Ollama, or Custom Gateways).
+Navigate to **[http://localhost:3000](http://localhost:3000)** in your browser.
 
 ---
 
-## 🖥️ Local LLM (Ollama) Integration Guide
+## 🔌 AI Provider Configuration
 
-MikrotikAssistant supports absolute offline and on-premise execution using Ollama compatibility. This guarantees 100% data sovereign operations with zero WAN footprint.
+The application allows you to configure AI providers directly inside the browser using secure local storage (avoiding API keys in transit to backend logs), or automatically binds to backend environment variables.
 
-### 1. Set Up Ollama
-- Install Ollama on your machine (macOS, Linux, or Windows) from [ollama.com](https://ollama.com).
-- Start the background server:
-  ```bash
-  ollama serve
-  ```
-- Pull your preferred model (e.g., `llama3` or `mistral`):
-  ```bash
-  ollama pull llama3
-  ```
+### Environment Variable Setup (Automated)
+You can configure default connection properties in your terminal before launching the server:
 
-### 2. Configure Environment Variables
-You can boot the application with predefined environmental variables to auto-route LLM requests locally:
 ```bash
-# Set provider to ollama
+# For Local Ollama Integration (100% Offline & Sovereign)
 export LLM_PROVIDER=ollama
-
-# (Optional) Override default local model or server base URL
 export LLM_MODEL=llama3
 export LLM_BASE_URL=http://localhost:11434
-```
-Then start the server:
-```bash
-npm start
+
+# For OpenRouter (Access to open weights models)
+export LLM_PROVIDER=openrouter
+export LLM_MODEL=meta-llama/llama-3-8b-instruct:free
 ```
 
-### 3. Setup in the UI Control Center
-Alternatively, you can switch providers dynamically directly inside the Wizard Control Center UI:
-1. Open the sidebar and click **Prefs**.
-2. Select **Local Ollama** as the LLM Provider.
-3. Keep or configure the Model Name (e.g., `llama3` or `mistral`) and the Base URL (`http://localhost:11434`).
-4. Click **Test Connection** to verify that your local instance is active and accessible.
-5. Click **Save Configuration**.
+### UI-Based Setup (Wizard Control Center)
+Alternatively, click the **Prefs** tab inside the collapsible left sidebar to switch providers dynamically:
+1. Select your target provider: **OpenAI**, **Anthropic**, **OpenRouter**, **Local Ollama**, or **Custom Open-AI Compatible Gateways**.
+2. Input your secure API Key. (Keys are stored exclusively in the browser's `localStorage` and sent over HTTPS proxy directly to the endpoints).
+3. Specify the Target Model Name (e.g., `gpt-4o-mini`, `claude-3-5-sonnet-20240620`, `llama3`).
+4. Click **Test Connection** to execute a verified ping, and hit **Save**.
 
 ---
 
-## 🕸️ Advanced VLAN Parsing & Topology Visualizer
+## 📖 Usage Guide
 
-MikrotikAssistant features a sophisticated, local-first parser for RouterOS bridge and port-vlan architectures. It acts as a progressive enhancement:
-- **Parser Coverage:** Automatically detects and indexes `/interface bridge vlan`, `/interface bridge port`, and `/interface vlan` setups.
-- **Port Mapping:** Dynamically links tagged/untagged ports and virtual VLAN interfaces to their respective parent bridge nodes.
-- **Mermaid Graphing:** Automatically generates and compiles dynamic, responsive Mermaid topology graphs inline inside the wizard's chat flow.
-- **Robust Fallbacks:** If a configuration does not contain VLAN entries, or if parsing fails, the system fails silently and renders the standard conversational text.
+Optimize LLM responses by leveraging custom control parameters, Slash commands, and target context triggers directly in your prompt text.
 
-To test this feature, try pasting a standard MikroTik VLAN export:
-```text
-/interface bridge vlan
-add bridge=bridge1 tagged=ether1,ether2 untagged=ether3 vlan-ids=10
-add bridge=bridge1 tagged=ether1 untagged=ether4 vlan-ids=20
-```
+| Command / Modifier | Scope / Target | Action & Behavior |
+| :--- | :--- | :--- |
+| `/audit` | Workflow Action | Forces the assistant to ignore standard conversational modes and perform a multi-point security and structural audit of the attached configuration. |
+| `/explain` | Workflow Action | Generates an educational breakdown of the pasted configuration or CLI commands, explaining what each parameter/argument represents. |
+| `@strict` | Context Modifier | Instructs the model to strictly adhere to the highest security standards and precise RouterOS syntax, skipping optional parameters and default values. |
+| `@beginner` | Context Modifier | Adjusts the tone to include extensive technical commentaries, definitions of common protocols, and basic safety warnings. |
+
+### Sample Prompt Example
+> `/audit @strict Check this bridge configuration for loops and verify if VLAN filtering is properly configured.`
 
 ---
 
-## 🧪 Verification and Testing
+## 🧪 Verification & Testing
 
-
-To verify the integrity of the Privacy Shield engine and utility modules, run the zero-dependency test suite:
+To confirm the cryptographic sanitization accuracy of the Privacy Shield engine, visual diff algorithms, and parsing components, run the unified test suite:
 
 ```bash
 npm test
 ```
 
-The testing suite validates:
-1. Subnet classification (Private vs. Public IPv4/IPv6).
-2. Masking/Redaction pipeline integrity.
-3. Multi-turn conversation restoration safety.
-4. Line-by-line configuration comparison diff computation.
-5. Custom RouterOS markdown block styling parsing.
-
 ---
 
 ## 🤝 Contributing
 
-We welcome contributions from the network engineering, open-source, and cybersecurity communities! If you would like to contribute new regex filters, parse rules, or theme updates, please review our [CONTRIBUTING.md](CONTRIBUTING.md) guidelines first.
+We welcome professional contributions from security auditors, network administrators, and backend engineers.
+* To add custom regex patterns to the data scrubbing layers, inspect `privacyShield.js`.
+* To modify agent operational guidelines, adjust prompts in `agents.js`.
 
 ---
 
 ## ⚖️ License
 
-This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
+This project is licensed under the terms of the [MIT License](LICENSE).
 
 ---
 
 <div align="center">
-Developed with network wizardry for the MikroTik community.
+Developed strictly for the global MikroTik engineering and systems operations community.
 </div>
