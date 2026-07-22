@@ -772,6 +772,7 @@ const els = {
   configSummaryBadge: document.getElementById('config-summary-badge'),
   configSummaryBadgeText: document.getElementById('config-summary-badge-text'),
   suggestionChipsContainer: document.getElementById('suggestion-chips-container'),
+  smartChipsContainer: document.getElementById('smart-chips-container'),
 
   chatMessagesStream: document.getElementById('chat-messages-stream'),
   chatMessagesContainer: document.getElementById('chat-messages-container'),
@@ -2832,7 +2833,83 @@ function setupEventListeners() {
   // Apply performance-optimized debounced search filter
   els.searchHistory.addEventListener('input', (e) => handleSearchInput(e.target.value));
 
-  els.chatMessage.addEventListener('input', adjustTextAreaHeight);
+  // Smart Chips and Intent Detection Setup
+  const handleIntentDetection = () => {
+    const text = els.chatMessage.value;
+    const keywords = ['/interface bridge', '/ip firewall filter', '/ip firewall nat', '/ip route', '/interface vlan', '/ip dhcp-server'];
+    const hasKeyword = keywords.some(kw => text.toLowerCase().includes(kw));
+
+    if (text.length > 300 || hasKeyword) {
+      renderSmartChips();
+    } else {
+      hideSmartChips();
+    }
+  };
+
+  const renderSmartChips = () => {
+    if (!els.smartChipsContainer) return;
+
+    // Clear and build the chips
+    els.smartChipsContainer.innerHTML = '';
+
+    const chipsData = [
+      {
+        label: '🌐 Analisi Multi-Agente Completa',
+        action: () => {
+          hideSmartChips();
+          window.isOrchestratorMode = true;
+          els.chatMessage.value = 'Analizza questa configurazione in modalità Deep Dive.';
+          adjustTextAreaHeight();
+          submitChat();
+        }
+      },
+      {
+        label: '🛡️ Audit Sicurezza Firewall',
+        action: () => {
+          hideSmartChips();
+          window.isOrchestratorMode = false;
+          els.chatMessage.value = 'Effettua un audit di sicurezza completo del firewall.';
+          adjustTextAreaHeight();
+        }
+      },
+      {
+        label: '🗺️ Mappa Topologia VLAN',
+        action: () => {
+          hideSmartChips();
+          window.isOrchestratorMode = false;
+          els.chatMessage.value = 'Mostra la mappa della topologia VLAN di questa configurazione.';
+          adjustTextAreaHeight();
+        }
+      }
+    ];
+
+    chipsData.forEach(data => {
+      const btn = document.createElement('button');
+      btn.className = 'px-3 py-1.5 text-xs font-medium rounded-full bg-brand-500/10 text-brand-400 border border-brand-500/20 hover:bg-brand-500/20 transition cursor-pointer';
+      btn.textContent = data.label;
+      btn.addEventListener('click', data.action);
+      els.smartChipsContainer.appendChild(btn);
+    });
+
+    els.smartChipsContainer.classList.remove('hidden');
+  };
+
+  const hideSmartChips = () => {
+    if (els.smartChipsContainer) {
+      els.smartChipsContainer.classList.add('hidden');
+      els.smartChipsContainer.innerHTML = '';
+    }
+  };
+
+  els.chatMessage.addEventListener('input', () => {
+    adjustTextAreaHeight();
+    handleIntentDetection();
+  });
+
+  els.chatMessage.addEventListener('paste', () => {
+    setTimeout(handleIntentDetection, 50);
+  });
+
   els.btnSubmit.addEventListener('click', submitChat);
 
   els.chatMessage.addEventListener('keydown', (e) => {
