@@ -626,12 +626,15 @@
             <label id="ui-label-paste-config" for="pasted-config" class="text-[10px] md:text-[11px] font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider">RouterOS Config or Log Export</label>
           </div>
           <!-- File Drag-and-Drop or File Upload button inside attachment bar -->
-          <div class="flex items-center space-x-3.5">
+          <div class="flex items-center space-x-3.5 flex-wrap gap-y-1">
             <button id="sidebar-btn-upload" onclick="document.getElementById('file-input').click()" class="text-[10px] text-slate-500 hover:text-brand-500 font-bold transition flex items-center gap-1 focus:outline-none focus:ring-1 focus:ring-brand-500">
               <span>📎</span> Upload File
             </button>
             <button id="btn-format-config" class="text-[10px] text-brand-500 hover:text-brand-600 transition font-bold focus:outline-none focus:ring-1 focus:ring-brand-500">
               ✨ Format
+            </button>
+            <button id="btn-analyze-shadows" class="text-[10px] text-cyber-accent hover:text-cyan-400 transition font-bold focus:outline-none focus:ring-1 focus:ring-brand-500">
+              🛡️ Analyze Firewall Shadows
             </button>
             <button id="btn-clear-attachment" class="text-[10px] text-slate-500 hover:text-red-400 transition font-bold focus:outline-none focus:ring-1 focus:ring-red-400">
               Clear Export

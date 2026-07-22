@@ -250,6 +250,35 @@ add action=accept chain=input
   const resNullWithKeyword = injectContext(null, "use OSPF", null);
   assert(resNullWithKeyword.includes(summaries.ospf), "Should inject OSPF summary even if systemPrompt and pastedConfig are null");
 
+  // Unit Test 13: extractFirewallSections Verification (New Feature)
+  console.log('\n--- Unit Test 13: extractFirewallSections Verification ---\n');
+  const { extractFirewallSections } = require('./server');
+  const fullConfigSample = `
+# aug/14/2023 by RouterOS
+/interface bridge vlan
+add bridge=br-lan tagged=ether1 vlan-ids=10
+/ip firewall filter
+add action=accept chain=input comment="accept established" connection-state=established
+add action=drop chain=input comment="drop invalid" connection-state=invalid
+/ip route
+add gateway=192.168.1.1
+/ip firewall nat
+add action=masquerade chain=srcnat out-interface=wan
+/system identity
+set name=Router
+  `;
+
+  const extractedFirewall = extractFirewallSections(fullConfigSample);
+  console.log('Extracted Firewall Sections:\n', extractedFirewall);
+
+  assert(extractedFirewall.includes('/ip firewall filter'), "Should extract /ip firewall filter section header");
+  assert(extractedFirewall.includes('connection-state=invalid'), "Should extract rules inside firewall filter");
+  assert(extractedFirewall.includes('/ip firewall nat'), "Should extract /ip firewall nat section header");
+  assert(extractedFirewall.includes('action=masquerade'), "Should extract rules inside firewall nat");
+  assert(!extractedFirewall.includes('/interface bridge vlan'), "Should not include /interface bridge vlan section");
+  assert(!extractedFirewall.includes('/ip route'), "Should not include /ip route section");
+  assert(!extractedFirewall.includes('/system identity'), "Should not include /system identity section");
+
   console.log('\n=======================================');
   if (failures === 0) {
     console.log('🎉 ALL INTEGRATION & UNIT TESTS PASSED SUCCESSFULLY! 🎉');
