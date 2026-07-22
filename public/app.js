@@ -1703,9 +1703,146 @@ function parseAIResponse(rawText) {
   return { explanation, fixCommands, correctedConfig };
 }
 
+function appendOrchestratorResponse(result) {
+  const container = els.chatMessagesContainer || els.chatMessagesStream;
+  const wrapper = document.createElement('div');
+  wrapper.className = 'flex flex-col space-y-4 items-start max-w-3xl mr-auto w-full select-text animate-apple-reveal';
+
+  const t = LocalizationService.getTranslation();
+
+  // A. Executive Summary (Top)
+  const execSummaryHtml = window.renderMarkdown(result.executiveSummary || 'No executive summary returned.');
+
+  // B. Agent Cards (Middle)
+  let agentCardsHtml = '<div class="grid grid-cols-1 md:grid-cols-3 gap-4 my-4 w-full">';
+  if (result.agentCards && Array.isArray(result.agentCards)) {
+    result.agentCards.forEach(agent => {
+      const icon = agent.role === 'security' ? '🛡️' : (agent.role === 'vlan' ? '🗺️' : '🌐');
+      const agentContentHtml = window.renderMarkdown(agent.content || '');
+      agentCardsHtml += `
+        <div class="bg-cyber-panel border border-cyber-border rounded-xl p-4 flex flex-col space-y-2">
+          <div class="flex items-center space-x-2 border-b border-cyber-border/40 pb-2 mb-2">
+            <span class="text-base">${icon}</span>
+            <span class="font-bold text-xs uppercase tracking-wider text-slate-800 dark:text-slate-200">${agent.title || 'Agent'}</span>
+          </div>
+          <div class="text-xs leading-relaxed text-slate-700 dark:text-slate-300 overflow-y-auto max-h-60 select-text">
+            ${agentContentHtml}
+          </div>
+        </div>
+      `;
+    });
+  }
+  agentCardsHtml += '</div>';
+
+  // C. Unified Fix Script (Bottom)
+  const uniqueId = 'orchestrator-unified-script-' + Math.random().toString(36).substr(2, 9);
+  const unifiedFixScriptText = result.unifiedFixScript || '';
+  const copyTitle = t.language === 'it' ? 'Copia codice' : 'Copy code';
+
+  const unifiedScriptHtml = `
+    <div class="relative group/code my-4 border border-slate-200 dark:border-slate-800 rounded-xl overflow-hidden bg-slate-900 dark:bg-[#0e1117] shadow-lg select-text w-full">
+      <div class="flex items-center justify-between px-4 py-2 bg-slate-100 dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 select-none">
+        <div class="flex items-center space-x-1.5 text-slate-600 dark:text-slate-400 font-sans text-xs font-semibold">
+          <span>🛠️ Unified Fix Script (Copy All)</span>
+        </div>
+        <button onclick="copySnippetText('${uniqueId}', this)" class="text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition flex items-center focus:outline-none p-1 rounded-md hover:bg-slate-200 dark:hover:bg-slate-800" title="${copyTitle}">
+          <!-- Copy Icon (two overlapping sheets) -->
+          <svg class="w-4 h-4 copy-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+          </svg>
+          <!-- Check Icon (hidden initially) -->
+          <svg class="w-4 h-4 check-icon hidden text-cyber-emerald" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" />
+          </svg>
+        </button>
+      </div>
+      <pre id="${uniqueId}" class="p-4 text-slate-800 dark:text-slate-200 overflow-x-auto leading-relaxed select-all font-mono text-[12px] bg-white dark:bg-[#0e1117]">${unifiedFixScriptText.trim()}</pre>
+    </div>
+  `;
+
+  // Standard bottom buttons (View Config Diff, Download .rsc)
+  const pasted = stateStore.get('pastedConfigRaw');
+  const hasDiff = result.correctedConfig && result.correctedConfig.trim().length > 0 &&
+                  pasted && pasted.trim().length > 0 &&
+                  result.correctedConfig.trim() !== pasted.trim();
+  const hasCorrectedConfig = result.correctedConfig && result.correctedConfig.trim().length > 0;
+
+  let actionButtonsHtml = '';
+  if (hasDiff || hasCorrectedConfig) {
+    actionButtonsHtml = `
+      <div class="flex flex-wrap items-center gap-2 mt-4 pt-4 border-t border-cyber-border/50 select-none w-full">
+        ${hasDiff ? `
+        <button id="btn-orch-show-diff-overlay" class="px-3 py-1.5 text-xs font-medium rounded-md flex items-center gap-1.5 transition-all bg-brand-500/20 hover:bg-brand-500/30 text-brand-300 border border-brand-500/30 hover:border-brand-400/50">
+          <span>🔍</span> Diff
+        </button>
+        ` : ''}
+        ${hasCorrectedConfig ? `
+        <button id="btn-orch-download-rsc" class="px-3 py-1.5 text-xs font-medium rounded-md flex items-center gap-1.5 transition-all bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-300 border border-emerald-500/30 hover:border-emerald-400/50">
+          <span>💾</span> <span class="rsc-btn-label">.rsc</span>
+        </button>
+        ` : ''}
+      </div>
+    `;
+  }
+
+  wrapper.innerHTML = `
+    <div class="flex items-center space-x-2 text-[10px] text-slate-500 font-semibold select-none">
+      <span class="text-cyber-accent">🧠 Multi-Agent Orchestrator</span>
+      <span>•</span>
+      <span>${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+    </div>
+    <div class="chat-bubble-assistant text-xs text-slate-700 dark:text-slate-300 p-5 rounded-2xl leading-relaxed shadow-xl max-w-full w-full flex flex-col">
+      <!-- Executive Summary -->
+      <div class="bg-brand-500/5 border border-brand-500/20 rounded-xl p-4 w-full mb-4">
+        <h3 class="text-sm font-bold text-cyber-accent mb-2 flex items-center gap-1.5 select-none">
+          <span>🧠</span> Orchestrator Summary
+        </h3>
+        <div class="text-xs leading-relaxed text-slate-700 dark:text-slate-300 select-text">
+          ${execSummaryHtml}
+        </div>
+      </div>
+
+      <!-- Agent Cards Grid -->
+      ${agentCardsHtml}
+
+      <!-- Unified Fix Script -->
+      ${unifiedScriptHtml}
+
+      <!-- Bottom action buttons -->
+      ${actionButtonsHtml}
+    </div>
+  `;
+
+  // Bind actions
+  const btnDiff = wrapper.querySelector('#btn-orch-show-diff-overlay');
+  if (btnDiff) {
+    btnDiff.addEventListener('click', () => {
+      const origToDiff = result.maskedOriginalConfig || pasted || '';
+      const corrToDiff = result.maskedCorrectedConfig || result.correctedConfig || '';
+      renderDiff(origToDiff, corrToDiff);
+      els.modalDiff.classList.remove('hidden');
+    });
+  }
+
+  const btnDownloadRsc = wrapper.querySelector('#btn-orch-download-rsc');
+  if (btnDownloadRsc) {
+    btnDownloadRsc.addEventListener('click', () => {
+      window.downloadRscFile(result.correctedConfig);
+    });
+  }
+
+  container.appendChild(wrapper);
+  scrollStreamToBottom();
+}
+
 function appendAssistantResponse(result) {
   if (result && result.shadowDetectorResult) {
     renderShadowDetectorResults(result.shadowDetectorResult);
+    return;
+  }
+
+  if (result && result.isOrchestrator === true) {
+    appendOrchestratorResponse(result);
     return;
   }
 
