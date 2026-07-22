@@ -3,19 +3,3 @@
 > node server.js
 
 🧙‍♂️ 🚀 Mik the Winbox Wizard is running at http://localhost:3000
-🛡️ [Mik's Privacy Shield] Casting masking spell on user input...
-🛡️ [Mik's Privacy Shield] Masking complete. Channeling masked query to the LLM.
-🧙‍♂️ [Mik the Winbox Wizard] Proxying request to provider: openai, URL: https://api.openai.com/v1/chat/completions
-[Error] Chat processing failed: Error: LLM provider (openai) returned status 401: {
-    "error": {
-        "message": "You didn't provide an API key. You need to provide your API key in an Authorization header using Bearer auth (i.e. Authorization: Bearer YOUR_KEY), or as the password field (with blank username) if you're accessing the API from your browser and are prompted for a username and password. You can obtain an API key from https://platform.openai.com/account/api-keys.",
-        "type": "invalid_request_error",
-        "param": null,
-        "code": null
-    }
-}
-
-    at callLLM (/app/server.js:234:11)
-    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
-    at async /app/server.js:475:28
-Terminated
