@@ -279,6 +279,17 @@ set name=Router
   assert(!extractedFirewall.includes('/ip route'), "Should not include /ip route section");
   assert(!extractedFirewall.includes('/system identity'), "Should not include /system identity section");
 
+  // Unit Test 14: Orchestrator Mode Handler Mock Verification
+  console.log('\n--- Unit Test 14: Orchestrator Mode Handler Mock Verification ---\n');
+  const express = require('express');
+  const { app } = require('./server');
+
+  // We can quickly verify that the file agents.js is properly loaded and schema matches what we expect
+  const agents = require('./agents');
+  assert(typeof agents.security === 'string' && agents.security.length > 0, 'security agent prompt must exist');
+  assert(typeof agents.vlan === 'string' && agents.vlan.length > 0, 'vlan agent prompt must exist');
+  assert(typeof agents.routing === 'string' && agents.routing.length > 0, 'routing agent prompt must exist');
+
   console.log('\n=======================================');
   if (failures === 0) {
     console.log('🎉 ALL INTEGRATION & UNIT TESTS PASSED SUCCESSFULLY! 🎉');

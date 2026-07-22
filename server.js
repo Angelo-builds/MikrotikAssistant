@@ -296,7 +296,8 @@ app.post('/api/chat', async (req, res) => {
       language,
       maskOptions,
       routerOsVersion,
-      hardwareModel
+      hardwareModel,
+      mode
     } = req.body;
 
     if (!chatMessage && !pastedConfig) {
@@ -338,12 +339,135 @@ app.post('/api/chat', async (req, res) => {
     // Combine user message and pasted config into a single cohesive layout for the LLM
     const combinedInput = `${historyText}[USER QUESTION/ISSUE]:\n${chatMessage || 'Please analyze this configuration for errors or potential improvements.'}\n\n[ROUTEROS CONFIG / LOGS / EXPORT]:\n\`\`\`\n${pastedConfig || '(No configuration pasted)'}\n\`\`\`\n`;
 
-    // Inject custom best practice wiki context if keywords are present in chatMessage or pastedConfig
-    systemPrompt = injectContext(systemPrompt || DEFAULT_SYSTEM_PROMPT, chatMessage, pastedConfig);
-
     // Apply the Privacy Shield masking
     console.log('🛡️ [Mik\'s Privacy Shield] Casting masking spell on user input...');
     const { maskedText, mapping } = mask(combinedInput, maskOptions);
+
+    if (mode === 'orchestrator') {
+      console.log('🤖 [Multi-Agent Orchestrator] Mode detected. Executing agents in parallel...');
+      const agents = require('./agents');
+
+      // Call the LLM 3 times concurrently
+      const [securityRes, vlanRes, routingRes] = await Promise.all([
+        callLLM({
+          provider,
+          apiKey,
+          baseUrl,
+          model,
+          systemPrompt: agents.security,
+          promptText: maskedText,
+          language: language || 'auto',
+          routerOsVersion,
+          hardwareModel
+        }),
+        callLLM({
+          provider,
+          apiKey,
+          baseUrl,
+          model,
+          systemPrompt: agents.vlan,
+          promptText: maskedText,
+          language: language || 'auto',
+          routerOsVersion,
+          hardwareModel
+        }),
+        callLLM({
+          provider,
+          apiKey,
+          baseUrl,
+          model,
+          systemPrompt: agents.routing,
+          promptText: maskedText,
+          language: language || 'auto',
+          routerOsVersion,
+          hardwareModel
+        })
+      ]);
+
+      // Synthesize into an Executive Summary using a final, fast LLM call
+      const summaryPrompt = `You are Mik the Winbox Wizard. Synthesize the following 3 reports into a concise, professional Executive Summary for a Senior Network Engineer. Keep it brief, action-oriented, and highlight critical vulnerabilities or misconfigurations.
+
+Reports:
+--- SECURITY REPORT ---
+${securityRes}
+
+--- VLAN REPORT ---
+${vlanRes}
+
+--- ROUTING REPORT ---
+${routingRes}`;
+
+      const executiveSummaryRes = await callLLM({
+        provider,
+        apiKey,
+        baseUrl,
+        model,
+        systemPrompt: "You are a MikroTik Executive Summarizer.",
+        promptText: summaryPrompt,
+        language: language || 'auto',
+        routerOsVersion,
+        hardwareModel
+      });
+
+      // Extract a Unified Fix Script
+      const fixScriptPrompt = `Combine all actionable CLI commands from the following 3 reports into a single, logically ordered RouterOS script. Do NOT include any markdown blocks, comments, or explanations outside the script. Ensure there is only standard valid RouterOS CLI commands.
+
+Reports:
+--- SECURITY REPORT ---
+${securityRes}
+
+--- VLAN REPORT ---
+${vlanRes}
+
+--- ROUTING REPORT ---
+${routingRes}`;
+
+      const unifiedFixScriptRes = await callLLM({
+        provider,
+        apiKey,
+        baseUrl,
+        model,
+        systemPrompt: "You are a RouterOS CLI Script Combiner. Output only valid RouterOS terminal commands.",
+        promptText: fixScriptPrompt,
+        language: 'en', // Keep CLI script strictly in English
+        routerOsVersion,
+        hardwareModel
+      });
+
+      // Unmask everything
+      const unmaskedExecSummary = unmask(executiveSummaryRes, mapping);
+      const unmaskedSecurity = unmask(securityRes, mapping);
+      const unmaskedVlan = unmask(vlanRes, mapping);
+      const unmaskedRouting = unmask(routingRes, mapping);
+
+      // Clean up markdown block fences from unified fix script and unmask it
+      let cleanedFixScript = unifiedFixScriptRes.trim();
+      if (cleanedFixScript.startsWith('```')) {
+        // Find index of first newline
+        const firstNL = cleanedFixScript.indexOf('\n');
+        if (firstNL !== -1) {
+          cleanedFixScript = cleanedFixScript.substring(firstNL + 1);
+        }
+        if (cleanedFixScript.endsWith('```')) {
+          cleanedFixScript = cleanedFixScript.substring(0, cleanedFixScript.length - 3);
+        }
+      }
+      const unmaskedUnifiedFixScript = unmask(cleanedFixScript.trim(), mapping);
+
+      return res.json({
+        isOrchestrator: true,
+        executiveSummary: unmaskedExecSummary,
+        agentCards: [
+          { role: "security", title: "Security Audit", content: unmaskedSecurity },
+          { role: "vlan", title: "VLAN Topology", content: unmaskedVlan },
+          { role: "routing", title: "Routing & NAT", content: unmaskedRouting }
+        ],
+        unifiedFixScript: unmaskedUnifiedFixScript
+      });
+    }
+
+    // Inject custom best practice wiki context if keywords are present in chatMessage or pastedConfig
+    systemPrompt = injectContext(systemPrompt || DEFAULT_SYSTEM_PROMPT, chatMessage, pastedConfig);
 
     console.log('🛡️ [Mik\'s Privacy Shield] Masking complete. Channeling masked query to the LLM.');
 
