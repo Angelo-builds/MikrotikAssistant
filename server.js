@@ -304,6 +304,22 @@ app.post('/api/chat', async (req, res) => {
       return res.status(400).json({ error: 'Either chatMessage or pastedConfig is required' });
     }
 
+    // Detect and strip mode tag indicators from chatMessage
+    if (chatMessage) {
+      if (chatMessage.includes('[DEEP_DIVE]')) {
+        mode = 'orchestrator';
+        chatMessage = chatMessage.replace(/\[DEEP_DIVE\]/g, '').trim();
+      }
+      if (chatMessage.includes('[FIREWALL_AUDIT]')) {
+        chatMessage = chatMessage.replace(/\[FIREWALL_AUDIT\]/g, '').trim();
+      }
+      if (chatMessage.includes('[VLAN_TOPOLOGY]')) {
+        chatMessage = chatMessage.replace(/\[VLAN_TOPOLOGY\]/g, '').trim();
+      }
+    }
+
+    console.log(`🤖 [Backend API] Received request with mode: "${mode || 'standard'}", chatMessage: "${chatMessage || ''}"`);
+
     // Override or supply defaults from environment variables if set
     if (process.env.LLM_PROVIDER) {
       provider = process.env.LLM_PROVIDER;
@@ -347,6 +363,7 @@ app.post('/api/chat', async (req, res) => {
       console.log('🤖 [Multi-Agent Orchestrator] Mode detected. Executing agents in parallel...');
       const agents = require('./agents');
 
+      console.log('🤖 [Multi-Agent Orchestrator] Initiating concurrent parallel LLM calls for Security, VLAN, and Routing...');
       // Call the LLM 3 times concurrently
       const [securityRes, vlanRes, routingRes] = await Promise.all([
         callLLM({
@@ -383,6 +400,7 @@ app.post('/api/chat', async (req, res) => {
           hardwareModel
         })
       ]);
+      console.log('🤖 [Multi-Agent Orchestrator] Concurrently called Security, VLAN, and Routing LLMs returned responses successfully!');
 
       // Synthesize into an Executive Summary using a final, fast LLM call
       const summaryPrompt = `You are Mik the Winbox Wizard. Synthesize the following 3 reports into a concise, professional Executive Summary for a Senior Network Engineer. Keep it brief, action-oriented, and highlight critical vulnerabilities or misconfigurations.
@@ -454,7 +472,7 @@ ${routingRes}`;
       }
       const unmaskedUnifiedFixScript = unmask(cleanedFixScript.trim(), mapping);
 
-      return res.json({
+      const orchestratorPayload = {
         isOrchestrator: true,
         executiveSummary: unmaskedExecSummary,
         agentCards: [
@@ -463,7 +481,15 @@ ${routingRes}`;
           { role: "routing", title: "Routing & NAT", content: unmaskedRouting }
         ],
         unifiedFixScript: unmaskedUnifiedFixScript
-      });
+      };
+
+      console.log('🤖 [Multi-Agent Orchestrator] Completed synthesis successfully! Payload structure:');
+      console.log(`- isOrchestrator: ${orchestratorPayload.isOrchestrator}`);
+      console.log(`- executiveSummary length: ${orchestratorPayload.executiveSummary ? orchestratorPayload.executiveSummary.length : 0}`);
+      console.log(`- agentCards count: ${orchestratorPayload.agentCards.length}`);
+      console.log(`- unifiedFixScript length: ${orchestratorPayload.unifiedFixScript ? orchestratorPayload.unifiedFixScript.length : 0}`);
+
+      return res.json(orchestratorPayload);
     }
 
     // Inject custom best practice wiki context if keywords are present in chatMessage or pastedConfig
