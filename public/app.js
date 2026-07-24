@@ -868,7 +868,10 @@ const els = {
   uiMaskIdentityTitle: document.getElementById('ui-mask-identity-title'),
   uiMaskIdentityDesc: document.getElementById('ui-mask-identity-desc'),
   uiLabelPromptOverride: document.getElementById('ui-label-prompt-override'),
-  uiLabelSaveSettings: document.getElementById('ui-label-save-settings')
+  uiLabelSaveSettings: document.getElementById('ui-label-save-settings'),
+
+  slashPalette: document.getElementById('slash-palette'),
+  atPalette: document.getElementById('at-palette')
 };
 
 /**
@@ -3136,9 +3139,14 @@ function setupEventListeners() {
     }
   };
 
-  els.chatMessage.addEventListener('input', () => {
+  els.chatMessage.addEventListener('input', (e) => {
     adjustTextAreaHeight();
     handleIntentDetection();
+    handleCommandPalette(e);
+  });
+
+  els.chatMessage.addEventListener('keydown', (e) => {
+    handleCommandPalette(e);
   });
 
   els.chatMessage.addEventListener('paste', () => {
@@ -3212,6 +3220,110 @@ function setupEventListeners() {
       });
     });
   }
+
+  // Command palette selection handlers
+  document.querySelectorAll('.slash-item').forEach(item => {
+    item.addEventListener('click', () => {
+      const command = item.dataset.command;
+      const chatInput = els.chatMessage;
+      if (!chatInput) return;
+
+      const value = chatInput.value;
+      const cursorPos = chatInput.selectionStart;
+      const textBeforeCursor = value.substring(0, cursorPos);
+      const textAfterCursor = value.substring(cursorPos);
+
+      // Find the slash pattern before cursor and replace it
+      const match = textBeforeCursor.match(/\/(\w*)$/);
+      const matchedLength = match ? match[0].length : 1; // Default to 1 (just the slash)
+      const textBeforeReplacement = textBeforeCursor.substring(0, textBeforeCursor.length - matchedLength);
+
+      const newText = textBeforeReplacement + command + ' ' + textAfterCursor;
+      chatInput.value = newText;
+      chatInput.focus();
+
+      const newCursorPos = textBeforeReplacement.length + command.length + 1;
+      chatInput.setSelectionRange(newCursorPos, newCursorPos);
+
+      hideSlashPalette();
+
+      if (command === '/audit') {
+        window.isOrchestratorMode = true;
+      } else if (command === '/queue') {
+        // Open queue generator tab in sidebar
+        switchSidebarTab('queues');
+        stateStore.set('isSidebarOpen', true);
+        renderSidebarState();
+        const targetInput = document.getElementById('queue-target-name');
+        if (targetInput) {
+          setTimeout(() => targetInput.focus(), 100);
+        }
+      }
+    });
+  });
+
+  document.querySelectorAll('.at-item').forEach(item => {
+    item.addEventListener('click', () => {
+      const modifier = item.dataset.modifier;
+      const chatInput = els.chatMessage;
+      if (!chatInput) return;
+
+      const value = chatInput.value;
+      const cursorPos = chatInput.selectionStart;
+      const textBeforeCursor = value.substring(0, cursorPos);
+      const textAfterCursor = value.substring(cursorPos);
+
+      const match = textBeforeCursor.match(/@(\w*)$/);
+      const matchedLength = match ? match[0].length : 1;
+      const textBeforeReplacement = textBeforeCursor.substring(0, textBeforeCursor.length - matchedLength);
+
+      const newText = textBeforeReplacement + modifier + ' ' + textAfterCursor;
+      chatInput.value = newText;
+      chatInput.focus();
+
+      const newCursorPos = textBeforeReplacement.length + modifier.length + 1;
+      chatInput.setSelectionRange(newCursorPos, newCursorPos);
+
+      hideAtPalette();
+    });
+  });
+
+  // Handle Enter key for palettes on keydown
+  els.chatMessage.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+      const isSlashVisible = !els.slashPalette.classList.contains('hidden');
+      const isAtVisible = !els.atPalette.classList.contains('hidden');
+
+      if (isSlashVisible) {
+        e.preventDefault();
+        // Find first visible slash item
+        const visibleItems = Array.from(els.slashPalette.querySelectorAll('.slash-item'))
+          .filter(item => item.style.display !== 'none');
+        if (visibleItems.length > 0) {
+          visibleItems[0].click();
+        }
+      } else if (isAtVisible) {
+        e.preventDefault();
+        // Find first visible at item
+        const visibleItems = Array.from(els.atPalette.querySelectorAll('.at-item'))
+          .filter(item => item.style.display !== 'none');
+        if (visibleItems.length > 0) {
+          visibleItems[0].click();
+        }
+      }
+    } else if (e.key === 'Escape') {
+      hideSlashPalette();
+      hideAtPalette();
+    }
+  });
+
+  // Close palettes on click outside
+  document.addEventListener('click', (e) => {
+    if (!e.target.closest('#slash-palette') && !e.target.closest('#at-palette') && !e.target.closest('#chat-message')) {
+      hideSlashPalette();
+      hideAtPalette();
+    }
+  });
 }
 
 /**
@@ -3352,6 +3464,111 @@ function openInteractiveMapModal() {
       container.style.backgroundColor = 'transparent';
     }
   }, 50);
+}
+
+/**
+ * Handles detection of Slash (/) and At (@) prefixes in the chat textarea
+ * and toggles the respective command palette overlays.
+ */
+function handleCommandPalette(e) {
+  const chatInput = els.chatMessage;
+  if (!chatInput) return;
+
+  const value = chatInput.value;
+  const cursorPos = chatInput.selectionStart;
+  const textBeforeCursor = value.substring(0, cursorPos);
+
+  // Check for slash command
+  const slashMatch = textBeforeCursor.match(/(?:^|\s)\/(\w*)$/);
+  if (slashMatch) {
+    const query = slashMatch[1].toLowerCase();
+    showSlashPalette(query, cursorPos);
+  } else {
+    hideSlashPalette();
+  }
+
+  // Check for at modifier
+  const atMatch = textBeforeCursor.match(/(?:^|\s)@(\w*)$/);
+  if (atMatch) {
+    const query = atMatch[1].toLowerCase();
+    showAtPalette(query, cursorPos);
+  } else {
+    hideAtPalette();
+  }
+}
+
+function showSlashPalette(query, cursorPos) {
+  const palette = els.slashPalette;
+  const chatInput = els.chatMessage;
+  if (!palette || !chatInput) return;
+
+  const rect = chatInput.getBoundingClientRect();
+
+  // Position above the textarea (or fallback to viewport left on small screens)
+  const leftPosition = Math.min(rect.left, window.innerWidth - palette.offsetWidth - 16);
+  palette.style.left = Math.max(16, leftPosition) + 'px';
+  palette.style.bottom = (window.innerHeight - rect.top + 10) + 'px';
+  palette.classList.remove('hidden');
+
+  // Filter items based on query
+  let visibleCount = 0;
+  const items = palette.querySelectorAll('.slash-item');
+  items.forEach(item => {
+    const command = item.dataset.command.toLowerCase();
+    if (command.includes(query)) {
+      item.style.display = 'flex';
+      visibleCount++;
+    } else {
+      item.style.display = 'none';
+    }
+  });
+
+  if (visibleCount === 0) {
+    palette.classList.add('hidden');
+  }
+}
+
+function hideSlashPalette() {
+  if (els.slashPalette) {
+    els.slashPalette.classList.add('hidden');
+  }
+}
+
+function showAtPalette(query, cursorPos) {
+  const palette = els.atPalette;
+  const chatInput = els.chatMessage;
+  if (!palette || !chatInput) return;
+
+  const rect = chatInput.getBoundingClientRect();
+
+  // Position above the textarea
+  const leftPosition = Math.min(rect.left, window.innerWidth - palette.offsetWidth - 16);
+  palette.style.left = Math.max(16, leftPosition) + 'px';
+  palette.style.bottom = (window.innerHeight - rect.top + 10) + 'px';
+  palette.classList.remove('hidden');
+
+  // Filter items based on query
+  let visibleCount = 0;
+  const items = palette.querySelectorAll('.at-item');
+  items.forEach(item => {
+    const modifier = item.dataset.modifier.toLowerCase();
+    if (modifier.includes(query)) {
+      item.style.display = 'flex';
+      visibleCount++;
+    } else {
+      item.style.display = 'none';
+    }
+  });
+
+  if (visibleCount === 0) {
+    palette.classList.add('hidden');
+  }
+}
+
+function hideAtPalette() {
+  if (els.atPalette) {
+    els.atPalette.classList.add('hidden');
+  }
 }
 
 /**
