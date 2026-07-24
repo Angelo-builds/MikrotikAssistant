@@ -873,6 +873,39 @@
   <!-- MODERN FLOATING TOAST CONTAINER -->
   <div id="toast-container" class="fixed bottom-6 right-6 z-50 flex flex-col gap-2 pointer-events-none max-w-sm w-full" aria-live="polite"></div>
 
+  <!-- Command Palettes -->
+  <div id="slash-palette" class="hidden fixed z-50 bg-cyber-panel border border-cyber-border rounded-lg shadow-xl max-h-60 overflow-y-auto w-64 max-w-[90vw]">
+    <div class="p-2 text-xs text-slate-400 border-b border-cyber-border bg-cyber-bg select-none">Slash Commands</div>
+    <div class="slash-item p-2 hover:bg-brand-500/10 cursor-pointer text-sm text-slate-800 dark:text-slate-100 flex flex-col sm:flex-row sm:items-center justify-between" data-command="/audit">
+      <span class="font-mono text-brand-400 font-bold">/audit</span>
+      <span class="text-xs text-slate-500 dark:text-slate-400 font-medium">Multi-agent deep dive</span>
+    </div>
+    <div class="slash-item p-2 hover:bg-brand-500/10 cursor-pointer text-sm text-slate-800 dark:text-slate-100 flex flex-col sm:flex-row sm:items-center justify-between" data-command="/explain">
+      <span class="font-mono text-brand-400 font-bold">/explain</span>
+      <span class="text-xs text-slate-500 dark:text-slate-400 font-medium">Explain config simply</span>
+    </div>
+    <div class="slash-item p-2 hover:bg-brand-500/10 cursor-pointer text-sm text-slate-800 dark:text-slate-100 flex flex-col sm:flex-row sm:items-center justify-between" data-command="/queue">
+      <span class="font-mono text-brand-400 font-bold">/queue</span>
+      <span class="text-xs text-slate-500 dark:text-slate-400 font-medium">Open queue generator</span>
+    </div>
+  </div>
+
+  <div id="at-palette" class="hidden fixed z-50 bg-cyber-panel border border-cyber-border rounded-lg shadow-xl max-h-60 overflow-y-auto w-64 max-w-[90vw]">
+    <div class="p-2 text-xs text-slate-400 border-b border-cyber-border bg-cyber-bg select-none">Context Modifiers</div>
+    <div class="at-item p-2 hover:bg-brand-500/10 cursor-pointer text-sm text-slate-800 dark:text-slate-100 flex flex-col sm:flex-row sm:items-center justify-between" data-modifier="@strict">
+      <span class="font-mono text-emerald-400 font-bold">@strict</span>
+      <span class="text-xs text-slate-500 dark:text-slate-400 font-medium">Commands only, no explanations</span>
+    </div>
+    <div class="at-item p-2 hover:bg-brand-500/10 cursor-pointer text-sm text-slate-800 dark:text-slate-100 flex flex-col sm:flex-row sm:items-center justify-between" data-modifier="@beginner">
+      <span class="font-mono text-emerald-400 font-bold">@beginner</span>
+      <span class="text-xs text-slate-500 dark:text-slate-400 font-medium">Simple explanations</span>
+    </div>
+    <div class="at-item p-2 hover:bg-brand-500/10 cursor-pointer text-sm text-slate-800 dark:text-slate-100 flex flex-col sm:flex-row sm:items-center justify-between" data-modifier="@wiki">
+      <span class="font-mono text-emerald-400 font-bold">@wiki</span>
+      <span class="text-xs text-slate-500 dark:text-slate-400 font-medium">Official MikroTik best practices</span>
+    </div>
+  </div>
+
   <!-- Mermaid.js library for diagram visualization -->
   <script type="module">
     import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
