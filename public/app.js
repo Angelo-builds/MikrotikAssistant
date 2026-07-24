@@ -1836,12 +1836,17 @@ function appendOrchestratorResponse(result) {
 }
 
 function appendAssistantResponse(result) {
+  console.log('🔮 [Frontend] Received assistant response in appendAssistantResponse:', result);
+  console.log('- result.isOrchestrator:', result ? result.isOrchestrator : undefined);
+  console.log('- result.agentCards:', result ? result.agentCards : undefined);
+
   if (result && result.shadowDetectorResult) {
     renderShadowDetectorResults(result.shadowDetectorResult);
     return;
   }
 
   if (result && result.isOrchestrator === true) {
+    console.log('🤖 [Frontend] Rendering Multi-Agent response via appendOrchestratorResponse');
     appendOrchestratorResponse(result);
     return;
   }
@@ -2032,6 +2037,65 @@ function appendAssistantResponse(result) {
  * Renders all Mermaid diagrams inside a given container dynamically.
  * Standardizes styling, configures themes, and uses mermaid.run safely.
  */
+function applyZoomPan(container, content) {
+  let scale = 1;
+  let panX = 0, panY = 0;
+
+  // Zoom with mouse wheel
+  container.addEventListener('wheel', (e) => {
+    e.preventDefault();
+    scale += e.deltaY * -0.001;
+    scale = Math.min(Math.max(0.5, scale), 3);
+    updateTransform();
+  });
+
+  // Pan with mouse drag
+  let isDragging = false;
+  let startX, startY;
+  container.addEventListener('mousedown', (e) => {
+    if (e.button !== 0) return; // Only left click drag
+    isDragging = true;
+    startX = e.clientX - panX;
+    startY = e.clientY - panY;
+    container.style.cursor = 'grabbing';
+  });
+  container.addEventListener('mousemove', (e) => {
+    if (!isDragging) return;
+    panX = e.clientX - startX;
+    panY = e.clientY - startY;
+    updateTransform();
+  });
+
+  const stopDragging = () => {
+    isDragging = false;
+    container.style.cursor = 'grab';
+  };
+  container.addEventListener('mouseup', stopDragging);
+  container.addEventListener('mouseleave', stopDragging);
+
+  container.style.cursor = 'grab';
+
+  function updateTransform() {
+    content.style.transform = `translate(${panX}px, ${panY}px) scale(${scale})`;
+  }
+
+  // Create & Append Reset View Button
+  const resetBtn = document.createElement('button');
+  resetBtn.className = 'absolute bottom-3 right-3 bg-cyber-panel/90 hover:bg-cyber-panel border border-cyber-border hover:border-brand-500 text-xs font-semibold px-2.5 py-1.5 rounded-lg text-slate-300 transition-all active:scale-95 focus:outline-none select-none z-30 shadow';
+  resetBtn.style.position = 'absolute';
+  resetBtn.style.bottom = '12px';
+  resetBtn.style.right = '12px';
+  resetBtn.innerHTML = '🔄 Reset View';
+  resetBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    scale = 1;
+    panX = 0;
+    panY = 0;
+    updateTransform();
+  });
+  container.appendChild(resetBtn);
+}
+
 window.renderMermaidGraphs = function(container) {
   if (typeof mermaid === 'undefined') {
     console.warn('Mermaid.js is not loaded yet.');
@@ -2042,11 +2106,22 @@ window.renderMermaidGraphs = function(container) {
   mermaidBlocks.forEach((block, index) => {
     const graphCode = block.textContent.trim();
 
-    // Create a larger, responsive container
-    const graphWrapper = document.createElement('div');
-    graphWrapper.className = 'mermaid-wrapper w-full overflow-x-auto bg-cyber-panel/50 rounded-xl p-8 border border-cyber-border/50';
-    graphWrapper.style.minHeight = '400px';
-    graphWrapper.style.maxWidth = '100%';
+    // Create a fixed-size container
+    const graphContainer = document.createElement('div');
+    graphContainer.className = 'mermaid-container w-full relative';
+    graphContainer.style.width = '100%';
+    graphContainer.style.height = '400px';
+    graphContainer.style.overflow = 'hidden';
+    graphContainer.style.position = 'relative';
+    graphContainer.style.border = '1px solid var(--cyber-border)';
+    graphContainer.style.borderRadius = '8px';
+    graphContainer.style.backgroundColor = 'var(--panel-color)';
+
+    // Inner content container
+    const graphContent = document.createElement('div');
+    graphContent.className = 'mermaid-content w-full h-full';
+    graphContent.style.transformOrigin = '0 0';
+    graphContent.style.transition = 'transform 0.2s';
 
     // Create the actual mermaid div
     const graphDiv = document.createElement('div');
@@ -2054,8 +2129,9 @@ window.renderMermaidGraphs = function(container) {
     graphDiv.id = `mermaid-graph-${Date.now()}-${index}`;
     graphDiv.textContent = graphCode;
 
-    graphWrapper.appendChild(graphDiv);
-    block.parentNode.replaceChild(graphWrapper, block);
+    graphContent.appendChild(graphDiv);
+    graphContainer.appendChild(graphContent);
+    block.parentNode.replaceChild(graphContainer, block);
 
     // Initialize and render
     try {
@@ -2089,11 +2165,12 @@ window.renderMermaidGraphs = function(container) {
 
           // Add zoom/pan capability
           svg.setAttribute('viewBox', svg.getAttribute('viewBox') || '0 0 800 400');
+          applyZoomPan(graphContainer, graphContent);
         }
       });
     } catch (error) {
       console.error('Mermaid rendering failed:', error);
-      graphWrapper.innerHTML = `<div class="text-red-400 text-sm p-4">Failed to render topology graph. Please check configuration.</div>`;
+      graphContainer.innerHTML = `<div class="text-red-400 text-sm p-4">Failed to render topology graph. Please check configuration.</div>`;
     }
   });
 };
@@ -2767,6 +2844,8 @@ async function submitChat() {
     }
   }
 
+  const isOrchestrator = !!(window.isOrchestratorMode || (chatVal && chatVal.includes('[DEEP_DIVE]')));
+
   const body = {
     pastedConfig: pastedVal,
     chatMessage: chatVal,
@@ -2779,8 +2858,12 @@ async function submitChat() {
     language: stateStore.get('language'),
     maskOptions,
     routerOsVersion: els.selectRosVersion.value,
-    hardwareModel: els.selectHardware.value
+    hardwareModel: els.selectHardware.value,
+    mode: isOrchestrator ? 'orchestrator' : 'standard'
   };
+
+  // Reset orchestrator mode flag
+  window.isOrchestratorMode = false;
 
   try {
     await runStepperAndSubmit(body, activeAbortController.signal, false);
@@ -2995,7 +3078,12 @@ function setupEventListeners() {
         action: () => {
           hideSmartChips();
           window.isOrchestratorMode = true;
-          els.chatMessage.value = 'Analizza questa configurazione in modalità Deep Dive.';
+          const existing = els.chatMessage.value.trim();
+          if (existing) {
+            els.chatMessage.value = `[DEEP_DIVE] ${existing}`;
+          } else {
+            els.chatMessage.value = `[DEEP_DIVE] Analizza questa configurazione in modalità Deep Dive.`;
+          }
           adjustTextAreaHeight();
           submitChat();
         }
@@ -3005,7 +3093,12 @@ function setupEventListeners() {
         action: () => {
           hideSmartChips();
           window.isOrchestratorMode = false;
-          els.chatMessage.value = 'Effettua un audit di sicurezza completo del firewall.';
+          const existing = els.chatMessage.value.trim();
+          if (existing) {
+            els.chatMessage.value = `[FIREWALL_AUDIT] ${existing}`;
+          } else {
+            els.chatMessage.value = `[FIREWALL_AUDIT] Effettua un audit di sicurezza completo del firewall.`;
+          }
           adjustTextAreaHeight();
         }
       },
@@ -3014,7 +3107,12 @@ function setupEventListeners() {
         action: () => {
           hideSmartChips();
           window.isOrchestratorMode = false;
-          els.chatMessage.value = 'Mostra la mappa della topologia VLAN di questa configurazione.';
+          const existing = els.chatMessage.value.trim();
+          if (existing) {
+            els.chatMessage.value = `[VLAN_TOPOLOGY] ${existing}`;
+          } else {
+            els.chatMessage.value = `[VLAN_TOPOLOGY] Mostra la mappa della topologia VLAN di questa configurazione.`;
+          }
           adjustTextAreaHeight();
         }
       }
@@ -3183,33 +3281,41 @@ window.downloadRscFile = function(correctedConfig) {
 };
 
 function openInteractiveMapModal() {
-  const graphContainer = document.querySelector('.mermaid-wrapper');
+  const graphContainer = document.querySelector('.mermaid-container');
   if (!graphContainer) {
     alert('No topology graph available');
     return;
   }
+
+  const rawMermaidBlock = graphContainer.querySelector('[id^="mermaid-graph-"]');
+  const graphCode = rawMermaidBlock ? rawMermaidBlock.textContent : '';
 
   const modal = document.createElement('div');
   modal.className = 'fixed inset-0 z-[100] bg-black/95 flex items-center justify-center p-8 backdrop-blur-sm';
   modal.id = 'topology-modal';
 
   const modalContent = document.createElement('div');
-  modalContent.className = 'bg-cyber-panel rounded-2xl p-8 max-w-[95vw] max-h-[95vh] overflow-auto relative border border-cyber-border shadow-2xl';
+  modalContent.className = 'bg-cyber-panel rounded-2xl p-8 w-[90vw] h-[85vh] flex flex-col overflow-hidden relative border border-cyber-border shadow-2xl';
 
   const header = document.createElement('div');
-  header.className = 'flex items-center justify-between mb-6';
+  header.className = 'flex items-center justify-between mb-6 shrink-0';
   header.innerHTML = `
     <h3 class="text-xl font-bold text-white">VLAN Topology - Interactive Map</h3>
     <button class="text-slate-400 hover:text-white text-2xl font-bold transition" id="close-modal">×</button>
   `;
 
-  const graphClone = graphContainer.cloneNode(true);
-  graphClone.style.minHeight = '600px';
-  graphClone.style.width = '100%';
-  graphClone.className = 'mermaid-wrapper w-full bg-cyber-panel/30 rounded-xl p-8';
-
   modalContent.appendChild(header);
-  modalContent.appendChild(graphClone);
+
+  // Raw mermaid element for rendering
+  const mermaidDiv = document.createElement('div');
+  mermaidDiv.className = 'mermaid';
+  mermaidDiv.textContent = graphCode;
+
+  const targetWrapper = document.createElement('div');
+  targetWrapper.className = 'flex-1 w-full relative';
+  targetWrapper.appendChild(mermaidDiv);
+  modalContent.appendChild(targetWrapper);
+
   modal.appendChild(modalContent);
 
   // Close handlers
@@ -3238,19 +3344,14 @@ function openInteractiveMapModal() {
 
   // Re-render Mermaid in modal with larger dimensions
   setTimeout(() => {
-    const mermaidDiv = modal.querySelector('.mermaid');
-    if (mermaidDiv) {
-      mermaid.run({
-        nodes: [mermaidDiv],
-        suppressErrors: false
-      }).then(() => {
-        const svg = mermaidDiv.querySelector('svg');
-        if (svg) {
-          svg.style.minHeight = '550px';
-        }
-      });
+    window.renderMermaidGraphs(targetWrapper);
+    const container = targetWrapper.querySelector('.mermaid-container');
+    if (container) {
+      container.style.height = '100%';
+      container.style.border = 'none';
+      container.style.backgroundColor = 'transparent';
     }
-  }, 100);
+  }, 50);
 }
 
 /**
