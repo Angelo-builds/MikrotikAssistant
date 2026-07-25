@@ -67,3 +67,95 @@ body {
 .block-card[data-category="ai-generated"] {
   border-left: 4px solid rgb(236, 72, 153);
 }
+
+/* Conditional block visual indicator */
+.block-card[data-conditional="true"] {
+  border-left: 3px solid rgb(234, 179, 8) !important;
+}
+
+/* AI generated block styling */
+.block-card[data-category="ai-generated"] {
+  border-left: 3px solid rgb(236, 72, 153) !important;
+}
+
+/* Drag handle */
+.drag-handle {
+  user-select: none;
+  font-size: 1.2rem;
+  letter-spacing: -2px;
+  cursor: grab;
+}
+
+.drag-handle:active {
+  cursor: grabbing;
+}
+
+/* Block card drag states */
+.block-card.drag-over {
+  border-color: rgb(168, 85, 247) !important;
+  background-color: rgba(147, 51, 234, 0.1);
+  transform: scale(1.01);
+}
+
+/* Monaco container */
+#monaco-container {
+  border: 1px solid rgb(55, 65, 81);
+  border-radius: 0.5rem;
+  overflow: hidden;
+  min-height: 500px;
+}
+
+/* Variable input focus states */
+.variable-name:focus,
+.variable-value:focus {
+  border-color: rgb(147, 51, 234);
+  outline: none;
+  background-color: rgb(17, 24, 39);
+}
+
+/* Preview area */
+#preview-content {
+  min-height: 200px;
+  font-family: 'Courier New', monospace;
+  line-height: 1.5;
+}
+
+/* Scrollbar consistency */
+.build-container aside::-webkit-scrollbar,
+.build-container section::-webkit-scrollbar,
+#preview-content::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.build-container aside::-webkit-scrollbar-thumb,
+.build-container section::-webkit-scrollbar-thumb,
+#preview-content::-webkit-scrollbar-thumb {
+  background: rgb(75, 85, 99);
+  border-radius: 3px;
+}
+
+/* Modal animations */
+.fixed.inset-0.bg-black\/80 {
+  animation: fadeIn 0.15s ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* Block card transitions */
+.block-card {
+  transition: all 0.2s ease;
+}
+
+.block-card:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(147, 51, 234, 0.15);
+}
+
+/* Conditional block warning strip */
+.bg-yellow-900\/20 {
+  background-color: rgba(113, 63, 18, 0.2);
+}
