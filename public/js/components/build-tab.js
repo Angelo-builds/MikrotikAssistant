@@ -51,6 +51,8 @@ const BuildTab = {
         <div class="flex flex-wrap items-center justify-between gap-4 mb-4">
           <h2 class="text-2xl font-bold">Configuration Builder</h2>
           <div class="flex flex-wrap gap-2">
+            <button id="btn-generate-ai" class="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-all duration-150 active:scale-95">✨ AI Generate</button>
+            <button id="btn-add-conditional" class="bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition-all duration-150 active:scale-95">Add Conditional</button>
             <button id="btn-import-export" class="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-all duration-150 active:scale-95">Import .rsc</button>
             <button id="btn-validate" class="bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition-all duration-150 active:scale-95">Validate</button>
             <button id="btn-compare" class="bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition-all duration-150 active:scale-95">Compare</button>
@@ -132,19 +134,100 @@ const BuildTab = {
   renderBlocks() {
     const panel = document.getElementById('blocks-panel');
     panel.innerHTML = BuilderEngine.state.blocks.map((block, index) => `
-      <div class="bg-gray-900 border border-gray-700 rounded-lg overflow-hidden block-card" data-index="${index}">
+      <div class="bg-gray-900 border ${block.enabled ? 'border-purple-500/50' : 'border-gray-700'} rounded-lg overflow-hidden block-card relative pl-10" data-index="${index}" data-conditional="${block.isConditional ? 'true' : 'false'}" data-category="${block.category || ''}">
         <div class="flex items-center justify-between p-2 bg-gray-800/50 border-b border-gray-700">
           <div class="flex items-center space-x-2">
-            <input type="checkbox" class="block-toggle rounded text-purple-600 focus:ring-purple-500 bg-gray-700 border-gray-600" ${block.enabled ? 'checked' : ''}>
+            <input type="checkbox" class="block-toggle rounded text-purple-600 focus:ring-purple-500 bg-gray-700 border-gray-600" ${block.enabled ? 'checked' : ''} data-index="${index}">
             <span class="text-xs font-medium text-white">${block.name}</span>
+            <span class="text-xs text-gray-500 bg-gray-800 px-2 py-0.5 rounded">${block.category || 'general'}</span>
+            ${block.isConditional ? '<span class="text-xs text-yellow-500 bg-yellow-900/30 px-2 py-0.5 rounded">Conditional</span>' : ''}
           </div>
-          <button class="toggle-content text-gray-400 hover:text-white text-xs">▼</button>
+          <div class="flex items-center space-x-2">
+            <button class="btn-edit-block text-xs text-purple-400 hover:text-purple-300" data-index="${index}">Edit</button>
+            <button class="btn-duplicate-block text-xs text-gray-400 hover:text-white" data-index="${index}">Duplicate</button>
+            <button class="btn-remove-block text-xs text-gray-500 hover:text-red-400" data-index="${index}">Remove</button>
+            <button class="toggle-content text-gray-400 hover:text-white text-xs ml-2">▼</button>
+          </div>
         </div>
         <div class="block-content hidden p-2">
-          <textarea class="block-editor w-full bg-gray-950 border border-gray-700 rounded p-2 text-xs font-mono text-gray-300 h-32 focus:border-blue-500 focus:outline-none resize-y">${block.content}</textarea>
+          <textarea class="block-editor w-full bg-gray-950 border border-gray-700 rounded p-2 text-xs font-mono text-gray-300 h-32 focus:border-blue-500 focus:outline-none resize-y" data-index="${index}">${block.content}</textarea>
         </div>
       </div>
     `).join('');
+
+    // Initialize drag & drop
+    setTimeout(() => {
+      if (typeof BlockDragDrop !== 'undefined' && panel) {
+        BlockDragDrop.init(panel);
+      }
+    }, 100);
+
+    // Re-setup specific listeners for newly rendered blocks
+    this.setupBlockListenersOnly();
+  },
+
+  setupBlockListenersOnly() {
+    // Block toggles
+    document.querySelectorAll('.block-toggle').forEach((checkbox) => {
+      checkbox.addEventListener('change', (e) => {
+        const index = parseInt(e.target.dataset.index);
+        BuilderEngine.state.blocks[index].enabled = e.target.checked;
+        this.renderBlocks();
+        this.updatePreview();
+      });
+    });
+
+    // Block content editors
+    document.querySelectorAll('.block-editor').forEach((textarea) => {
+      textarea.addEventListener('input', (e) => {
+        const index = parseInt(e.target.dataset.index);
+        BuilderEngine.state.blocks[index].content = e.target.value;
+        this.updatePreview();
+      });
+    });
+
+    // Toggle block content visibility
+    document.querySelectorAll('.toggle-content').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const content = e.target.closest('.block-card').querySelector('.block-content');
+        content.classList.toggle('hidden');
+        e.target.textContent = content.classList.contains('hidden') ? '▼' : '▲';
+      });
+    });
+
+    // Edit button (Monaco)
+    document.querySelectorAll('.btn-edit-block').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const index = parseInt(e.target.dataset.index);
+        this.editBlock(index);
+      });
+    });
+
+    // Duplicate button
+    document.querySelectorAll('.btn-duplicate-block').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const index = parseInt(e.target.dataset.index);
+        const original = BuilderEngine.state.blocks[index];
+        const copy = {
+          ...original,
+          id: `${original.id}-copy-${Date.now()}`,
+          name: `${original.name} (Copy)`
+        };
+        BuilderEngine.state.blocks.splice(index + 1, 0, copy);
+        this.renderBlocks();
+        this.updatePreview();
+      });
+    });
+
+    // Remove button
+    document.querySelectorAll('.btn-remove-block').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const index = parseInt(e.target.dataset.index);
+        BuilderEngine.state.blocks.splice(index, 1);
+        this.renderBlocks();
+        this.updatePreview();
+      });
+    });
   },
 
   updatePreview() {
@@ -163,31 +246,6 @@ const BuildTab = {
         this.updatePreview();
         // Re-bind listeners for new inputs to prevent loss of focus or event listeners
         this.setupVariableListenersOnly();
-      });
-    });
-
-    // Block toggles
-    document.querySelectorAll('.block-toggle').forEach((checkbox, index) => {
-      checkbox.addEventListener('change', (e) => {
-        BuilderEngine.state.blocks[index].enabled = e.target.checked;
-        this.updatePreview();
-      });
-    });
-
-    // Block content editors
-    document.querySelectorAll('.block-editor').forEach((textarea, index) => {
-      textarea.addEventListener('input', (e) => {
-        BuilderEngine.state.blocks[index].content = e.target.value;
-        this.updatePreview();
-      });
-    });
-
-    // Toggle block content visibility
-    document.querySelectorAll('.toggle-content').forEach(btn => {
-      btn.addEventListener('click', (e) => {
-        const content = e.target.closest('.block-card').querySelector('.block-content');
-        content.classList.toggle('hidden');
-        e.target.textContent = content.classList.contains('hidden') ? '▼' : '▲';
       });
     });
 
@@ -223,6 +281,140 @@ const BuildTab = {
     // Compare button
     const btnCompare = document.getElementById('btn-compare');
     if (btnCompare) btnCompare.addEventListener('click', () => this.compareConfigs());
+
+    // AI Generate button
+    const btnAiGenerate = document.getElementById('btn-generate-ai');
+    if (btnAiGenerate) btnAiGenerate.addEventListener('click', () => this.generateBlockWithAI());
+
+    // Add Conditional button
+    const btnAddConditional = document.getElementById('btn-add-conditional');
+    if (btnAddConditional) btnAddConditional.addEventListener('click', () => this.addConditionalBlock());
+  },
+
+  // Replace editBlock method with Monaco Editor integration
+  async editBlock(index) {
+    const block = BuilderEngine.state.blocks[index];
+
+    const modal = document.createElement('div');
+    modal.className = 'fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-8';
+    modal.innerHTML = `
+      <div class="bg-gray-800 border border-gray-700 rounded-lg max-w-5xl w-full max-h-[90vh] flex flex-col shadow-2xl">
+        <div class="flex items-center justify-between p-4 border-b border-gray-700 bg-gray-800/50">
+          <h3 class="text-lg font-bold text-white">Edit Block: ${block.name}</h3>
+          <button class="btn-close text-gray-400 hover:text-white text-2xl">✕</button>
+        </div>
+        <div class="p-6 overflow-y-auto flex-1 flex flex-col">
+          <div id="monaco-container" class="flex-1 min-h-[400px]"></div>
+        </div>
+        <div class="flex justify-end space-x-2 p-4 border-t border-gray-700 bg-gray-800/30">
+          <button class="btn-cancel bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded-lg text-sm font-medium">Cancel</button>
+          <button class="btn-save bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg text-sm font-medium">Save Changes</button>
+        </div>
+      </div>
+    `;
+
+    document.body.appendChild(modal);
+
+    const closeModal = () => {
+      MonacoIntegration.dispose();
+      modal.remove();
+    };
+
+    modal.querySelector('.btn-close').addEventListener('click', closeModal);
+    modal.querySelector('.btn-cancel').addEventListener('click', closeModal);
+
+    const container = modal.querySelector('#monaco-container');
+    await MonacoIntegration.init(container, block.content);
+
+    modal.querySelector('.btn-save').addEventListener('click', () => {
+      const newContent = MonacoIntegration.getContent();
+      BuilderEngine.state.blocks[index].content = newContent;
+      closeModal();
+      this.renderBlocks();
+      this.updatePreview();
+    });
+  },
+
+  // Add reorderBlock method
+  reorderBlock(fromIndex, toIndex) {
+    const block = BuilderEngine.state.blocks.splice(fromIndex, 1)[0];
+    BuilderEngine.state.blocks.splice(toIndex, 0, block);
+    this.renderBlocks();
+    this.updatePreview();
+  },
+
+  // Add AI block generation method
+  async generateBlockWithAI() {
+    const description = prompt('Describe the block you want to generate (e.g., "WireGuard server with peer configuration"):');
+    if (!description) return;
+
+    const modal = document.createElement('div');
+    modal.className = 'fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-8';
+    modal.innerHTML = `
+      <div class="bg-gray-800 border border-gray-700 rounded-lg max-w-2xl w-full p-6 shadow-2xl flex flex-col items-center justify-center">
+        <h3 class="text-lg font-bold mb-4 text-white">Generating Block with AI...</h3>
+        <div class="flex items-center space-x-2 text-gray-400">
+          <div class="w-2 h-2 bg-purple-500 rounded-full animate-bounce"></div>
+          <div class="w-2 h-2 bg-purple-500 rounded-full animate-bounce" style="animation-delay: 0.1s"></div>
+          <div class="w-2 h-2 bg-purple-500 rounded-full animate-bounce" style="animation-delay: 0.2s"></div>
+        </div>
+      </div>
+    `;
+    document.body.appendChild(modal);
+
+    try {
+      const response = await fetch('/api/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          chatMessage: `Generate a RouterOS configuration block for: ${description}. Output ONLY the RouterOS commands, no explanations. Use {{VARIABLE}} syntax for any values that should be parameterized.`,
+          pastedConfig: '',
+          mode: 'standard',
+          provider: AppState.preferences.llmProvider,
+          apiKey: AppState.preferences.apiKey,
+          model: AppState.preferences.model
+        })
+      });
+
+      const result = await response.json();
+      modal.remove();
+
+      if (result.explanation) {
+        BuilderEngine.state.blocks.push({
+          id: `ai-generated-${Date.now()}`,
+          name: `AI: ${description.substring(0, 30)}...`,
+          category: 'ai-generated',
+          enabled: true,
+          content: result.explanation
+        });
+        this.renderBlocks();
+        this.updatePreview();
+        alert('Block generated successfully!');
+      } else {
+        alert('Failed to generate block');
+      }
+    } catch (error) {
+      modal.remove();
+      alert('AI generation failed: ' + error.message);
+    }
+  },
+
+  // Add conditional block support
+  addConditionalBlock() {
+    const condition = prompt('Enter condition (e.g., "RouterOS == 7" or "PPPoE == true"):');
+    if (!condition) return;
+
+    BuilderEngine.state.blocks.push({
+      id: `conditional-${Date.now()}`,
+      name: `IF ${condition}`,
+      category: 'conditional',
+      enabled: true,
+      content: `# IF ${condition}\n# Add your conditional RouterOS commands here\n# ENDIF`,
+      isConditional: true,
+      condition: condition
+    });
+    this.renderBlocks();
+    this.updatePreview();
   },
 
   setupVariableListenersOnly() {
