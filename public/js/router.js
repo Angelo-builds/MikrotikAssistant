@@ -69,6 +69,23 @@ const Router = {
             <label class="block text-sm font-medium mb-2">Model</label>
             <input type="text" id="pref-model" class="w-full bg-gray-700 border border-gray-600 rounded px-3 py-2 text-white" value="${AppState.preferences.model || ''}">
           </div>
+          <div>
+            <label class="block text-sm font-medium mb-2">Privacy Shields</label>
+            <div class="space-y-2 mt-2">
+              <label class="flex items-center space-x-2">
+                <input type="checkbox" id="mask-ips" ${AppState.preferences.privacyShields.maskIPs ? 'checked' : ''} class="rounded text-purple-600 bg-gray-750 border-gray-700 focus:ring-purple-500">
+                <span class="text-sm">Mask IP Addresses</span>
+              </label>
+              <label class="flex items-center space-x-2">
+                <input type="checkbox" id="mask-macs" ${AppState.preferences.privacyShields.maskMACs ? 'checked' : ''} class="rounded text-purple-600 bg-gray-750 border-gray-700 focus:ring-purple-500">
+                <span class="text-sm">Mask MAC Addresses</span>
+              </label>
+              <label class="flex items-center space-x-2">
+                <input type="checkbox" id="mask-secrets" ${AppState.preferences.privacyShields.maskSecrets ? 'checked' : ''} class="rounded text-purple-600 bg-gray-750 border-gray-700 focus:ring-purple-500">
+                <span class="text-sm">Mask Secrets & Passwords</span>
+              </label>
+            </div>
+          </div>
           <button id="btn-save-prefs" class="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg font-medium transition">Save Preferences</button>
         </div>
       </div>
@@ -78,6 +95,9 @@ const Router = {
       AppState.preferences.llmProvider = document.getElementById('pref-provider').value;
       AppState.preferences.apiKey = document.getElementById('pref-apikey').value;
       AppState.preferences.model = document.getElementById('pref-model').value;
+      AppState.preferences.privacyShields.maskIPs = document.getElementById('mask-ips').checked;
+      AppState.preferences.privacyShields.maskMACs = document.getElementById('mask-macs').checked;
+      AppState.preferences.privacyShields.maskSecrets = document.getElementById('mask-secrets').checked;
       AppState.save();
       alert('Preferences saved!');
     });
