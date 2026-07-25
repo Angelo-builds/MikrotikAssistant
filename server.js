@@ -728,6 +728,42 @@ app.post('/api/test-connection', async (req, res) => {
   }
 });
 
+const MikroTikParser = require('./backend/builder/parser');
+const ConfigValidator = require('./backend/builder/validator');
+
+// Parse MikroTik export
+app.post('/api/builder/parse', (req, res) => {
+  try {
+    const { exportText } = req.body;
+    const result = MikroTikParser.parseExport(exportText);
+    res.json({ success: true, ...result });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// Validate configuration
+app.post('/api/builder/validate', (req, res) => {
+  try {
+    const { variables, blocks } = req.body;
+    const result = ConfigValidator.validate(variables, blocks);
+    res.json({ success: true, ...result });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// Compare two configurations
+app.post('/api/builder/compare', (req, res) => {
+  try {
+    const { config1, config2 } = req.body;
+    const differences = MikroTikParser.compareConfigs(config1, config2);
+    res.json({ success: true, differences });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
 // Start server
 if (require.main === module) {
   app.listen(PORT, () => {

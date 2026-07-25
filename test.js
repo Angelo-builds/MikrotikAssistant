@@ -290,6 +290,64 @@ set name=Router
   assert(typeof agents.vlan === 'string' && agents.vlan.length > 0, 'vlan agent prompt must exist');
   assert(typeof agents.routing === 'string' && agents.routing.length > 0, 'routing agent prompt must exist');
 
+  // Unit Test 15: MikroTikParser - Export Parsing & Variable Extraction
+  console.log('\n--- Unit Test 15: MikroTikParser ---\n');
+  const MikroTikParser = require('./backend/builder/parser');
+  const dummyExport = `
+/system identity
+set name=ParserRouter
+/ip address
+add address=192.168.15.1/24 interface=ether2
+/interface pppoe-client
+add user=testuser password=testpass interface=ether1
+  `;
+  const parseResult = MikroTikParser.parseExport(dummyExport);
+  assert(parseResult.blocks.length >= 3, `Should parse at least 3 blocks, got ${parseResult.blocks.length}`);
+  assert(parseResult.variables.HOSTNAME === 'ParserRouter', `Should extract HOSTNAME as ParserRouter, got ${parseResult.variables.HOSTNAME}`);
+  assert(parseResult.variables.PPPOE_USERNAME === 'testuser', 'Should extract PPPOE_USERNAME');
+  assert(parseResult.variables.PPPOE_PASSWORD === 'testpass', 'Should extract PPPOE_PASSWORD');
+  assert(Object.values(parseResult.variables).includes('192.168.15.1/24'), 'Should extract IP address with subnet');
+
+  // Unit Test 16: ConfigValidator - Validation Logic
+  console.log('\n--- Unit Test 16: ConfigValidator ---\n');
+  const ConfigValidator = require('./backend/builder/validator');
+
+  // Test case A: Valid config
+  const validVars = {
+    HOSTNAME: 'ValidRouter',
+    LAN_NETWORK: '192.168.1.0/24',
+    LAN_GATEWAY: '192.168.1.1'
+  };
+  const validBlocks = [{ id: 'system', enabled: true }];
+  const valResult1 = ConfigValidator.validate(validVars, validBlocks);
+  assert(valResult1.isValid === true, 'Valid config should pass validation');
+
+  // Test case B: Duplicate IP detection
+  const duplicateVars = {
+    IP_1: '192.168.1.5',
+    IP_2: '192.168.1.5'
+  };
+  const valResult2 = ConfigValidator.validate(duplicateVars, validBlocks);
+  assert(valResult2.isValid === false, 'Duplicate IP should trigger error');
+  assert(valResult2.errors.includes('Duplicate IP addresses detected'), 'Should have Duplicate IP error message');
+
+  // Test case C: Overlapping Subnets detection
+  const overlappingVars = {
+    NET_1: '192.168.1.0/24',
+    NET_2: '192.168.1.128/25'
+  };
+  const valResult3 = ConfigValidator.validate(overlappingVars, validBlocks);
+  assert(valResult3.isValid === false, 'Overlapping networks should trigger error');
+  assert(valResult3.errors.some(e => e.includes('Overlapping networks')), 'Should have Overlapping networks error message');
+
+  // Test case D: Block dependencies check
+  const depVars = { HOSTNAME: 'DepRouter' };
+  const depBlocks = [
+    { id: 'dhcp-server', enabled: true } // Missing bridge-lan block
+  ];
+  const valResult4 = ConfigValidator.validate(depVars, depBlocks);
+  assert(valResult4.warnings.some(w => w.includes('Bridge LAN block')), 'Should warning about missing Bridge LAN');
+
   console.log('\n=======================================');
   if (failures === 0) {
     console.log('🎉 ALL INTEGRATION & UNIT TESTS PASSED SUCCESSFULLY! 🎉');
