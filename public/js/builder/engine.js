@@ -14,6 +14,26 @@ const BuilderEngine = {
     blocks: []
   },
 
+  // Getters/setters for dual compatibility
+  get variables() {
+    return this.state.variables;
+  },
+  set variables(val) {
+    this.state.variables = val;
+  },
+  get derivedVariables() {
+    return this.state.derivedVariables;
+  },
+  set derivedVariables(val) {
+    this.state.derivedVariables = val;
+  },
+  get blocks() {
+    return this.state.blocks;
+  },
+  set blocks(val) {
+    this.state.blocks = val;
+  },
+
   init() {
     this.state.variables = { ...this.defaultVariables };
     this.computeAllDerived();
@@ -96,18 +116,156 @@ const BuilderEngine = {
     return { ...this.state.variables, ...this.state.derivedVariables };
   },
 
-  renderTemplate(template) {
+  save() {
+    if (typeof AppState !== 'undefined' && AppState.save) {
+      AppState.save();
+    }
+  },
+
+  removeVariable(name) {
+    if (!this.variables[name]) return;
+
+    // Determine base name for derived variables
+    let baseName = name;
+    if (name.endsWith('NETWORK')) {
+      baseName = name.replace('NETWORK', '');
+    } else if (name.endsWith('IP')) {
+      baseName = name.replace('IP', '');
+    }
+
+    delete this.variables[name];
+
+    // Remove all derived variables that start with this base
+    Object.keys(this.derivedVariables).forEach(key => {
+      if (baseName && key.startsWith(baseName)) {
+        delete this.derivedVariables[key];
+      }
+    });
+
+    this.save();
+  },
+
+  // Evaluate a condition string against current variables
+  evaluateCondition(condition) {
+    if (!condition || typeof condition !== 'string') return true;
+
+    // Support formats: "RouterOS == 7", "PPPoE == true", "BGP != false"
+    const operators = ['==', '!=', '>=', '<=', '>', '<'];
+    let operator = null;
+    let left = null;
+    let right = null;
+
+    for (const op of operators) {
+      if (condition.includes(op)) {
+        const parts = condition.split(op).map(s => s.trim());
+        if (parts.length === 2) {
+          operator = op;
+          left = parts[0];
+          right = parts[1];
+          break;
+        }
+      }
+    }
+
+    if (!operator) return true;
+
+    // Resolve left side (could be a variable name or literal)
+    const leftValue = this.resolveValue(left);
+    const rightValue = this.resolveValue(right);
+
+    // Compare
+    switch (operator) {
+      case '==': return String(leftValue) === String(rightValue);
+      case '!=': return String(leftValue) !== String(rightValue);
+      case '>': return Number(leftValue) > Number(rightValue);
+      case '<': return Number(leftValue) < Number(rightValue);
+      case '>=': return Number(leftValue) >= Number(rightValue);
+      case '<=': return Number(leftValue) <= Number(rightValue);
+      default: return true;
+    }
+  },
+
+  // Resolve a value: if it matches a variable name, return that; otherwise return as-is
+  resolveValue(val) {
     const allVars = this.getAllVariables();
-    return template.replace(/\{\{(\w+)\}\}/g, (match, varName) => {
+    if (allVars[val] !== undefined) return allVars[val];
+    // Handle boolean literals
+    if (val.toLowerCase() === 'true') return 'true';
+    if (val.toLowerCase() === 'false') return 'false';
+    return val;
+  },
+
+  // Render a single block, respecting conditionals
+  renderBlockContent(block) {
+    const allVars = this.getAllVariables();
+    let content = block.content;
+
+    // Handle IF/ENDIF blocks within the content
+    const ifRegex = /# IF (.+)\n([\s\S]*?)# ENDIF/g;
+    content = content.replace(ifRegex, (match, condition, innerContent) => {
+      if (this.evaluateCondition(condition)) {
+        return innerContent;
+      }
+      return '';
+    });
+
+    // Replace {{VARIABLE}} placeholders
+    content = content.replace(/\{\{(\w+)\}\}/g, (match, varName) => {
       return allVars[varName] !== undefined ? allVars[varName] : match;
     });
+
+    return content;
+  },
+
+  // Check if a block-level conditional is satisfied
+  isBlockEnabled(block) {
+    if (!block.isConditional || !block.condition) return true;
+    return this.evaluateCondition(block.condition);
+  },
+
+  renderTemplate(template) {
+    const allVars = this.getAllVariables();
+    let result = template;
+
+    // Handle inline IF/ENDIF
+    const ifRegex = /# IF (.+)\n([\s\S]*?)# ENDIF/g;
+    result = result.replace(ifRegex, (match, condition, innerContent) => {
+      if (this.evaluateCondition(condition)) {
+        return innerContent;
+      }
+      return '';
+    });
+
+    // Replace variables
+    result = result.replace(/\{\{(\w+)\}\}/g, (match, varName) => {
+      return allVars[varName] !== undefined ? allVars[varName] : match;
+    });
+
+    return result;
+  },
+
+  renderBlocks(blocks) {
+    return blocks
+      .filter(block => block.enabled)
+      .filter(block => this.isBlockEnabled(block))
+      .map(block => ({
+        ...block,
+        renderedContent: this.renderBlockContent(block)
+      }));
+  },
+
+  generateRsc(blocks) {
+    const rendered = this.renderBlocks(blocks);
+    const header = `# Generated by MikrotikAssistant\n# ${new Date().toISOString()}\n\n`;
+    const body = rendered.map(block => {
+      const conditionalNote = block.isConditional ? `# Conditional: IF ${block.condition}\n` : '';
+      return `${conditionalNote}# === ${block.name} ===\n${block.renderedContent}`;
+    }).join('\n\n');
+    return header + body;
   },
 
   renderFullConfig() {
-    return this.state.blocks
-      .filter(block => block.enabled)
-      .map(block => `# --- ${block.name} ---\n${this.renderTemplate(block.content)}`)
-      .join('\n\n');
+    return this.generateRsc(this.state.blocks.filter(b => b.enabled));
   },
 
   loadDefaultBlocks() {
