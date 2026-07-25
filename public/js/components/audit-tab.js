@@ -2294,6 +2294,9 @@ const AuditTab = {
             <span>💾</span> <span class="rsc-btn-label">.rsc</span>
           </button>
           ` : ''}
+          ${hasCorrectedConfig ? `
+          <button class="btn-action bg-blue-600/20 text-blue-400 border border-blue-500/30 px-3 py-1.5 rounded-lg text-xs hover:bg-blue-600/30" data-action="send-to-build">🛠️ Send to Builder</button>
+          ` : ''}
           ${hasExtracted || hasCommands ? `
           <button id="btn-copy-commands" class="px-3 py-1.5 text-xs font-medium rounded-md flex items-center gap-1.5 transition-all bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-300 border border-emerald-500/30 hover:border-emerald-400/50">
             <span>📋</span> Copy
@@ -2350,6 +2353,21 @@ const AuditTab = {
         navigator.clipboard.writeText(textToCopy).then(() => {
           this.showToast('Fix commands copied to clipboard!', 'success');
         });
+      });
+    }
+
+    const btnSendToBuild = wrapper.querySelector('[data-action="send-to-build"]');
+    if (btnSendToBuild) {
+      btnSendToBuild.addEventListener('click', () => {
+        AppState.setCurrentTab('build');
+        Router.renderCurrentTab();
+        Router.updateActiveTab('build');
+
+        setTimeout(() => {
+          if (BuildTab && BuildTab.receiveFromAudit) {
+            BuildTab.receiveFromAudit(result.correctedConfig);
+          }
+        }, 100);
       });
     }
 
@@ -2432,6 +2450,9 @@ const AuditTab = {
             <span>💾</span> <span class="rsc-btn-label">.rsc</span>
           </button>
           ` : ''}
+          ${hasCorrectedConfig ? `
+          <button class="btn-action bg-blue-600/20 text-blue-400 border border-blue-500/30 px-3 py-1.5 rounded-lg text-xs hover:bg-blue-600/30" data-action="send-to-build">🛠️ Send to Builder</button>
+          ` : ''}
         </div>
       `;
     }
@@ -2474,6 +2495,21 @@ const AuditTab = {
     if (btnDownloadRsc) {
       btnDownloadRsc.addEventListener('click', () => {
         this.downloadAsRscFile(result.correctedConfig || '');
+      });
+    }
+
+    const btnOrchSendToBuild = wrapper.querySelector('[data-action="send-to-build"]');
+    if (btnOrchSendToBuild) {
+      btnOrchSendToBuild.addEventListener('click', () => {
+        AppState.setCurrentTab('build');
+        Router.renderCurrentTab();
+        Router.updateActiveTab('build');
+
+        setTimeout(() => {
+          if (BuildTab && BuildTab.receiveFromAudit) {
+            BuildTab.receiveFromAudit(result.correctedConfig);
+          }
+        }, 100);
       });
     }
 

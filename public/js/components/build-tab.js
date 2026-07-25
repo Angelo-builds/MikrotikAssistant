@@ -4,10 +4,13 @@ const BuildTab = {
       <div class="flex flex-col h-full">
         <div class="flex items-center justify-between mb-4">
           <h2 class="text-2xl font-bold">Configuration Builder</h2>
-          <button id="btn-export-rsc" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg text-sm font-medium flex items-center space-x-2">
-            <span>💾</span>
-            <span>Export .rsc</span>
-          </button>
+          <div class="flex space-x-2">
+            <button id="btn-save-library" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg text-sm"> Save to Library</button>
+            <button id="btn-export-rsc" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg text-sm font-medium flex items-center space-x-2">
+              <span>💾</span>
+              <span>Export .rsc</span>
+            </button>
+          </div>
         </div>
 
         <div class="grid grid-cols-12 gap-4 flex-1 overflow-hidden">
@@ -139,6 +142,12 @@ const BuildTab = {
       });
     });
 
+    // Save to Library button
+    const saveLibBtn = document.getElementById('btn-save-library');
+    if (saveLibBtn) {
+      saveLibBtn.addEventListener('click', () => this.saveToLibrary());
+    }
+
     // Export button
     const exportBtn = document.getElementById('btn-export-rsc');
     if (exportBtn) {
@@ -176,5 +185,67 @@ const BuildTab = {
         this.setupVariableListenersOnly();
       });
     });
+  },
+
+  applyPresetData(preset) {
+    // Clear current variables
+    BuilderEngine.state.variables = {};
+
+    // Set preset variables
+    Object.entries(preset.variables).forEach(([name, value]) => {
+      BuilderEngine.setVariable(name, value);
+    });
+
+    // Reset blocks to default state based on preset
+    BuilderEngine.loadDefaultBlocks();
+    BuilderEngine.state.blocks.forEach(block => {
+      block.enabled = preset.enabledBlocks.includes(block.id);
+    });
+
+    this.renderVariables();
+    this.renderBlocks();
+    this.updatePreview();
+
+    // Show feedback
+    alert(`Preset "${preset.name}" loaded successfully!`);
+  },
+
+  loadProjectData(project) {
+    BuilderEngine.state.variables = project.variables || {};
+    BuilderEngine.computeAllDerived();
+    BuilderEngine.state.blocks = project.blocks || [];
+
+    this.renderVariables();
+    this.renderBlocks();
+    this.updatePreview();
+  },
+
+  saveToLibrary() {
+    const name = prompt('Project name:', 'My MikroTik Config');
+    if (!name) return;
+
+    const project = {
+      name: name,
+      variables: BuilderEngine.state.variables,
+      blocks: BuilderEngine.state.blocks
+    };
+
+    BuilderLibrary.save(project);
+    alert('Project saved to Library!');
+  },
+
+  receiveFromAudit(configText) {
+    // Create a new custom block with the audited config
+    BuilderEngine.state.blocks.push({
+      id: `audit-import-${Date.now()}`,
+      name: 'Imported from Audit',
+      category: 'imported',
+      enabled: true,
+      content: configText
+    });
+
+    this.renderBlocks();
+    this.updatePreview();
+    alert('Configuration imported from Audit as a new block!');
   }
 };
