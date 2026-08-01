@@ -6,8 +6,31 @@
   <title>MikrotikAssistant</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="/css/styles.css">
+  <link rel="stylesheet" href="/css/design-system.css">
+  <!-- Lucide Icons CDN -->
+  <script src="https://unpkg.com/lucide@latest"></script>
   <!-- Monaco Editor -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.44.0/min/vs/loader.min.js"></script>
+  <!-- Inline Script to prevent Theme Flash -->
+  <script>
+    (function() {
+      var savedTheme = localStorage.getItem('mikrotik-assistant-theme');
+      if (!savedTheme) {
+        if (window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches) {
+          savedTheme = 'light';
+        } else {
+          savedTheme = 'dark';
+        }
+      }
+      if (savedTheme === 'light') {
+        document.documentElement.classList.add('light');
+        document.documentElement.classList.remove('dark');
+      } else {
+        document.documentElement.classList.add('dark');
+        document.documentElement.classList.remove('light');
+      }
+    })();
+  </script>
 </head>
 <body class="bg-gray-900 text-gray-100 h-screen overflow-hidden">
   <div id="app" class="flex flex-col h-full">
@@ -32,11 +55,20 @@
   <script src="/utils.js.bak"></script>
 
   <script src="/js/state.js"></script>
+  <script src="/js/ui/icons.js"></script>
   <script src="/js/builder/diff-viewer.js"></script>
   <script src="/js/builder/engine.js"></script>
   <script src="/js/builder/library.js"></script>
   <script src="/js/builder/monaco-integration.js"></script>
   <script src="/js/builder/drag-drop.js"></script>
+  <!-- Shared UI Components -->
+  <script src="/js/components/ui/icons.js"></script>
+  <script src="/js/components/ui/buttons.js"></script>
+  <script src="/js/components/ui/cards.js"></script>
+  <script src="/js/components/ui/inputs.js"></script>
+  <script src="/js/components/ui/modals.js"></script>
+  <script src="/js/components/ui/collapsible.js"></script>
+
   <script src="/js/router.js"></script>
   <script src="/js/components/header.js"></script>
   <script src="/js/components/sidebar.js"></script>

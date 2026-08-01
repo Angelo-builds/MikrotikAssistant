@@ -28,30 +28,52 @@ document.addEventListener('DOMContentLoaded', () => {
     window.BuildTabInstance = BuildTab;
   }
 
-  // Jump to build button
-  const jumpBtn = document.getElementById('btn-jump-to-build');
-  if (jumpBtn) {
-    jumpBtn.addEventListener('click', () => {
-      AppState.setCurrentTab('build');
-      Router.renderCurrentTab();
-      Router.updateActiveTab('build');
-    });
-  }
+  // Create toast notifications system container
+  const toastContainer = document.createElement('div');
+  toastContainer.id = 'toast-container';
+  toastContainer.className = 'fixed top-4 right-4 z-50 flex flex-col space-y-2 pointer-events-none';
+  document.body.appendChild(toastContainer);
 
-  // New session button
-  const newSessionBtn = document.getElementById('btn-new-session');
-  if (newSessionBtn) {
-    newSessionBtn.addEventListener('click', () => {
-      if (confirm('Start a new session? Unsaved work will be lost.')) {
-        location.reload();
-      }
-    });
-  }
+  // Expose global non-intrusive toast notification system
+  window.showGlobalToast = (message, type = 'success') => {
+    const toast = document.createElement('div');
+    toast.className = 'p-3 rounded-xl border flex items-center space-x-2.5 shadow-xl transition-all duration-300 transform translate-y-2 opacity-0 select-text z-50 pointer-events-auto bg-gray-900 border-gray-700 text-gray-100 min-w-[280px] max-w-[400px]';
+
+    if (type === 'success') {
+      toast.className = 'p-3 rounded-xl border flex items-center space-x-2.5 shadow-xl transition-all duration-300 transform translate-y-2 opacity-0 select-text z-50 pointer-events-auto bg-emerald-950 border-emerald-500 text-emerald-200 min-w-[280px] max-w-[400px]';
+      toast.innerHTML = `
+        <i data-lucide="shield-check" class="w-4 h-4 text-emerald-400"></i>
+        <span class="text-xs font-semibold">${message}</span>
+      `;
+    } else if (type === 'error') {
+      toast.className = 'p-3 rounded-xl border flex items-center space-x-2.5 shadow-xl transition-all duration-300 transform translate-y-2 opacity-0 select-text z-50 pointer-events-auto bg-red-950 border-red-500 text-red-200 min-w-[280px] max-w-[400px]';
+      toast.innerHTML = `
+        <i data-lucide="alert-triangle" class="w-4 h-4 text-red-400"></i>
+        <span class="text-xs font-semibold">${message}</span>
+      `;
+    } else {
+      toast.innerHTML = `
+        <i data-lucide="info" class="w-4 h-4 text-purple-400"></i>
+        <span class="text-xs font-semibold">${message}</span>
+      `;
+    }
+
+    toastContainer.appendChild(toast);
+    if (typeof lucide !== 'undefined') {
+      lucide.createIcons();
+    }
+
+    setTimeout(() => toast.classList.remove('translate-y-2', 'opacity-0'), 10);
+    setTimeout(() => {
+      toast.classList.add('translate-y-2', 'opacity-0');
+      setTimeout(() => toast.remove(), 300);
+    }, 3500);
+  };
 
   // Global Escape key handler for modals
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') {
-      const modals = document.querySelectorAll('.fixed.inset-0.bg-black\\/80, .fixed.inset-0.bg-black\\\\/80');
+      const modals = document.querySelectorAll('.fixed.inset-0.bg-black\\/80, .fixed.inset-0.bg-black\\\\/80, .fixed.inset-0.bg-black\\/85, .fixed.inset-0.bg-black\\/70');
       modals.forEach(modal => modal.remove());
     }
   });
