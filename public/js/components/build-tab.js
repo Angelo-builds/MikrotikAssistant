@@ -160,6 +160,20 @@ const BuildTab = {
     preview.textContent = rsc || '# No blocks enabled';
   },
 
+  loadMonaco() {
+    return new Promise((resolve) => {
+      const script = document.createElement('script');
+      script.src = 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.44.0/min/vs/loader.min.js';
+      script.onload = () => {
+        require.config({ paths: { vs: 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.44.0/min/vs' }});
+        require(['vs/editor/editor.main'], () => {
+          resolve();
+        });
+      };
+      document.head.appendChild(script);
+    });
+  },
+
   async editBlock(index) {
     const block = this.blocks[index];
 
@@ -179,6 +193,11 @@ const BuildTab = {
         this.updatePreview();
       }
       return;
+    }
+
+    // Lazy load Monaco only when the user clicks "Edit"
+    if (typeof monaco === 'undefined') {
+      await this.loadMonaco();
     }
 
     const modal = document.createElement('div');
@@ -257,7 +276,7 @@ const BuildTab = {
     container.innerHTML = this.blocks.map((block, index) => {
       const isExpanded = !!block.expanded;
       return `
-      <div class="block-card ${block.enabled ? '' : 'opacity-50'} ${isExpanded ? 'expanded' : ''}" draggable="true" data-index="${index}" ${block.isConditional ? 'data-conditional="true"' : ''} data-category="${block.category || 'general'}">
+      <div id="block-${block.id}" class="block-card transition-all ${block.enabled ? '' : 'opacity-50'} ${isExpanded ? 'expanded' : ''}" draggable="true" data-index="${index}" ${block.isConditional ? 'data-conditional="true"' : ''} data-category="${block.category || 'general'}">
         <div class="block-card-header">
           <div class="flex items-center space-x-2 flex-1 min-w-0 card-header-toggle" data-index="${index}">
             <div class="drag-handle text-zinc-500 hover:text-purple-400 cursor-grab active:cursor-grabbing select-none mr-1.5">⋮⋮</div>
@@ -354,7 +373,7 @@ const BuildTab = {
         <h4 class="text-[9px] font-bold text-zinc-500 uppercase tracking-wider mb-1.5 select-none">Manual Inputs</h4>
         <div class="space-y-1.5">
           ${Object.entries(BuilderEngine.variables).map(([name, value]) => `
-            <div class="bg-surface border border-border rounded p-2">
+            <div id="var-${name}" class="bg-surface border border-border rounded p-2 transition-all">
               <div class="flex items-center justify-between mb-1 select-none">
                 <input type="text" value="${this.escapeHtml(name)}" class="variable-name bg-transparent text-[10px] font-mono text-purple-400 w-full focus:outline-none font-bold" data-old-name="${this.escapeHtml(name)}">
                 <button class="btn-remove-var text-zinc-500 hover:text-red-500 ml-1.5 h-4 w-4 flex items-center justify-center rounded hover:bg-white/5" data-name="${this.escapeHtml(name)}">✕</button>
@@ -503,7 +522,7 @@ const BuildTab = {
           pastedConfig: '',
           mode: 'standard',
           provider: AppState.preferences.llmProvider,
-          apiKey: AppState.preferences.apiKey,
+          apiKey: AppState.preferences.useBackendEnv ? 'USE_BACKEND_ENV' : (AppState.sessionApiKey || 'USE_BACKEND_ENV'),
           model: AppState.preferences.model
         })
       });
@@ -658,13 +677,23 @@ const BuildTab = {
 
       if (result.errors && result.errors.length > 0) {
         content += '<div><h4 class="font-bold text-red-400 mb-2 text-xs">Errors:</h4><div class="space-y-2">';
-        content += result.errors.map(e => `<div class="text-xs text-red-300 bg-red-950/20 px-3 py-2 rounded border border-red-950/30">✕ ${e}</div>`).join('');
+        content += result.errors.map(err => `
+          <div class="text-xs text-red-300 bg-red-950/20 px-3 py-2 rounded border border-red-950/30 flex items-center justify-between">
+            <span>✕ ${err.message || err}</span>
+            ${err.target ? `<button class="text-[10px] underline hover:text-white px-2 py-0.5 rounded bg-red-500/10 border border-red-500/20 transition-all font-semibold uppercase tracking-wider" onclick="window.highlightTarget('${err.targetType}', '${err.target}')">Go to</button>` : ''}
+          </div>
+        `).join('');
         content += '</div></div>';
       }
 
       if (result.warnings && result.warnings.length > 0) {
         content += '<div><h4 class="font-bold text-yellow-400 mb-2 text-xs">Warnings:</h4><div class="space-y-2">';
-        content += result.warnings.map(w => `<div class="text-xs text-yellow-300 bg-yellow-950/20 px-3 py-2 rounded border border-yellow-950/30">⚠ ${w}</div>`).join('');
+        content += result.warnings.map(err => `
+          <div class="text-xs text-yellow-300 bg-yellow-950/20 px-3 py-2 rounded border border-yellow-950/30 flex items-center justify-between">
+            <span>⚠ ${err.message || err}</span>
+            ${err.target ? `<button class="text-[10px] underline hover:text-white px-2 py-0.5 rounded bg-yellow-500/10 border border-yellow-500/20 transition-all font-semibold uppercase tracking-wider" onclick="window.highlightTarget('${err.targetType}', '${err.target}')">Go to</button>` : ''}
+          </div>
+        `).join('');
         content += '</div></div>';
       }
 
@@ -809,5 +838,29 @@ const BuildTab = {
     const div = document.createElement('div');
     div.textContent = text;
     return div.innerHTML;
+  }
+};
+
+window.highlightTarget = (type, id) => {
+  // Find modal and close it
+  const modals = document.querySelectorAll('.fixed.inset-0');
+  modals.forEach(m => {
+    if (m.innerHTML.includes('Validation Results')) {
+      m.remove();
+    }
+  });
+
+  const selector = type === 'variable' ? `#var-${id}` : `#block-${id}`;
+  const element = document.querySelector(selector);
+  if (element) {
+    element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+    // Add brief flash animation (yellow/indigo flash)
+    element.style.outline = '2px solid rgb(147, 51, 234)'; // indigo-500/purple-600 outline
+    element.classList.add('animate-pulse');
+    setTimeout(() => {
+      element.style.outline = '';
+      element.classList.remove('animate-pulse');
+    }, 2000);
   }
 };

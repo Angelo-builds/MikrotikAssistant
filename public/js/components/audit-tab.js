@@ -1462,7 +1462,7 @@ const AuditTab = {
   // Syncs LLM online badges based on Preferences
   updateLLMStatusBadge() {
     const provider = AppState.preferences.llmProvider;
-    const hasKey = !!AppState.preferences.apiKey;
+    const hasKey = AppState.preferences.useBackendEnv || !!AppState.sessionApiKey;
 
     const dot = this.els.llmStatusDot;
     const label = this.els.llmStatusText;
@@ -1753,7 +1753,7 @@ const AuditTab = {
       chatMessage: chatVal,
       chatHistory,
       provider: AppState.preferences.llmProvider,
-      apiKey: AppState.preferences.apiKey,
+      apiKey: AppState.preferences.useBackendEnv ? 'USE_BACKEND_ENV' : (AppState.sessionApiKey || 'USE_BACKEND_ENV'),
       baseUrl: AppState.preferences.baseUrl || '',
       model: AppState.preferences.model,
       systemPrompt: AppState.preferences.prompt || '',
@@ -1976,7 +1976,18 @@ const AuditTab = {
         throw new Error(errData.error || `Server error ${res.status}`);
       }
 
-      serverResponseData = await res.json();
+      const rawText = await res.text();
+      try {
+        serverResponseData = JSON.parse(rawText);
+      } catch (parseError) {
+        console.error("JSON Parse failed, falling back to regex extraction", parseError);
+        serverResponseData = {
+          isOrchestrator: false,
+          explanation: "⚠️ The AI response format was unexpected. However, I extracted the RouterOS commands below:",
+          fixCommands: this.extractRouterOsCommandsFallback(rawText),
+          correctedConfig: this.extractRouterOsCommandsFallback(rawText)
+        };
+      }
 
       // Simulate/wait for Restoration and Diff stages locally
       await this.delay(1100, signal);
@@ -2096,7 +2107,7 @@ const AuditTab = {
     const body = {
       pastedConfig: pastedVal,
       provider: AppState.preferences.llmProvider,
-      apiKey: AppState.preferences.apiKey,
+      apiKey: AppState.preferences.useBackendEnv ? 'USE_BACKEND_ENV' : (AppState.sessionApiKey || 'USE_BACKEND_ENV'),
       baseUrl: AppState.preferences.baseUrl || '',
       model: AppState.preferences.model,
       language: this.state.language,
@@ -3184,5 +3195,11 @@ const AuditTab = {
         }
       }
     }, 50);
+  },
+
+  // Helper fallback extraction of RouterOS code blocks
+  extractRouterOsCommandsFallback(text) {
+    const match = text.match(/```(?:RouterOS|routeros)?\n([\s\S]*?)```/i);
+    return match ? match[1].trim() : text;
   }
 };

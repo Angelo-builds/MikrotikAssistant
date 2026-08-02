@@ -3,9 +3,10 @@ const AppState = {
   sessions: [],
   currentSession: null,
   theme: 'dark', // 'dark' | 'light'
+  sessionApiKey: '',
   preferences: {
     llmProvider: 'openrouter',
-    apiKey: '',
+    useBackendEnv: false,
     model: 'meta-llama/llama-3-8b-instruct:free',
     privacyShields: {
       maskIPs: true,
@@ -28,6 +29,14 @@ const AppState = {
       try {
         const parsed = JSON.parse(saved);
         this.preferences = { ...this.preferences, ...parsed.preferences };
+
+        // Secure Ephemeral Migration: Check for legacy key in localStorage
+        if (this.preferences.apiKey) {
+          this.sessionApiKey = this.preferences.apiKey;
+          delete this.preferences.apiKey;
+          setTimeout(() => this.save(), 50); // Save state without the legacy apiKey
+        }
+
         if (parsed.currentTab) {
           this.currentTab = parsed.currentTab;
         }
@@ -72,8 +81,11 @@ const AppState = {
   },
 
   save() {
+    // Under no circumstances should the API key be written to localStorage
+    const savedPrefs = { ...this.preferences };
+    delete savedPrefs.apiKey; // Explicit guard
     localStorage.setItem('mikrotik-assistant-state', JSON.stringify({
-      preferences: this.preferences,
+      preferences: savedPrefs,
       currentTab: this.currentTab
     }));
   },
@@ -85,3 +97,7 @@ const AppState = {
 };
 
 AppState.init();
+
+if (typeof module !== 'undefined' && module.exports) {
+  module.exports = AppState;
+}

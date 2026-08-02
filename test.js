@@ -1,6 +1,42 @@
 const { mask, unmask, isPrivateIPv4, isPrivateIPv6 } = require('./privacyShield');
 const { computeLineDiff, renderMarkdown, extractRouterOsCommands, debounce } = require('./public/js/utils');
 
+// Mock localStorage, window and document for AppState environment in Node.js
+global.window = {
+  matchMedia: () => ({ matches: false })
+};
+global.document = {
+  documentElement: {
+    classList: {
+      add() {},
+      remove() {}
+    }
+  },
+  createElement() {
+    return {
+      textContent: '',
+      get innerHTML() {
+        return this.textContent;
+      },
+      classList: {
+        add() {},
+        remove() {}
+      },
+      setAttribute() {},
+      style: {}
+    };
+  }
+};
+global.localStorage = {
+  store: {},
+  getItem(key) { return this.store[key] || null; },
+  setItem(key, value) { this.store[key] = String(value); },
+  removeItem(key) { delete this.store[key]; }
+};
+
+// Require AppState after mocks are declared
+const AppState = require('./public/js/state');
+
 function runAllTests() {
   console.log('=== STARTING INTEGRATION & UNIT TESTS ===');
   let failures = 0;
@@ -343,7 +379,7 @@ add user=testuser password=testpass interface=ether1
   };
   const valResult2 = ConfigValidator.validate(duplicateVars, validBlocks);
   assert(valResult2.isValid === false, 'Duplicate IP should trigger error');
-  assert(valResult2.errors.includes('Duplicate IP addresses detected'), 'Should have Duplicate IP error message');
+  assert(valResult2.errors.some(e => e.message === 'Duplicate IP addresses detected'), 'Should have Duplicate IP error message');
 
   // Test case C: Overlapping Subnets detection
   const overlappingVars = {
@@ -352,7 +388,7 @@ add user=testuser password=testpass interface=ether1
   };
   const valResult3 = ConfigValidator.validate(overlappingVars, validBlocks);
   assert(valResult3.isValid === false, 'Overlapping networks should trigger error');
-  assert(valResult3.errors.some(e => e.includes('Overlapping networks')), 'Should have Overlapping networks error message');
+  assert(valResult3.errors.some(e => e.message.includes('Overlapping networks')), 'Should have Overlapping networks error message');
 
   // Test case D: Block dependencies check
   const depVars = { HOSTNAME: 'DepRouter' };
@@ -360,7 +396,22 @@ add user=testuser password=testpass interface=ether1
     { id: 'dhcp-server', enabled: true } // Missing bridge-lan block
   ];
   const valResult4 = ConfigValidator.validate(depVars, depBlocks);
-  assert(valResult4.warnings.some(w => w.includes('Bridge LAN block')), 'Should warning about missing Bridge LAN');
+  assert(valResult4.warnings.some(w => w.message.includes('Bridge LAN block')), 'Should warning about missing Bridge LAN');
+
+  // Test case E: Target and TargetType assertion
+  const invalidVars = {
+    EMPTY_VAR: '',
+    LAN_GATEWAY: '192.168.1.1'
+  };
+  const valResult5 = ConfigValidator.validate(invalidVars, [{ id: 'dhcp-server', enabled: true }]);
+
+  const emptyVarError = valResult5.errors.find(e => e.target === 'EMPTY_VAR');
+  assert(!!emptyVarError, 'Should return error targeting EMPTY_VAR');
+  assert(emptyVarError.targetType === 'variable', 'TargetType should be variable');
+
+  const depWarning = valResult5.warnings.find(w => w.target === 'dhcp-server');
+  assert(!!depWarning, 'Should return warning targeting dhcp-server block');
+  assert(depWarning.targetType === 'block', 'TargetType should be block');
 
   // Unit Test 17: Aggressive Command Grouping and Visual Elements
   console.log('\n--- Unit Test 17: Regression and Aggressive Grouping ---\n');
@@ -399,6 +450,45 @@ add user=testuser password=testpass interface=ether1
   const emptyBackticks = 'Some text `` more text';
   const emptyResult = renderMarkdown(emptyBackticks);
   assert(!emptyResult.includes('<code></code>'), 'Should not render empty code blocks');
+
+  // Unit Test 18: Security Test (AppState sessionApiKey should never be written to localStorage)
+  console.log('\n--- Unit Test 18: Security Test ---\n');
+
+  // Clean localStorage store
+  global.localStorage.store = {};
+
+  // Set in-memory session API key
+  AppState.sessionApiKey = 'sk-ephemeral-12345';
+  AppState.preferences.useBackendEnv = false;
+  AppState.preferences.apiKey = 'leak-test'; // Ensure even legacy property is removed
+
+  AppState.save();
+
+  const savedStateRaw = global.localStorage.getItem('mikrotik-assistant-state');
+  assert(savedStateRaw !== null, 'AppState should save to localStorage');
+
+  const savedState = JSON.parse(savedStateRaw);
+  assert(!savedStateRaw.includes('sk-ephemeral-12345'), 'sessionApiKey must NEVER be saved to localStorage!');
+  assert(!savedState.preferences.apiKey, 'legacy apiKey property must be completely removed/deleted!');
+
+  // Unit Test 19: Fallback Parsing Test
+  console.log('\n--- Unit Test 19: Fallback Parsing Test ---\n');
+  const fallbackExtractor = (text) => {
+    const match = text.match(/```(?:RouterOS|routeros)?\n([\s\S]*?)```/i);
+    return match ? match[1].trim() : text;
+  };
+
+  const malformedResponse = `Some error explanation here.
+  Here are the commands to fix:
+  \`\`\`RouterOS
+  /ip firewall filter add chain=input action=drop
+  /ip address set [find] address=192.168.1.1
+  \`\`\`
+  Another sentence.`;
+
+  const extractedFallback = fallbackExtractor(malformedResponse);
+  assert(extractedFallback.includes('/ip firewall filter add chain=input action=drop'), 'Should correctly extract commands');
+  assert(!extractedFallback.includes('Some error explanation'), 'Should not contain explanations');
 
   console.log('\n=======================================');
   if (failures === 0) {

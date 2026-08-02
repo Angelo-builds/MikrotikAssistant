@@ -88,8 +88,14 @@ const Router = {
                 </select>
               </div>
               <div>
-                <label class="block text-[9px] font-bold text-zinc-500 uppercase mb-1">API Key</label>
-                <input type="password" id="pref-apikey" class="w-full h-7 bg-app border border-border rounded px-2.5 text-xs text-primary placeholder-zinc-600 focus:outline-none focus:border-purple-500 transition-colors" value="${AppState.preferences.apiKey || ''}">
+                <div class="flex items-center justify-between mb-1">
+                  <label class="block text-[9px] font-bold text-zinc-500 uppercase">API Key</label>
+                  <label class="flex items-center space-x-1 cursor-pointer select-none text-[9px] font-bold text-zinc-500 uppercase">
+                    <input type="checkbox" id="pref-use-backend-env" ${AppState.preferences.useBackendEnv ? 'checked' : ''} class="w-3 h-3 text-purple-600 bg-app border-border rounded focus:ring-purple-500">
+                    <span>Use Backend Env</span>
+                  </label>
+                </div>
+                <input type="password" id="pref-apikey" autocomplete="current-password" class="w-full h-7 bg-app border border-border rounded px-2.5 text-xs text-primary placeholder-zinc-600 focus:outline-none focus:border-purple-500 transition-colors" value="${AppState.sessionApiKey || ''}">
               </div>
               <div>
                 <label class="block text-[9px] font-bold text-zinc-500 uppercase mb-1">Model</label>
@@ -163,6 +169,25 @@ const Router = {
       });
     });
 
+    const apiKeyInput = document.getElementById('pref-apikey');
+    const useBackendCheckbox = document.getElementById('pref-use-backend-env');
+
+    const updateApiKeyInputState = () => {
+      if (useBackendCheckbox.checked) {
+        apiKeyInput.disabled = true;
+        apiKeyInput.value = '';
+        apiKeyInput.placeholder = 'Using Backend Environment Variable';
+        apiKeyInput.classList.add('opacity-50');
+      } else {
+        apiKeyInput.disabled = false;
+        apiKeyInput.placeholder = 'Enter API Key...';
+        apiKeyInput.classList.remove('opacity-50');
+      }
+    };
+
+    useBackendCheckbox.addEventListener('change', updateApiKeyInputState);
+    updateApiKeyInputState();
+
     document.getElementById('btn-save-prefs').addEventListener('click', () => {
       this.executeSave();
     });
@@ -175,11 +200,13 @@ const Router = {
     const maskIpsEl = document.getElementById('mask-ips');
     const maskMacsEl = document.getElementById('mask-macs');
     const maskSecretsEl = document.getElementById('mask-secrets');
+    const useBackendEnvEl = document.getElementById('pref-use-backend-env');
 
     if (!providerEl) return; // Not on preferences screen active rendering right now
 
     AppState.preferences.llmProvider = providerEl.value;
-    AppState.preferences.apiKey = apikeyEl.value;
+    AppState.preferences.useBackendEnv = useBackendEnvEl.checked;
+    AppState.sessionApiKey = useBackendEnvEl.checked ? '' : apikeyEl.value;
     AppState.preferences.model = modelEl.value;
     AppState.preferences.privacyShields.maskIPs = maskIpsEl.checked;
     AppState.preferences.privacyShields.maskMACs = maskMacsEl.checked;

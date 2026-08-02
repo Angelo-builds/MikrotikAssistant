@@ -6,7 +6,12 @@ const ConfigValidator = {
     // Check for empty variables
     Object.entries(variables).forEach(([name, value]) => {
       if (!value || value.trim() === '') {
-        errors.push(`Variable {{${name}}} is empty`);
+        errors.push({
+          type: 'error',
+          message: `Variable {{${name}}} is empty`,
+          target: name,
+          targetType: 'variable'
+        });
       }
     });
 
@@ -14,7 +19,10 @@ const ConfigValidator = {
     const ips = Object.values(variables).filter(v => this.isValidIP(v));
     const uniqueIps = new Set(ips);
     if (ips.length !== uniqueIps.size) {
-      errors.push('Duplicate IP addresses detected');
+      errors.push({
+        type: 'error',
+        message: 'Duplicate IP addresses detected'
+      });
     }
 
     // Check for overlapping subnets
@@ -22,7 +30,10 @@ const ConfigValidator = {
     for (let i = 0; i < networks.length; i++) {
       for (let j = i + 1; j < networks.length; j++) {
         if (this.networksOverlap(networks[i], networks[j])) {
-          errors.push(`Overlapping networks: ${networks[i]} and ${networks[j]}`);
+          errors.push({
+            type: 'error',
+            message: `Overlapping networks: ${networks[i]} and ${networks[j]}`
+          });
         }
       }
     }
@@ -31,7 +42,10 @@ const ConfigValidator = {
     const hasGateway = Object.keys(variables).some(k => k.includes('GATEWAY'));
     const hasNetwork = Object.keys(variables).some(k => k.includes('NETWORK'));
     if (hasNetwork && !hasGateway) {
-      warnings.push('Network defined but no gateway variable found');
+      warnings.push({
+        type: 'warning',
+        message: 'Network defined but no gateway variable found'
+      });
     }
 
     // Check block dependencies
@@ -39,11 +53,21 @@ const ConfigValidator = {
     const blockIds = enabledBlocks.map(b => b.id);
 
     if (blockIds.includes('dhcp-server') && !blockIds.includes('bridge-lan')) {
-      warnings.push('DHCP Server enabled but no Bridge LAN block');
+      warnings.push({
+        type: 'warning',
+        message: 'DHCP Server enabled but no Bridge LAN block',
+        target: 'dhcp-server',
+        targetType: 'block'
+      });
     }
 
     if (blockIds.includes('pppoe-client') && !blockIds.includes('firewall-base')) {
-      warnings.push('PPPoE Client enabled but no Firewall block - security risk!');
+      warnings.push({
+        type: 'warning',
+        message: 'PPPoE Client enabled but no Firewall block - security risk!',
+        target: 'pppoe-client',
+        targetType: 'block'
+      });
     }
 
     return { errors, warnings, isValid: errors.length === 0 };

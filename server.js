@@ -325,6 +325,11 @@ app.post('/api/chat', async (req, res) => {
 
     console.log(`🤖 [Backend API] Received request with mode: "${mode || 'standard'}", chatMessage: "${chatMessage || ''}"`);
 
+    // Check for process.env.LLM_API_KEY at startup or default if exists
+    if (process.env.LLM_API_KEY && (!apiKey || apiKey === 'USE_BACKEND_ENV')) {
+      apiKey = process.env.LLM_API_KEY;
+    }
+
     // Override or supply defaults from environment variables if set
     if (process.env.LLM_PROVIDER) {
       provider = process.env.LLM_PROVIDER;
@@ -703,6 +708,11 @@ Strict Instructions:
 app.post('/api/test-connection', async (req, res) => {
   try {
     let { provider, apiKey, baseUrl, model } = req.body;
+
+    // Check for process.env.LLM_API_KEY at startup or default if exists
+    if (process.env.LLM_API_KEY && (!apiKey || apiKey === 'USE_BACKEND_ENV')) {
+      apiKey = process.env.LLM_API_KEY;
+    }
 
     // Support environmental override for connection test as well
     if (process.env.LLM_PROVIDER) {
