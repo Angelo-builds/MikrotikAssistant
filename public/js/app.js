@@ -13,7 +13,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   if (sidebarContainer) {
-    Sidebar.render(sidebarContainer);
+    Sidebar.init();
   }
 
   Router.init();

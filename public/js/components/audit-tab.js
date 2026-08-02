@@ -125,7 +125,7 @@ const AuditTab = {
     history: [],
     currentFile: null,
     isAttachmentDrawerOpen: false,
-    isSidebarOpen: true,
+    isSidebarOpen: false, // Right control center (Session History) closed by default
     activeSidebarTab: 'history'
   },
 
@@ -152,6 +152,14 @@ const AuditTab = {
       } catch (e) {
         console.error('Failed to parse chat history:', e);
       }
+    }
+
+    // Hydrate right panel open state (defaults to closed / false)
+    const savedPanelOpen = localStorage.getItem('right-panel-open');
+    if (savedPanelOpen !== null) {
+      this.state.isSidebarOpen = savedPanelOpen === 'true';
+    } else {
+      this.state.isSidebarOpen = false;
     }
 
     const t = this.getT();
@@ -185,6 +193,10 @@ const AuditTab = {
               <span id="privacy-count-badge" class="text-[10px] bg-purple-950/20 border border-purple-500/20 text-purple-300 px-1.5 py-0.5 rounded font-semibold">
                 Privacy Guard: 6/6 Active
               </span>
+              <!-- Toggle control center right panel toggle right next to privacy badge -->
+              <button id="right-panel-toggle" class="text-zinc-400 hover:text-white p-1 rounded hover:bg-white/5 transition" title="Toggle Control Center">
+                ${UI_Icons.render(this.state.isSidebarOpen ? 'panel-right-close' : 'panel-right-open', 'w-3.5 h-3.5')}
+              </button>
             </div>
             <div class="flex items-center space-x-2">
               <select id="setting-language-audit" class="bg-surface border border-border rounded px-2 py-0.5 text-[10px] text-white focus:outline-none">
@@ -192,9 +204,6 @@ const AuditTab = {
                 <option value="en" ${this.state.language === 'en' ? 'selected' : ''}>English</option>
                 <option value="it" ${this.state.language === 'it' ? 'selected' : ''}>Italiano</option>
               </select>
-              <button id="btn-toggle-sidebar" class="text-zinc-400 hover:text-white p-1 rounded hover:bg-white/5 transition" title="Toggle Control Center">
-                ${UI_Icons.render('sidebar', 'w-3.5 h-3.5')}
-              </button>
             </div>
           </div>
 
@@ -407,7 +416,7 @@ const AuditTab = {
         </div>
 
         <!-- RIGHT SIDE: COLLAPSIBLE CONTROL CENTER SIDEBAR -->
-        <div id="sidebar-control-center" class="w-[240px] border-l border-border bg-surface flex flex-col h-full transition-all duration-150 shrink-0 select-none">
+        <div id="sidebar-control-center" class="w-0 overflow-hidden border-l-0 opacity-0 border-l border-border bg-surface flex flex-col h-full transition-all duration-150 shrink-0 select-none">
 
           <!-- SIDEBAR TABS HEADER -->
           <div class="grid grid-cols-4 border-b border-border text-center text-xs bg-surface-elevated/45 p-1 shrink-0">
@@ -662,6 +671,7 @@ const AuditTab = {
     this.updateLLMStatusBadge();
     this.updatePrivacyShieldCountLabel();
     this.renderHistoryList();
+    this.syncSidebarState();
   },
 
   bindDOMReferences() {
@@ -673,7 +683,7 @@ const AuditTab = {
       submitIcon: document.getElementById('submit-icon'),
       stopIcon: document.getElementById('stop-icon'),
 
-      btnToggleSidebar: document.getElementById('btn-toggle-sidebar'),
+      rightPanelToggle: document.getElementById('right-panel-toggle'),
       sidebarControlCenter: document.getElementById('sidebar-control-center'),
 
       sidebarTabHistory: document.getElementById('sidebar-tab-history'),
@@ -767,9 +777,10 @@ const AuditTab = {
     if (this.els.sidebarTabPreferences) this.els.sidebarTabPreferences.addEventListener('click', () => this.handleSidebarTabSwitch('preferences'));
 
     // 2. Sidebar Toggle Button
-    if (this.els.btnToggleSidebar) {
-      this.els.btnToggleSidebar.addEventListener('click', () => {
+    if (this.els.rightPanelToggle) {
+      this.els.rightPanelToggle.addEventListener('click', () => {
         this.state.isSidebarOpen = !this.state.isSidebarOpen;
+        localStorage.setItem('right-panel-open', this.state.isSidebarOpen);
         this.syncSidebarState();
       });
     }
@@ -972,13 +983,25 @@ const AuditTab = {
   // Slide-out Control Center sidebar collapsible toggler
   syncSidebarState() {
     const el = this.els.sidebarControlCenter;
+    const toggle = this.els.rightPanelToggle;
     if (!el) return;
+
     if (this.state.isSidebarOpen) {
       el.classList.remove('w-0', 'border-l-0', 'opacity-0');
-      el.classList.add('w-[240px]', 'border-l');
+      el.classList.add('w-[240px]', 'border-l', 'opacity-100');
+      if (toggle) {
+        toggle.innerHTML = UI_Icons.render('panel-right-close', 'w-3.5 h-3.5');
+      }
     } else {
-      el.classList.remove('w-[240px]', 'border-l');
+      el.classList.remove('w-[240px]', 'border-l', 'opacity-100');
       el.classList.add('w-0', 'border-l-0', 'opacity-0');
+      if (toggle) {
+        toggle.innerHTML = UI_Icons.render('panel-right-open', 'w-3.5 h-3.5');
+      }
+    }
+
+    if (typeof lucide !== 'undefined') {
+      lucide.createIcons();
     }
   },
 

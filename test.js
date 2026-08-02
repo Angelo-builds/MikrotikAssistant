@@ -109,6 +109,20 @@ function runAllTests() {
   assert(markdownHtml.includes('font-mono text-[11px]'), 'renderMarkdown should render high-contrast inline code blocks');
   assert(markdownHtml.includes('h3 class='), 'renderMarkdown should parse headers');
 
+  // New Code Block content parsing (Fix 1) tests
+  const descCodeBlock = '```\n2. Creazione del pool di indirizzi DHCP (range 100-200).\n```';
+  const descHtml = renderMarkdown(descCodeBlock);
+  assert(descHtml.includes('class="text-xs text-zinc-400 my-2"'), 'Code block with only description should render as paragraph');
+  assert(!descHtml.includes('code-block-container'), 'Code block with only description should not render as a fenced code block');
+
+  const commandCodeBlock = '```\n/ip pool add name=dhcp_pool ranges=100-200\n```';
+  const commandHtml = renderMarkdown(commandCodeBlock);
+  assert(commandHtml.includes('code-block-container'), 'Code block with RouterOS command should render as code block');
+
+  const explicitDescCodeBlock = '```routeros\nThis is just a description text with explicit language tag\n```';
+  const explicitDescHtml = renderMarkdown(explicitDescCodeBlock);
+  assert(explicitDescHtml.includes('code-block-container'), 'Explicit routeros language block should render as code block even with description');
+
   // Unit Test 6: extractRouterOsCommands
   console.log('\n--- Unit Test 6: extractRouterOsCommands ---\n');
   const markdownWithCommands = `
