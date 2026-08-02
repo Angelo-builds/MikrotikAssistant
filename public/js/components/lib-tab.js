@@ -1,36 +1,55 @@
 const LibTab = {
+  state: {
+    presetsExpanded: false,
+    libraryExpanded: false
+  },
+
   render(container) {
     container.innerHTML = `
-      <div class="lib-container max-w-6xl mx-auto p-6 space-y-8 select-none">
-        <div class="flex items-center justify-between">
-          <h2 class="text-lg font-bold text-primary flex items-center">
-            ${UI_Icons.render('library', 'mr-2 text-purple-500 w-5 h-5')}
-            Template Library & Presets
+      <div class="lib-container max-w-2xl mx-auto p-4 space-y-3 select-none animate-apple-reveal font-sans text-xs">
+        <div class="flex items-center justify-between pb-1.5">
+          <h2 class="text-xs font-bold text-primary flex items-center uppercase tracking-wider">
+            ${UI_Icons.render('library', 'mr-1.5 text-purple-500 w-3.5 h-3.5')}
+            Template Library
           </h2>
         </div>
 
         <!-- Presets Section -->
-        <section class="mb-10">
-          <h3 class="text-xs font-bold uppercase tracking-wider text-text-muted mb-4 flex items-center">
-            ${UI_Icons.render('activity', 'mr-2 w-4 h-4 text-purple-500')}
-            Quick Presets
-          </h3>
-          <div class="grid grid-cols-1 md:grid-cols-3 gap-4" id="presets-grid">
-            <!-- Injected by JS -->
+        <section class="border border-border rounded-md bg-surface overflow-hidden">
+          <button id="btn-toggle-presets" class="w-full px-3 py-2 bg-surface-elevated flex items-center justify-between hover:bg-white/5 transition text-left focus:outline-none">
+            <span class="text-xs font-bold text-primary flex items-center uppercase tracking-wider">
+              ${UI_Icons.render('zap', 'mr-1.5 w-3.5 h-3.5 text-purple-500')}
+              Quick Presets
+            </span>
+            <span id="presets-chevron" class="text-zinc-500">
+              ${UI_Icons.render(this.state.presetsExpanded ? 'chevron-down' : 'chevron-right', 'w-3.5 h-3.5')}
+            </span>
+          </button>
+          <div id="presets-container" class="border-t border-border bg-app divide-y divide-border/30 ${this.state.presetsExpanded ? '' : 'hidden'}">
+            <div class="p-1 space-y-1" id="presets-list">
+              <!-- Injected by JS -->
+            </div>
           </div>
         </section>
 
-        <!-- Saved Templates Section -->
-        <section>
-          <h3 class="text-xs font-bold uppercase tracking-wider text-text-muted mb-4 flex items-center">
-            ${UI_Icons.render('folder-open', 'mr-2 w-4 h-4 text-purple-500')}
-            Saved Projects
-          </h3>
-          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" id="library-grid">
-            <!-- Injected by JS -->
-          </div>
-          <div id="empty-library-msg" class="hidden text-center py-12 text-text-muted text-xs bg-surface border border-border rounded-lg">
-            No saved projects yet. Go to the Build tab and save your work!
+        <!-- Saved Projects Section -->
+        <section class="border border-border rounded-md bg-surface overflow-hidden">
+          <button id="btn-toggle-library" class="w-full px-3 py-2 bg-surface-elevated flex items-center justify-between hover:bg-white/5 transition text-left focus:outline-none">
+            <span class="text-xs font-bold text-primary flex items-center uppercase tracking-wider">
+              ${UI_Icons.render('folder', 'mr-1.5 w-3.5 h-3.5 text-purple-500')}
+              Saved Projects
+            </span>
+            <span id="library-chevron" class="text-zinc-500">
+              ${UI_Icons.render(this.state.libraryExpanded ? 'chevron-down' : 'chevron-right', 'w-3.5 h-3.5')}
+            </span>
+          </button>
+          <div id="library-container" class="border-t border-border bg-app divide-y divide-border/30 ${this.state.libraryExpanded ? '' : 'hidden'}">
+            <div class="p-1 space-y-1" id="library-list">
+              <!-- Injected by JS -->
+            </div>
+            <div id="empty-library-msg" class="hidden text-center py-6 text-zinc-500 text-[10px] bg-app font-medium">
+              No saved projects yet. Go to the Build tab and save your work!
+            </div>
           </div>
         </section>
       </div>
@@ -38,6 +57,7 @@ const LibTab = {
 
     this.renderPresets();
     this.renderLibrary();
+    this.setupListeners();
 
     if (typeof lucide !== 'undefined') {
       lucide.createIcons();
@@ -45,70 +65,91 @@ const LibTab = {
   },
 
   renderPresets() {
-    const grid = document.getElementById('presets-grid');
+    const list = document.getElementById('presets-list');
+    if (!list) return;
     const presets = BuilderLibrary.getPresets();
 
-    grid.innerHTML = presets.map(preset => `
-      <div class="bg-surface border border-border rounded-lg p-5 hover:border-purple-500/50 hover:shadow-md transition cursor-pointer group" data-preset-id="${preset.id}">
-        <div class="flex items-center justify-between mb-2">
-          <h4 class="font-semibold text-sm text-primary group-hover:text-purple-400 transition">${preset.name}</h4>
-          <span class="text-[10px] bg-purple-900/10 text-purple-400 border border-purple-500/10 px-2 py-0.5 rounded-full font-bold">Preset</span>
-        </div>
-        <p class="text-xs text-secondary mb-4 h-10 leading-relaxed line-clamp-2">${preset.description}</p>
-        <div class="flex items-center justify-between text-[11px] text-text-muted font-mono pt-2 border-t border-border/40">
-          <span>${Object.keys(preset.variables).length} vars</span>
-          <span>${preset.enabledBlocks.length} blocks</span>
-        </div>
-      </div>
-    `).join('');
+    list.innerHTML = presets.map(preset => {
+      // Map icons based on preset name
+      let icon = 'server';
+      if (preset.name.toLowerCase().includes('eolo')) icon = 'cloud';
+      else if (preset.name.toLowerCase().includes('fiber')) icon = 'zap';
+      else if (preset.name.toLowerCase().includes('basic') || preset.name.toLowerCase().includes('home')) icon = 'home';
 
-    grid.querySelectorAll('[data-preset-id]').forEach(card => {
-      card.addEventListener('click', () => {
-        const preset = presets.find(p => p.id === card.dataset.presetId);
-        this.applyPreset(preset);
+      return `
+        <div class="flex items-center justify-between h-9 px-2.5 rounded hover:bg-white/5 transition group" data-preset-id="${preset.id}">
+          <div class="flex items-center space-x-2.5 flex-1 min-w-0">
+            ${UI_Icons.render(icon, 'w-3.5 h-3.5 text-zinc-400 shrink-0')}
+            <span class="font-bold text-white text-xs truncate shrink-0 max-w-[120px]">${preset.name}</span>
+            <span class="text-[10px] text-zinc-500 truncate hidden sm:block">${preset.description}</span>
+          </div>
+          <div class="flex items-center space-x-2 shrink-0">
+            <span class="text-[9px] font-mono text-zinc-500">${Object.keys(preset.variables).length}v / ${preset.enabledBlocks.length}b</span>
+            <button class="bg-purple-600 hover:bg-purple-700 text-white h-6 px-2.5 rounded text-[11px] font-medium transition active:scale-95" data-preset-id="${preset.id}">
+              Load
+            </button>
+          </div>
+        </div>
+      `;
+    }).join('');
+
+    list.querySelectorAll('[data-preset-id]').forEach(el => {
+      el.addEventListener('click', (e) => {
+        const id = el.dataset.presetId;
+        const preset = presets.find(p => p.id === id);
+        if (preset) {
+          this.applyPreset(preset);
+        }
       });
     });
   },
 
   renderLibrary() {
-    const grid = document.getElementById('library-grid');
+    const list = document.getElementById('library-list');
     const emptyMsg = document.getElementById('empty-library-msg');
+    if (!list) return;
+
     const items = BuilderLibrary.getAll();
 
     if (items.length === 0) {
-      grid.classList.add('hidden');
-      emptyMsg.classList.remove('hidden');
+      list.classList.add('hidden');
+      if (emptyMsg) emptyMsg.classList.remove('hidden');
       return;
     }
 
-    grid.classList.remove('hidden');
-    emptyMsg.classList.add('hidden');
+    list.classList.remove('hidden');
+    if (emptyMsg) emptyMsg.classList.add('hidden');
 
-    grid.innerHTML = items.map(item => `
-      <div class="bg-surface border border-border rounded-lg p-5 relative group flex flex-col">
-        <button class="btn-delete-lib absolute top-4 right-4 text-text-muted hover:text-red-400 opacity-0 group-hover:opacity-100 transition-opacity p-1 hover:bg-red-500/10 rounded-md" data-id="${item.id}">
-          ${UI_Icons.render('trash-2', 'w-4 h-4')}
-        </button>
-        <h4 class="font-semibold text-sm mb-1 text-primary">${item.name}</h4>
-        <p class="text-[11px] text-text-muted mb-4 font-mono">${new Date(item.updatedAt || item.createdAt).toLocaleDateString()}</p>
-
-        <div class="flex space-x-2 mt-auto pt-2 border-t border-border/40">
-          <button class="btn-load-lib flex-1 h-8 bg-purple-600 hover:bg-purple-700 text-xs text-white rounded-md font-medium transition active:scale-95" data-id="${item.id}">Load in Builder</button>
+    list.innerHTML = items.map(item => `
+      <div class="flex items-center justify-between h-9 px-2.5 rounded hover:bg-white/5 transition group" data-id="${item.id}">
+        <div class="flex items-center space-x-2.5 flex-1 min-w-0">
+          ${UI_Icons.render('file-code', 'w-3.5 h-3.5 text-zinc-400 shrink-0')}
+          <span class="font-bold text-white text-xs truncate shrink-0 max-w-[140px]">${item.name}</span>
+          <span class="text-[9px] text-zinc-500 font-mono hidden sm:block">${new Date(item.updatedAt || item.createdAt).toLocaleDateString()}</span>
+        </div>
+        <div class="flex items-center space-x-1.5 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity duration-150">
+          <button class="btn-load-lib bg-purple-600 hover:bg-purple-700 text-white h-6 px-2.5 rounded text-[11px] font-medium transition active:scale-95" data-id="${item.id}">
+            Load
+          </button>
+          <button class="btn-delete-lib text-zinc-500 hover:text-red-400 transition p-1 hover:bg-red-500/10 rounded h-6 w-6 flex items-center justify-center border border-border" data-id="${item.id}">
+            ${UI_Icons.render('trash-2', 'w-3 h-3')}
+          </button>
         </div>
       </div>
     `).join('');
 
-    grid.querySelectorAll('.btn-load-lib').forEach(btn => {
-      btn.addEventListener('click', () => {
+    list.querySelectorAll('.btn-load-lib').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
         const item = items.find(i => i.id === btn.dataset.id);
-        this.loadProject(item);
+        if (item) this.loadProject(item);
       });
     });
 
-    grid.querySelectorAll('.btn-delete-lib').forEach(btn => {
+    list.querySelectorAll('.btn-delete-lib').forEach(btn => {
       btn.addEventListener('click', (e) => {
         e.stopPropagation();
-        if(confirm('Delete this project?')) {
+        if (confirm('Delete this project?')) {
           BuilderLibrary.delete(btn.dataset.id);
           this.renderLibrary();
           if (typeof lucide !== 'undefined') {
@@ -117,10 +158,6 @@ const LibTab = {
         }
       });
     });
-
-    if (typeof lucide !== 'undefined') {
-      lucide.createIcons();
-    }
   },
 
   applyPreset(preset) {
@@ -145,5 +182,46 @@ const LibTab = {
         BuildTab.loadProjectData(project);
       }
     }, 100);
+  },
+
+  setupListeners() {
+    const btnPresets = document.getElementById('btn-toggle-presets');
+    const btnLibrary = document.getElementById('btn-toggle-library');
+
+    if (btnPresets) {
+      btnPresets.addEventListener('click', () => {
+        this.state.presetsExpanded = !this.state.presetsExpanded;
+        const container = document.getElementById('presets-container');
+        const chevron = document.getElementById('presets-chevron');
+        if (container) {
+          if (this.state.presetsExpanded) container.classList.remove('hidden');
+          else container.classList.add('hidden');
+        }
+        if (chevron) {
+          chevron.innerHTML = UI_Icons.render(this.state.presetsExpanded ? 'chevron-down' : 'chevron-right', 'w-3.5 h-3.5');
+        }
+        if (typeof lucide !== 'undefined') {
+          lucide.createIcons();
+        }
+      });
+    }
+
+    if (btnLibrary) {
+      btnLibrary.addEventListener('click', () => {
+        this.state.libraryExpanded = !this.state.libraryExpanded;
+        const container = document.getElementById('library-container');
+        const chevron = document.getElementById('library-chevron');
+        if (container) {
+          if (this.state.libraryExpanded) container.classList.remove('hidden');
+          else container.classList.add('hidden');
+        }
+        if (chevron) {
+          chevron.innerHTML = UI_Icons.render(this.state.libraryExpanded ? 'chevron-down' : 'chevron-right', 'w-3.5 h-3.5');
+        }
+        if (typeof lucide !== 'undefined') {
+          lucide.createIcons();
+        }
+      });
+    }
   }
 };

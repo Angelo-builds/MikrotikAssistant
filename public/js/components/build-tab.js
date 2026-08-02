@@ -47,82 +47,75 @@ const BuildTab = {
 
   render(container) {
     container.innerHTML = `
-      <div class="flex flex-col h-full space-y-4">
+      <div class="flex flex-col h-full space-y-3 select-none">
         <!-- Sub Header Controls -->
-        <div class="flex flex-wrap items-center justify-between gap-4">
-          <h2 class="text-lg font-bold text-primary flex items-center">
-            ${UI_Icons.render('hammer', 'mr-2 text-purple-500 w-5 h-5')}
-            Configuration Builder
+        <div class="flex items-center justify-between shrink-0 select-none pb-1.5">
+          <h2 class="text-xs font-bold text-primary flex items-center uppercase tracking-wider">
+            ${UI_Icons.render('hammer', 'mr-1.5 text-purple-500 w-3.5 h-3.5')}
+            Builder
           </h2>
-          <div class="flex flex-wrap gap-2">
-            <button id="btn-generate-ai" class="inline-flex items-center h-8 px-3.5 rounded-md bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-xs text-white font-medium transition-all duration-150 active:scale-95">
-              ${UI_Icons.render('activity', 'w-3.5 h-3.5 mr-1.5')}
-              AI Generate
+          <div class="flex items-center space-x-1.5">
+            <button id="btn-generate-ai" title="AI Generate" class="w-7 h-7 bg-purple-600 hover:bg-purple-700 text-white flex items-center justify-center rounded-md transition active:scale-95">
+              ${UI_Icons.render('activity', 'w-3.5 h-3.5')}
             </button>
-            <button id="btn-add-conditional" class="inline-flex items-center h-8 px-3 rounded-md border border-border bg-transparent hover:bg-white/5 text-xs text-primary font-medium active:scale-95 transition-all duration-150">
-              ${UI_Icons.render('plus', 'w-3.5 h-3.5 mr-1.5')}
-              Add Conditional
+            <button id="btn-add-conditional" title="Add Conditional" class="w-7 h-7 bg-surface border border-border hover:bg-white/5 text-zinc-300 flex items-center justify-center rounded-md transition active:scale-95">
+              ${UI_Icons.render('plus', 'w-3.5 h-3.5')}
             </button>
-            <button id="btn-import-export" class="inline-flex items-center h-8 px-3 rounded-md bg-purple-600 hover:bg-purple-700 text-xs text-white font-medium transition-all duration-150 active:scale-95">
-              ${UI_Icons.render('download', 'w-3.5 h-3.5 mr-1.5')}
-              Import .rsc
+            <button id="btn-import-export" title="Import .rsc" class="w-7 h-7 bg-surface border border-border hover:bg-white/5 text-zinc-300 flex items-center justify-center rounded-md transition active:scale-95">
+              ${UI_Icons.render('download', 'w-3.5 h-3.5')}
             </button>
-            <button id="btn-validate" class="inline-flex items-center h-8 px-3 rounded-md border border-border bg-transparent hover:bg-white/5 text-xs text-primary font-medium active:scale-95 transition-all duration-150">
-              ${UI_Icons.render('shield-check', 'w-3.5 h-3.5 mr-1.5')}
-              Validate
+            <button id="btn-validate" title="Validate" class="w-7 h-7 bg-surface border border-border hover:bg-white/5 text-zinc-300 flex items-center justify-center rounded-md transition active:scale-95">
+              ${UI_Icons.render('shield-check', 'w-3.5 h-3.5')}
             </button>
-            <button id="btn-compare" class="inline-flex items-center h-8 px-3 rounded-md border border-border bg-transparent hover:bg-white/5 text-xs text-primary font-medium active:scale-95 transition-all duration-150">
-              ${UI_Icons.render('pencil', 'w-3.5 h-3.5 mr-1.5')}
-              Compare
+            <button id="btn-compare" title="Compare" class="w-7 h-7 bg-surface border border-border hover:bg-white/5 text-zinc-300 flex items-center justify-center rounded-md transition active:scale-95">
+              ${UI_Icons.render('pencil', 'w-3.5 h-3.5')}
             </button>
-            <button id="btn-save-library" class="inline-flex items-center h-8 px-3 rounded-md border border-border bg-transparent hover:bg-white/5 text-xs text-primary font-medium active:scale-95 transition-all duration-150">
-              ${UI_Icons.render('library', 'w-3.5 h-3.5 mr-1.5')}
-              Save to Library
+            <button id="btn-save-library" title="Save to Library" class="w-7 h-7 bg-surface border border-border hover:bg-white/5 text-zinc-300 flex items-center justify-center rounded-md transition active:scale-95">
+              ${UI_Icons.render('library', 'w-3.5 h-3.5')}
             </button>
-            <button id="btn-export-rsc" class="inline-flex items-center h-8 px-3 rounded-md bg-emerald-600 hover:bg-emerald-700 text-xs text-white font-medium transition-all duration-150 active:scale-95">
-              ${UI_Icons.render('lock', 'w-3.5 h-3.5 mr-1.5')}
-              Export .rsc
+            <button id="btn-export-rsc" title="Export .rsc" class="w-7 h-7 bg-emerald-600 hover:bg-emerald-700 text-white flex items-center justify-center rounded-md transition active:scale-95">
+              ${UI_Icons.render('lock', 'w-3.5 h-3.5')}
             </button>
           </div>
         </div>
 
-        <div class="grid grid-cols-12 gap-4 flex-1 overflow-hidden min-h-0">
-          <!-- Column 1: Variables (3 cols) -->
-          <div class="col-span-12 lg:col-span-3 bg-surface rounded-lg border border-border flex flex-col overflow-hidden h-full">
-            <div class="p-3 border-b border-border bg-surface-elevated flex items-center justify-between">
-              <h3 class="font-bold text-xs text-purple-400 flex items-center">
-                ${UI_Icons.render('activity', 'mr-2 w-4 h-4')}
+        <div class="flex flex-row gap-3 flex-1 overflow-hidden min-h-0 h-full">
+          <!-- Column 1: Variables (220px) -->
+          <div class="w-[220px] bg-surface rounded-md border border-border flex flex-col overflow-hidden h-full">
+            <div class="p-2 border-b border-border bg-surface-elevated flex items-center justify-between">
+              <h3 class="font-bold text-[10px] uppercase text-purple-400 flex items-center">
+                ${UI_Icons.render('activity', 'mr-1.5 w-3.5 h-3.5')}
                 Variables
               </h3>
             </div>
-            <div class="flex-1 overflow-y-auto p-3 space-y-4" id="variables-panel">
+            <div class="flex-1 overflow-y-auto p-2 space-y-2.5" id="variables-panel">
               <!-- Populated by JS -->
             </div>
           </div>
 
-          <!-- Column 2: Blocks (5 cols) -->
-          <div class="col-span-12 lg:col-span-5 bg-surface rounded-lg border border-border flex flex-col overflow-hidden h-full">
-            <div class="p-3 border-b border-border bg-surface-elevated">
-              <h3 class="font-bold text-xs text-purple-400 flex items-center">
-                ${UI_Icons.render('hammer', 'mr-2 w-4 h-4')}
+          <!-- Column 2: Blocks (flex-1) -->
+          <div class="flex-1 bg-surface rounded-md border border-border flex flex-col overflow-hidden h-full">
+            <div class="p-2 border-b border-border bg-surface-elevated">
+              <h3 class="font-bold text-[10px] uppercase text-purple-400 flex items-center">
+                ${UI_Icons.render('hammer', 'mr-1.5 w-3.5 h-3.5')}
                 Configuration Blocks
               </h3>
             </div>
-            <div class="flex-1 overflow-y-auto p-3 space-y-3" id="blocks-panel">
+            <div class="flex-1 overflow-y-auto p-2 space-y-2" id="blocks-panel">
               <!-- Populated by JS -->
             </div>
           </div>
 
-          <!-- Column 3: Live Preview (4 cols) -->
-          <div class="col-span-12 lg:col-span-4 bg-surface rounded-lg border border-border flex flex-col overflow-hidden h-full">
-            <div class="p-3 border-b border-border bg-surface-elevated flex justify-between items-center">
-              <h3 class="font-bold text-xs text-purple-400 flex items-center">
-                ${UI_Icons.render('shield-check', 'mr-2 w-4 h-4')}
+          <!-- Column 3: Live Preview (300px) -->
+          <div class="w-[300px] bg-surface rounded-md border border-border flex flex-col overflow-hidden h-full">
+            <div class="p-2 border-b border-border bg-surface-elevated flex justify-between items-center">
+              <h3 class="font-bold text-[10px] uppercase text-purple-400 flex items-center">
+                ${UI_Icons.render('shield-check', 'mr-1.5 w-3.5 h-3.5')}
                 Live Preview (.rsc)
               </h3>
-              <span class="text-[10px] text-text-muted font-mono">Auto-updates</span>
+              <span class="text-[9px] text-text-muted font-mono">Auto-updates</span>
             </div>
-            <pre id="preview-output" class="flex-1 overflow-auto p-4 text-xs font-mono text-secondary whitespace-pre-wrap select-all bg-black/10"></pre>
+            <pre id="preview-output" class="flex-1 overflow-auto p-3 text-[10px] font-mono text-secondary whitespace-pre-wrap select-all bg-app"></pre>
           </div>
         </div>
       </div>
@@ -265,31 +258,50 @@ const BuildTab = {
     const container = document.getElementById('blocks-panel') || document.getElementById('blocks-list');
     if (!container) return;
 
-    container.innerHTML = this.blocks.map((block, index) => `
-      <div class="block-card bg-surface border ${block.enabled ? 'border-purple-500/50' : 'border-border'} rounded-lg p-4 transition-all hover:border-purple-500/70 relative pl-10"
+    container.innerHTML = this.blocks.map((block, index) => {
+      const isExpanded = !!block.expanded;
+      return `
+      <div class="block-card group bg-surface border ${block.enabled ? 'border-purple-500/20' : 'border-border'} rounded-md p-2 hover:border-purple-500/30 transition-all relative"
            data-index="${index}"
            ${block.isConditional ? 'data-conditional="true"' : ''}
            data-category="${block.category || 'general'}">
-        <div class="flex items-center justify-between mb-3">
-          <div class="flex items-center space-x-3">
-            <input type="checkbox" ${block.enabled ? 'checked' : ''} class="block-toggle rounded text-purple-600 focus:ring-purple-500 bg-surface border-border" data-index="${index}">
-            <span class="font-medium text-white text-xs">${block.name}</span>
-            <span class="text-[10px] text-text-muted bg-surface-elevated px-2 py-0.5 rounded font-mono">${block.category || 'general'}</span>
-            ${block.isConditional ? '<span class="text-[10px] text-yellow-500 bg-yellow-900/30 px-2 py-0.5 rounded font-mono">Conditional</span>' : ''}
+        <div class="flex items-center justify-between select-none">
+          <div class="flex items-center space-x-2 flex-1 cursor-pointer card-header-toggle" data-index="${index}">
+            <span class="text-zinc-500 hover:text-white transition">
+              ${UI_Icons.render(isExpanded ? 'chevron-down' : 'chevron-right', 'w-3 h-3')}
+            </span>
+            <input type="checkbox" ${block.enabled ? 'checked' : ''} class="block-toggle rounded text-purple-600 focus:ring-purple-500 bg-app border-border h-3 w-3" data-index="${index}">
+            <span class="font-medium text-white text-[11px] truncate max-w-[120px]">${block.name}</span>
+            <span class="text-[9px] text-zinc-500 bg-surface-elevated px-1.5 py-0.5 rounded font-mono uppercase">${block.category || 'general'}</span>
+            ${block.isConditional ? '<span class="text-[9px] text-yellow-500 bg-yellow-900/10 px-1.5 py-0.5 rounded font-mono">IF</span>' : ''}
           </div>
-          <div class="flex items-center space-x-2">
-            <button class="btn-edit-block text-[11px] text-purple-400 hover:text-purple-300" data-index="${index}">Edit</button>
-            <button class="btn-duplicate-block text-[11px] text-secondary hover:text-primary" data-index="${index}">Duplicate</button>
-            <button class="btn-remove-block text-[11px] text-text-muted hover:text-red-400" data-index="${index}">Remove</button>
+          <div class="flex items-center space-x-1.5 opacity-0 group-hover:opacity-100 transition-opacity duration-150">
+            <button class="btn-edit-block text-[10px] text-purple-400 hover:text-purple-300 font-medium px-1 hover:bg-white/5 rounded" data-index="${index}">Edit</button>
+            <button class="btn-duplicate-block text-[10px] text-zinc-400 hover:text-white font-medium px-1 hover:bg-white/5 rounded" data-index="${index}">Duplicate</button>
+            <button class="btn-remove-block text-[10px] text-zinc-500 hover:text-red-400 font-medium px-1 hover:bg-white/5 rounded" data-index="${index}">Remove</button>
           </div>
         </div>
-        ${block.enabled ? `<pre class="text-[11px] text-secondary font-mono bg-black/10 p-3 rounded max-h-40 overflow-y-auto whitespace-pre-wrap select-all border border-border">${this.escapeHtml(block.content)}</pre>` : ''}
+        ${isExpanded ? `
+          <div class="mt-2 border-t border-border/40 pt-2 animate-apple-reveal">
+            <pre class="text-[10px] text-zinc-300 font-mono bg-app p-2 rounded max-h-32 overflow-y-auto whitespace-pre-wrap select-all border border-border">${this.escapeHtml(block.content)}</pre>
+          </div>
+        ` : ''}
       </div>
-    `).join('');
+      `;
+    }).join('');
 
     if (typeof BlockDragDrop !== 'undefined' && BlockDragDrop.init) {
       setTimeout(() => BlockDragDrop.init(container), 50);
     }
+
+    container.querySelectorAll('.card-header-toggle').forEach(el => {
+      el.addEventListener('click', (e) => {
+        if (e.target.type === 'checkbox') return; // Don't trigger on checkbox click
+        const index = parseInt(el.dataset.index);
+        this.blocks[index].expanded = !this.blocks[index].expanded;
+        this.renderBlocks();
+      });
+    });
 
     container.querySelectorAll('.block-toggle').forEach(cb => {
       cb.addEventListener('change', (e) => {
@@ -302,14 +314,14 @@ const BuildTab = {
 
     container.querySelectorAll('.btn-edit-block').forEach(btn => {
       btn.addEventListener('click', (e) => {
-        const index = parseInt(e.target.dataset.index);
+        const index = parseInt(btn.dataset.index);
         this.editBlock(index);
       });
     });
 
     container.querySelectorAll('.btn-duplicate-block').forEach(btn => {
       btn.addEventListener('click', (e) => {
-        const index = parseInt(e.target.dataset.index);
+        const index = parseInt(btn.dataset.index);
         const duplicate = JSON.parse(JSON.stringify(this.blocks[index]));
         duplicate.id = `duplicate-${Date.now()}`;
         duplicate.name += ' (copy)';
@@ -321,7 +333,7 @@ const BuildTab = {
 
     container.querySelectorAll('.btn-remove-block').forEach(btn => {
       btn.addEventListener('click', (e) => {
-        const index = parseInt(e.target.dataset.index);
+        const index = parseInt(btn.dataset.index);
         this.blocks.splice(index, 1);
         this.renderBlocks();
         this.updatePreview();
@@ -334,23 +346,23 @@ const BuildTab = {
     if (!container) return;
 
     container.innerHTML = `
-      <div class="mb-4">
-        <h4 class="text-[11px] font-bold text-text-muted uppercase mb-2">Manual Inputs</h4>
-        <div class="space-y-3">
+      <div class="mb-3">
+        <h4 class="text-[9px] font-bold text-zinc-500 uppercase tracking-wider mb-1.5 select-none">Manual Inputs</h4>
+        <div class="space-y-1.5">
           ${Object.entries(BuilderEngine.variables).map(([name, value]) => `
-            <div class="bg-surface-elevated border border-border rounded-lg p-3">
-              <div class="flex items-center justify-between mb-2">
-                <input type="text" value="${this.escapeHtml(name)}" class="variable-name bg-transparent text-xs font-mono text-purple-400 w-full focus:outline-none font-semibold" data-old-name="${this.escapeHtml(name)}">
-                <button class="btn-remove-var text-text-muted hover:text-red-400 ml-2" data-name="${this.escapeHtml(name)}">✕</button>
+            <div class="bg-surface border border-border rounded p-2">
+              <div class="flex items-center justify-between mb-1 select-none">
+                <input type="text" value="${this.escapeHtml(name)}" class="variable-name bg-transparent text-[10px] font-mono text-purple-400 w-full focus:outline-none font-bold" data-old-name="${this.escapeHtml(name)}">
+                <button class="btn-remove-var text-zinc-500 hover:text-red-500 ml-1.5 h-4 w-4 flex items-center justify-center rounded hover:bg-white/5" data-name="${this.escapeHtml(name)}">✕</button>
               </div>
-              <input type="text" value="${this.escapeHtml(value)}" class="variable-value w-full bg-surface border border-border rounded px-2 py-1 text-xs font-mono text-white" data-name="${this.escapeHtml(name)}" placeholder="Value...">
+              <input type="text" value="${this.escapeHtml(value)}" class="variable-value w-full h-7 bg-app border border-border rounded px-2 py-1 text-[11px] font-mono text-white focus:outline-none" data-name="${this.escapeHtml(name)}" placeholder="Value...">
             </div>
           `).join('')}
         </div>
       </div>
-      <div class="mt-4">
-        <h4 class="text-[11px] font-bold text-text-muted uppercase mb-2 font-semibold">Auto-Derived (Read Only)</h4>
-        <div class="space-y-2" id="derived-variables-list"></div>
+      <div class="mt-3">
+        <h4 class="text-[9px] font-bold text-zinc-500 uppercase tracking-wider mb-1.5 select-none">Auto-Derived</h4>
+        <div class="space-y-1" id="derived-variables-list"></div>
       </div>
     `;
 
@@ -396,14 +408,14 @@ const BuildTab = {
     const derived = BuilderEngine.derivedVariables;
 
     if (Object.keys(derived).length === 0) {
-      container.innerHTML = '<div class="text-xs text-text-muted italic">No derived variables yet. Add a NETWORK variable to see auto-calculated values.</div>';
+      container.innerHTML = '<div class="text-[10px] text-zinc-500 italic select-none">No derived variables yet. Add a NETWORK variable to calculate values.</div>';
       return;
     }
 
     container.innerHTML = Object.entries(derived).map(([name, value]) => `
-      <div class="flex items-center justify-between bg-black/10 px-2 py-1 rounded border border-border">
-        <span class="font-mono text-purple-400 text-xs font-semibold">{{${name}}}</span>
-        <span class="text-secondary text-xs font-mono">${this.escapeHtml(value)}</span>
+      <div class="flex items-center justify-between bg-app px-2 py-1 rounded border border-border select-none">
+        <span class="font-mono text-purple-400 text-[10px] font-semibold">{{${name}}}</span>
+        <span class="text-zinc-400 text-[10px] font-mono">${this.escapeHtml(value)}</span>
       </div>
     `).join('');
   },
