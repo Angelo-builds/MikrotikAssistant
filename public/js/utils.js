@@ -54,27 +54,42 @@ const Utils = {
         html = html.replace(placeholder, mermaidHtml);
       } else {
         const placeholder = `__CODE_BLOCK_${index}__`;
-        const escapedCode = Utils.escapeHtml(block.code);
+        const code = block.code.trim();
 
-        // Capitalize language name nicely
-        let langName = block.lang ? block.lang.trim() : 'RouterOS';
-        if (langName.toLowerCase() === 'bash') langName = 'Bash';
-        else if (langName.toLowerCase() === 'routeros') langName = 'RouterOS';
-        else if (langName.toLowerCase() === 'sh') langName = 'Shell';
-        else langName = langName.charAt(0).toUpperCase() + langName.slice(1);
+        // Check if language is explicitly RouterOS/routeros
+        const hasExplicitRouterOSLang = block.lang && block.lang.trim().toLowerCase() === 'routeros';
 
-        const codeBlockHtml = `
-          <div class="code-block-container">
-            <div class="code-block-header">
-              <span class="code-block-lang">${langName}</span>
-              <button class="code-block-copy" data-code="${encodeURIComponent(block.code)}">
-                <i data-lucide="copy" class="w-3 h-3"></i>
-              </button>
+        // Check if this "code block" actually contains a RouterOS command / statement
+        const isRouterOSCommand = /^\/[a-z]|^(add|set|remove|move)\s|^#|^\:|^\[(find|get|print)|^\d+\/[a-z]/i.test(code);
+        const isLikelyDescription = !hasExplicitRouterOSLang && !isRouterOSCommand && code.length < 200;
+
+        if (isLikelyDescription) {
+          // Render as normal text, not a code block
+          const textHtml = `<p class="text-xs text-zinc-400 my-2">${Utils.escapeHtml(code)}</p>`;
+          html = html.replace(placeholder, textHtml);
+        } else {
+          const escapedCode = Utils.escapeHtml(block.code);
+
+          // Capitalize language name nicely
+          let langName = block.lang ? block.lang.trim() : 'RouterOS';
+          if (langName.toLowerCase() === 'bash') langName = 'Bash';
+          else if (langName.toLowerCase() === 'routeros') langName = 'RouterOS';
+          else if (langName.toLowerCase() === 'sh') langName = 'Shell';
+          else langName = langName.charAt(0).toUpperCase() + langName.slice(1);
+
+          const codeBlockHtml = `
+            <div class="code-block-container">
+              <div class="code-block-header">
+                <span class="code-block-lang">${langName}</span>
+                <button class="code-block-copy" data-code="${encodeURIComponent(block.code)}">
+                  <i data-lucide="copy" class="w-3 h-3"></i>
+                </button>
+              </div>
+              <pre class="code-block-content"><code>${escapedCode}</code></pre>
             </div>
-            <pre class="code-block-content"><code>${escapedCode}</code></pre>
-          </div>
-        `;
-        html = html.replace(placeholder, codeBlockHtml);
+          `;
+          html = html.replace(placeholder, codeBlockHtml);
+        }
       }
     });
 

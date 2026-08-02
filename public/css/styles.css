@@ -160,6 +160,39 @@ body {
   background-color: rgba(113, 63, 18, 0.2);
 }
 
+/* Collapsible Left Sidebar CSS */
+#sidebar {
+  transition: width 200ms ease;
+  overflow: hidden;
+}
+
+.sidebar-collapsed {
+  width: 48px !important;
+}
+
+.sidebar-collapsed .nav-text {
+  display: none !important;
+}
+
+.sidebar-collapsed .tab-btn {
+  justify-content: center !important;
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+}
+
+.sidebar-collapsed .tab-btn i {
+  margin-right: 0 !important;
+}
+
+.sidebar-toggle {
+  transition: transform 200ms ease;
+}
+
+/* Control center session history panel transition */
+#sidebar-control-center {
+  transition: width 200ms ease, opacity 200ms ease;
+}
+
 /* Code block container */
 .code-block-container {
   margin: 12px 0;
