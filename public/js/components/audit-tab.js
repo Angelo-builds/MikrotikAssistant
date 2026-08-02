@@ -1743,153 +1743,168 @@ const AuditTab = {
     }
   },
 
-  // Progressive 4-stage pipeline stepper loader and submission
-  async runStepperAndSubmit(submitPayload, signal, isRetry = false) {
-    const t = this.getT();
+  appendLoadingMessage() {
+    const container = this.els.chatMessagesContainer || document.getElementById('chat-messages-container');
+    const loadingId = `loading-${Date.now()}`;
 
-    const loaderCard = document.createElement('div');
-    loaderCard.id = 'inline-loader-card';
-    loaderCard.className = 'flex flex-col space-y-3.5 items-start max-w-2xl mr-auto w-full select-none p-5 bg-gray-800 border border-purple-500/30 rounded-2xl shadow shadow-purple-500/10 animate-pulse';
-
-    loaderCard.innerHTML = `
-      <!-- Header -->
-      <div class="flex items-center space-x-2.5">
-        <div class="relative w-7 h-7 flex items-center justify-center shrink-0">
-          <div class="absolute inset-0 border-2 border-dashed border-purple-500/50 rounded-lg animate-[spin_4s_linear_infinite]"></div>
-          <div class="w-4 h-4 rounded bg-purple-500 text-white flex items-center justify-center border border-white/10">
-            <svg class="w-2.5 h-2.5 text-white animate-spin" fill="none" viewBox="0 0 24 24">
-              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-            </svg>
+    const bubble = document.createElement('div');
+    bubble.id = loadingId;
+    bubble.className = 'flex justify-start mb-4 animate-apple-reveal';
+    bubble.innerHTML = `
+      <div class="assistant-message flex items-start space-x-3 max-w-3xl">
+        <div class="flex-1">
+          <div class="flex items-center space-x-2 mb-2">
+            <div class="w-2 h-2 bg-indigo-500 rounded-full animate-pulse"></div>
+            <span class="text-xs font-medium text-zinc-400">Processing your request...</span>
           </div>
-        </div>
-        <div>
-          <h4 class="text-xs font-black text-white uppercase tracking-wider">${t.loaderTitle}</h4>
-          <p class="text-[9px] text-gray-400">Executing safe de-identification network audit...</p>
-        </div>
-      </div>
 
-      <!-- Progress Bar -->
-      <div class="w-full bg-gray-950 rounded-full h-2.5 border border-gray-700 overflow-hidden relative">
-        <div id="inline-loader-progress-bar" class="bg-purple-500 h-full w-[0%] transition-all duration-300"></div>
-      </div>
-      <div class="flex justify-between w-full text-[10px] font-bold text-gray-500">
-        <span id="inline-loader-log-text">${t.loaderStep1DescActive}</span>
-        <span id="inline-loader-percentage" class="text-purple-400 font-mono">0%</span>
-      </div>
-
-      <!-- Steps -->
-      <div class="w-full space-y-2 border-t border-gray-700/50 pt-3 text-[11px] font-medium">
-        <div id="inline-step-mask" class="flex items-center justify-between text-gray-200">
-          <div class="flex items-center space-x-2.5">
-            <div class="step-indicator w-4 h-4 rounded-full border border-purple-500/50 text-[9px] font-bold flex items-center justify-center bg-gray-900 text-purple-400">1</div>
-            <span>${t.loaderStep1Title}</span>
+          <!-- Linear Progress Bar -->
+          <div class="progress-container w-full h-1 bg-zinc-800 rounded-full overflow-hidden mb-2">
+            <div class="progress-bar h-full bg-indigo-500 rounded-full transition-all duration-300 ease-linear"
+                 style="width: 0%"
+                 data-progress="0"></div>
           </div>
-          <span class="step-stat text-[10px] font-mono text-purple-400">Active</span>
-        </div>
 
-        <div id="inline-step-transit" class="flex items-center justify-between text-gray-600">
-          <div class="flex items-center space-x-2.5">
-            <div class="step-indicator w-4 h-4 rounded-full border border-gray-750 text-[9px] font-bold flex items-center justify-center bg-gray-900 text-gray-600">2</div>
-            <span>${t.loaderStep2Title}</span>
+          <!-- Status Steps -->
+          <div class="progress-steps flex items-center space-x-4 text-[10px] text-zinc-500">
+            <div class="step active flex items-center space-x-1" data-step="1">
+              <i data-lucide="check" class="w-3 h-3"></i>
+              <span>Masking</span>
+            </div>
+            <div class="step flex items-center space-x-1" data-step="2">
+              <i data-lucide="check" class="w-3 h-3"></i>
+              <span>Analyzing</span>
+            </div>
+            <div class="step flex items-center space-x-1" data-step="3">
+              <i data-lucide="check" class="w-3 h-3"></i>
+              <span>Generating</span>
+            </div>
           </div>
-          <span class="step-stat text-[10px] font-mono text-gray-600">Pending</span>
-        </div>
-
-        <div id="inline-step-restore" class="flex items-center justify-between text-gray-600">
-          <div class="flex items-center space-x-2.5">
-            <div class="step-indicator w-4 h-4 rounded-full border border-gray-750 text-[9px] font-bold flex items-center justify-center bg-gray-900 text-gray-600">3</div>
-            <span>${t.loaderStep3Title}</span>
-          </div>
-          <span class="step-stat text-[10px] font-mono text-gray-600">Pending</span>
-        </div>
-
-        <div id="inline-step-diff" class="flex items-center justify-between text-gray-600">
-          <div class="flex items-center space-x-2.5">
-            <div class="step-indicator w-4 h-4 rounded-full border border-gray-750 text-[9px] font-bold flex items-center justify-center bg-gray-900 text-gray-600">4</div>
-            <span>${t.loaderStep4Title}</span>
-          </div>
-          <span class="step-stat text-[10px] font-mono text-gray-600">Pending</span>
         </div>
       </div>
     `;
+
+    container.appendChild(bubble);
+    this.scrollStreamToBottom();
+
+    // Initialize Lucide icons
+    if (typeof lucide !== 'undefined') {
+      lucide.createIcons();
+    }
+
+    // Start linear progress animation
+    this.startLinearProgress(loadingId);
+
+    return bubble;
+  },
+
+  startLinearProgress(loadingId) {
+    const progressBar = document.querySelector(`#${loadingId} .progress-bar`);
+    const steps = document.querySelectorAll(`#${loadingId} .step`);
+
+    if (!progressBar) return;
+
+    let progress = 0;
+    let currentStep = 1;
+
+    // Linear progress: 0% → 100% over ~20 seconds
+    const progressInterval = setInterval(() => {
+      // Increment smoothly (adjust speed as needed)
+      progress += 0.5; // 0.5% every 100ms = 100% in 20 seconds
+
+      if (progress >= 95) {
+        // Cap at 95% until response arrives
+        progress = 95;
+        clearInterval(progressInterval);
+      }
+
+      progressBar.style.width = `${progress}%`;
+      progressBar.setAttribute('data-progress', progress);
+
+      // Update steps based on progress
+      if (progress >= 30 && currentStep >= 1) {
+        steps.forEach(s => s.classList.remove('active'));
+        steps[1]?.classList.add('active');
+        currentStep = 2;
+      }
+      if (progress >= 60 && currentStep >= 2) {
+        steps.forEach(s => s.classList.remove('active'));
+        steps[2]?.classList.add('active');
+        currentStep = 3;
+      }
+    }, 100);
+
+    // Store interval ID so we can clear it when response arrives
+    progressBar.dataset.intervalId = progressInterval;
+  },
+
+  completeLoadingMessage(loadingId) {
+    const bubble = document.getElementById(loadingId);
+    if (!bubble) return;
+
+    const progressBar = bubble.querySelector('.progress-bar');
+    const steps = bubble.querySelectorAll('.step');
+
+    // Clear the progress interval
+    if (progressBar && progressBar.dataset.intervalId) {
+      clearInterval(parseInt(progressBar.dataset.intervalId));
+    }
+
+    // Complete progress to 100%
+    if (progressBar) {
+      progressBar.style.width = '100%';
+      progressBar.classList.add('bg-emerald-500');
+      progressBar.classList.remove('bg-indigo-500');
+    }
+
+    // Mark all steps as complete
+    steps.forEach(step => {
+      step.classList.add('active');
+      const icon = step.querySelector('i');
+      if (icon) {
+        icon.setAttribute('data-lucide', 'check-circle');
+      }
+    });
+
+    // Update text
+    const statusText = bubble.querySelector('.text-xs');
+    if (statusText) {
+      statusText.textContent = 'Complete!';
+      statusText.classList.add('text-emerald-400');
+      statusText.classList.remove('text-zinc-400');
+    }
+
+    if (typeof lucide !== 'undefined') {
+      lucide.createIcons();
+    }
+
+    // Fade out and remove after 500ms
+    setTimeout(() => {
+      bubble.style.transition = 'opacity 300ms ease, transform 300ms ease';
+      bubble.style.opacity = '0';
+      bubble.style.transform = 'translateY(-10px)';
+      setTimeout(() => bubble.remove(), 300);
+    }, 500);
+  },
+
+  async runStepperAndSubmit(submitPayload, signal, isRetry = false) {
+    const t = this.getT();
 
     // Append User message (Skip if retry as it already exists in message stream)
     if (!isRetry) {
       this.appendUserMessageBubble(submitPayload.chatMessage, this.state.pastedConfigRaw);
     }
 
-    const activeContainer = this.els.chatMessagesContainer;
-    this.els.panelWelcome.classList.add('hidden');
-    activeContainer.appendChild(loaderCard);
-    this.scrollStreamToBottom();
-
-    const inlineProgressBar = loaderCard.querySelector('#inline-loader-progress-bar');
-    const inlineLogText = loaderCard.querySelector('#inline-loader-log-text');
-    const inlinePercentage = loaderCard.querySelector('#inline-loader-percentage');
-    const inlineStepMask = loaderCard.querySelector('#inline-step-mask');
-    const inlineStepTransit = loaderCard.querySelector('#inline-step-transit');
-    const inlineStepRestore = loaderCard.querySelector('#inline-step-restore');
-    const inlineStepDiff = loaderCard.querySelector('#inline-step-diff');
-
-    function updateInlineStep(el, stepState, logMsg) {
-      const indicator = el.querySelector('.step-indicator');
-      const stat = el.querySelector('.step-stat');
-      if (inlineLogText) inlineLogText.textContent = logMsg;
-
-      if (stepState === 'active') {
-        el.className = 'flex items-center justify-between text-gray-200';
-        indicator.className = 'step-indicator w-4 h-4 rounded-full border border-purple-500/50 text-[9px] font-bold flex items-center justify-center bg-gray-900 text-purple-400';
-        stat.textContent = 'Active';
-        stat.className = 'step-stat text-[10px] font-mono text-purple-400';
-      } else if (stepState === 'complete') {
-        el.className = 'flex items-center justify-between text-gray-400';
-        indicator.className = 'step-indicator w-4 h-4 rounded-full border border-emerald-500/50 text-[9px] font-bold flex items-center justify-center bg-gray-900 text-emerald-400';
-        indicator.innerHTML = '✓';
-        stat.textContent = 'Completed';
-        stat.className = 'step-stat text-[10px] font-mono text-emerald-400';
-      } else {
-        el.className = 'flex items-center justify-between text-gray-650';
-        indicator.className = 'step-indicator w-4 h-4 rounded-full border border-gray-750 text-[9px] font-bold flex items-center justify-center bg-gray-900 text-gray-600';
-        stat.textContent = 'Pending';
-        stat.className = 'step-stat text-[10px] font-mono text-gray-600';
-      }
-    }
-
-    let currentProgress = 0;
-    let targetProgress = 15;
-    let progressInterval = null;
-
-    function setInlineProgressBar(pct, text) {
-      if (inlineProgressBar) inlineProgressBar.style.width = pct + '%';
-      if (inlinePercentage) inlinePercentage.textContent = text;
-    }
-
-    // Ticker to smoothly advance currentProgress towards targetProgress
-    progressInterval = setInterval(() => {
-      if (signal && signal.aborted) {
-        clearInterval(progressInterval);
-        return;
-      }
-      if (currentProgress < targetProgress) {
-        currentProgress += Math.min(1.5, targetProgress - currentProgress);
-        setInlineProgressBar(Math.round(currentProgress), `${Math.round(currentProgress)}%`);
-      } else if (targetProgress === 80) {
-        // Creep extremely slowly towards 80% during AI transit so it never freezes
-        currentProgress += (80 - currentProgress) * 0.025;
-        setInlineProgressBar(Math.round(currentProgress), `${Math.round(currentProgress)}%`);
-      }
-    }, 100);
+    // Show loading indicator card
+    const loadingMsg = this.appendLoadingMessage();
+    const loadingId = loadingMsg.id;
 
     let serverResponseData = null;
     let serverError = null;
 
     try {
-      // Stage 1: Masking
+      // Simulate/wait for Masking stage locally
       await this.delay(700, signal);
-      updateInlineStep(inlineStepMask, 'complete', t.loaderStep1DescComplete);
-      updateInlineStep(inlineStepTransit, 'active', t.loaderStep2DescActive);
-      targetProgress = 80;
 
       // Stage 2: AI Transit & Call API
       const fetchPromise = fetch('/api/chat', {
@@ -1909,71 +1924,63 @@ const AuditTab = {
 
       serverResponseData = await res.json();
 
-      // Stage 3: Restoration
-      updateInlineStep(inlineStepTransit, 'complete', t.loaderStep2DescComplete);
-      updateInlineStep(inlineStepRestore, 'active', t.loaderStep3DescActive);
-      targetProgress = 95;
-      await this.delay(600, signal);
+      // Simulate/wait for Restoration and Diff stages locally
+      await this.delay(1100, signal);
 
-      // Stage 4: Formatting Diff
-      updateInlineStep(inlineStepRestore, 'complete', t.loaderStep3DescComplete);
-      updateInlineStep(inlineStepDiff, 'active', t.loaderStep4DescActive);
-      targetProgress = 100;
-      await this.delay(500, signal);
-
-      // Completed
-      updateInlineStep(inlineStepDiff, 'complete', t.loaderStep4DescComplete);
-      await this.delay(300, signal);
+      // Complete loading indicator smoothly
+      this.completeLoadingMessage(loadingId);
 
     } catch (err) {
       serverError = err;
-    } finally {
-      if (progressInterval) clearInterval(progressInterval);
     }
 
     if (serverError) {
-      loaderCard.remove();
+      // Clean loader even on error
+      this.completeLoadingMessage(loadingId);
+
       if (serverError.name === 'AbortError') {
         throw serverError;
       }
-      this.showToast(serverError.message, 'error');
-      this.appendInlineErrorCard(serverError.message, () => {
-        this.retryChat(submitPayload);
-      });
+
+      setTimeout(() => {
+        this.showToast(serverError.message, 'error');
+        this.appendInlineErrorCard(serverError.message, () => {
+          this.retryChat(submitPayload);
+        });
+      }, 800);
       return;
     }
 
-    // Remove loading card
-    loaderCard.remove();
+    // Wait for the complete animation and fadeout, then append response
+    setTimeout(() => {
+      this.appendAssistantResponseBubble(serverResponseData);
+      this.showToast('Auditing pipeline complete!', 'success');
 
-    // Append assistant bubble
-    this.appendAssistantResponseBubble(serverResponseData);
-    this.showToast('Auditing pipeline complete!', 'success');
+      // Save conversation step in history list
+      const timestamp = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      let title = `RouterOS Config ${this.state.history.length + 1}`;
+      const currentChatId = this.state.currentChatId;
 
-    // Save conversation step in history list
-    const timestamp = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-    let title = `RouterOS Config ${this.state.history.length + 1}`;
-    const currentChatId = this.state.currentChatId;
+      if (currentChatId) {
+        const existing = this.state.history.find(h => h.id === currentChatId);
+        if (existing) title = existing.title;
+      } else if (this.state.currentFile) {
+        title = this.state.currentFile.name;
+      }
 
-    if (currentChatId) {
-      const existing = this.state.history.find(h => h.id === currentChatId);
-      if (existing) title = existing.title;
-    } else if (this.state.currentFile) {
-      title = this.state.currentFile.name;
-    }
-
-    this.saveHistoryItem({
-      id: currentChatId || Date.now(),
-      title,
-      timestamp,
-      rosVersion: submitPayload.routerOsVersion,
-      hardwareModel: submitPayload.hardwareModel,
-      messages: [{
-        chatMessage: submitPayload.chatMessage || 'Configuration audit request',
-        pastedConfig: this.state.pastedConfigRaw,
-        result: serverResponseData
-      }]
-    });
+      this.saveHistoryItem({
+        id: currentChatId || Date.now(),
+        title,
+        timestamp,
+        rosVersion: submitPayload.routerOsVersion,
+        hardwareModel: submitPayload.hardwareModel,
+        messages: [{
+          chatMessage: submitPayload.chatMessage || 'Configuration audit request',
+          pastedConfig: this.state.pastedConfigRaw,
+          result: serverResponseData
+        }]
+      });
+    }, 800);
   },
 
   async retryChat(submitPayload) {
@@ -2404,6 +2411,37 @@ const AuditTab = {
 
     container.appendChild(wrapper);
     this.scrollStreamToBottom();
+
+    // Hook event listeners for the copy buttons in code blocks
+    const codeBlockCopyButtons = wrapper.querySelectorAll('.code-block-copy');
+    codeBlockCopyButtons.forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const code = decodeURIComponent(e.currentTarget.dataset.code);
+        navigator.clipboard.writeText(code).then(() => {
+          // Visual feedback
+          const icon = e.currentTarget.querySelector('i');
+          if (icon) {
+            icon.setAttribute('data-lucide', 'check');
+          }
+          if (typeof lucide !== 'undefined') {
+            lucide.createIcons();
+          }
+          setTimeout(() => {
+            if (icon) {
+              icon.setAttribute('data-lucide', 'copy');
+            }
+            if (typeof lucide !== 'undefined') {
+              lucide.createIcons();
+            }
+          }, 2000);
+        });
+      });
+    });
+
+    // Call lucide.createIcons() to render the copy icons
+    if (typeof lucide !== 'undefined') {
+      lucide.createIcons();
+    }
 
     // Trigger mermaid rendering safely
     setTimeout(() => {

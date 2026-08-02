@@ -1,5 +1,5 @@
 const { mask, unmask, isPrivateIPv4, isPrivateIPv6 } = require('./privacyShield');
-const { computeLineDiff, renderMarkdown, extractRouterOsCommands, debounce } = require('./public/utils');
+const { computeLineDiff, renderMarkdown, extractRouterOsCommands, debounce } = require('./public/js/utils');
 
 function runAllTests() {
   console.log('=== STARTING INTEGRATION & UNIT TESTS ===');
@@ -107,7 +107,7 @@ function runAllTests() {
   assert(markdownHtml.includes('ml-4 list-disc'), 'renderMarkdown should render bullet lists');
   assert(markdownHtml.includes('font-semibold'), 'renderMarkdown should render bold elements');
   assert(markdownHtml.includes('font-mono text-[11px]'), 'renderMarkdown should render high-contrast inline code blocks');
-  assert(markdownHtml.includes('h5 class='), 'renderMarkdown should parse headers');
+  assert(markdownHtml.includes('h3 class='), 'renderMarkdown should parse headers');
 
   // Unit Test 6: extractRouterOsCommands
   console.log('\n--- Unit Test 6: extractRouterOsCommands ---\n');
@@ -130,7 +130,7 @@ function runAllTests() {
 
   // Unit Test 7: VLAN Config Parsing
   console.log('\n--- Unit Test 7: parseVlanConfig ---\n');
-  const { parseVlanConfig, generateVlanMermaidGraph } = require('./public/utils');
+  const { parseVlanConfig, generateVlanMermaidGraph } = require('./public/js/utils');
   const vlanConfigSample = `
     /interface bridge vlan
     add bridge=br-lan tagged=ether1,ether2 untagged=ether3 vlan-ids=10
@@ -174,7 +174,7 @@ function runAllTests() {
 
   // Unit Test 9: isValidRouterOsConfig
   console.log('\n--- Unit Test 9: isValidRouterOsConfig ---\n');
-  const { isValidRouterOsConfig, detectConfigSummary, formatRouterOsConfig } = require('./public/utils');
+  const { isValidRouterOsConfig, detectConfigSummary, formatRouterOsConfig } = require('./public/js/utils');
 
   assert(isValidRouterOsConfig('# aug/14/2023 by RouterOS') === true, 'Should detect comment headers as valid RouterOS config');
   assert(isValidRouterOsConfig('/interface bridge add name=bridge1') === true, 'Should detect commands with /interface as valid');
