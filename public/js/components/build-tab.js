@@ -4,8 +4,8 @@ function createBuildTabModal(title, contentHtml, footerHtml = '') {
   modal.innerHTML = `
     <div class="bg-surface border border-border rounded-lg max-w-4xl w-full max-h-[90vh] overflow-hidden flex flex-col shadow-2xl">
       <div class="flex items-center justify-between p-4 border-b border-border bg-surface-elevated">
-        <h3 class="text-sm font-semibold text-primary">${title}</h3>
-        <button class="btn-close text-secondary hover:text-primary text-2xl transition-all duration-150 active:scale-95">✕</button>
+        <h3 class="text-sm font-semibold text-zinc-100">${title}</h3>
+        <button class="btn-close text-secondary hover:text-zinc-100 text-2xl transition-all duration-150 active:scale-95">✕</button>
       </div>
       <div class="p-6 overflow-y-auto flex-1 text-secondary">
         ${contentHtml}
@@ -46,87 +46,107 @@ const BuildTab = {
   },
 
   render(container) {
+    if (!this.blocks || this.blocks.length === 0) {
+      BuilderEngine.loadDefaultBlocks();
+    }
+
     container.innerHTML = `
-      <div class="flex flex-col h-full space-y-3 select-none">
-        <!-- Sub Header Controls -->
-        <div class="flex items-center justify-between shrink-0 select-none pb-1.5">
-          <h2 class="text-xs font-bold text-primary flex items-center uppercase tracking-wider">
-            ${UI_Icons.render('hammer', 'mr-1.5 text-purple-500 w-3.5 h-3.5')}
-            Builder
-          </h2>
-          <div class="flex items-center space-x-1.5">
-            <button id="btn-generate-ai" title="AI Generate" class="w-7 h-7 bg-purple-600 hover:bg-purple-700 text-white flex items-center justify-center rounded-md transition active:scale-95">
-              ${UI_Icons.render('activity', 'w-3.5 h-3.5')}
+      <div class="build-container flex flex-col h-full">
+        <!-- Compact Toolbar -->
+        <div class="flex items-center justify-between mb-4 pb-3 border-b border-border-subtle">
+          <div class="flex items-center space-x-2">
+            <h2 class="text-sm font-semibold text-zinc-100">Configuration Builder</h2>
+            <span class="text-[10px] text-zinc-500 bg-elevated px-2 py-0.5 rounded">${this.blocks.filter(b => b.enabled).length} active</span>
+          </div>
+          <div class="flex items-center space-x-1">
+            <button id="btn-import-export" class="icon-btn" title="Import .rsc">
+              <i data-lucide="upload" class="w-3.5 h-3.5"></i>
             </button>
-            <button id="btn-add-conditional" title="Add Conditional" class="w-7 h-7 bg-surface border border-border hover:bg-white/5 text-zinc-300 flex items-center justify-center rounded-md transition active:scale-95">
-              ${UI_Icons.render('plus', 'w-3.5 h-3.5')}
+            <button id="btn-validate" class="icon-btn" title="Validate">
+              <i data-lucide="check-circle" class="w-3.5 h-3.5"></i>
             </button>
-            <button id="btn-import-export" title="Import .rsc" class="w-7 h-7 bg-surface border border-border hover:bg-white/5 text-zinc-300 flex items-center justify-center rounded-md transition active:scale-95">
-              ${UI_Icons.render('download', 'w-3.5 h-3.5')}
+            <button id="btn-compare" class="icon-btn" title="Compare">
+              <i data-lucide="git-compare" class="w-3.5 h-3.5"></i>
             </button>
-            <button id="btn-validate" title="Validate" class="w-7 h-7 bg-surface border border-border hover:bg-white/5 text-zinc-300 flex items-center justify-center rounded-md transition active:scale-95">
-              ${UI_Icons.render('shield-check', 'w-3.5 h-3.5')}
+            <div class="w-px h-4 bg-border-subtle mx-1"></div>
+            <button id="btn-save-library" class="btn-secondary text-xs">
+              <i data-lucide="save" class="w-3 h-3 mr-1"></i> Save
             </button>
-            <button id="btn-compare" title="Compare" class="w-7 h-7 bg-surface border border-border hover:bg-white/5 text-zinc-300 flex items-center justify-center rounded-md transition active:scale-95">
-              ${UI_Icons.render('pencil', 'w-3.5 h-3.5')}
-            </button>
-            <button id="btn-save-library" title="Save to Library" class="w-7 h-7 bg-surface border border-border hover:bg-white/5 text-zinc-300 flex items-center justify-center rounded-md transition active:scale-95">
-              ${UI_Icons.render('library', 'w-3.5 h-3.5')}
-            </button>
-            <button id="btn-export-rsc" title="Export .rsc" class="w-7 h-7 bg-emerald-600 hover:bg-emerald-700 text-white flex items-center justify-center rounded-md transition active:scale-95">
-              ${UI_Icons.render('lock', 'w-3.5 h-3.5')}
+            <button id="btn-export-rsc" class="btn-primary text-xs">
+              <i data-lucide="download" class="w-3 h-3 mr-1"></i> Export .rsc
             </button>
           </div>
         </div>
 
-        <div class="flex flex-row gap-3 flex-1 overflow-hidden min-h-0 h-full">
-          <!-- Column 1: Variables (220px) -->
-          <div class="w-[220px] bg-surface rounded-md border border-border flex flex-col overflow-hidden h-full">
-            <div class="p-2 border-b border-border bg-surface-elevated flex items-center justify-between">
-              <h3 class="font-bold text-[10px] uppercase text-purple-400 flex items-center">
-                ${UI_Icons.render('activity', 'mr-1.5 w-3.5 h-3.5')}
+        <!-- Three-Column Layout -->
+        <div class="flex flex-1 gap-3 overflow-hidden min-h-0">
+
+          <!-- VARIABLES PANEL (220px) -->
+          <aside class="w-[220px] flex flex-col bg-surface border border-border-subtle rounded-lg overflow-hidden">
+            <div class="p-3 border-b border-border-subtle flex items-center justify-between">
+              <h3 class="text-xs font-semibold text-zinc-200 flex items-center">
+                <i data-lucide="variable" class="w-3 h-3 mr-1.5 text-indigo-400"></i>
                 Variables
               </h3>
+              <button id="btn-add-variable" class="icon-btn-sm" title="Add variable">
+                <i data-lucide="plus" class="w-3 h-3"></i>
+              </button>
             </div>
-            <div class="flex-1 overflow-y-auto p-2 space-y-2.5" id="variables-panel">
-              <!-- Populated by JS -->
+            <div class="flex-1 overflow-y-auto p-2 space-y-1.5" id="variables-list"></div>
+            <div class="border-t border-border-subtle p-2">
+              <button id="btn-toggle-derived" class="w-full flex items-center justify-between text-[10px] text-zinc-400 hover:text-zinc-200 px-2 py-1">
+                <span>Derived Variables</span>
+                <i data-lucide="chevron-down" class="w-3 h-3"></i>
+              </button>
+              <div id="derived-variables-list" class="hidden mt-1 space-y-1 max-h-32 overflow-y-auto"></div>
             </div>
-          </div>
+          </aside>
 
-          <!-- Column 2: Blocks (flex-1) -->
-          <div class="flex-1 bg-surface rounded-md border border-border flex flex-col overflow-hidden h-full">
-            <div class="p-2 border-b border-border bg-surface-elevated">
-              <h3 class="font-bold text-[10px] uppercase text-purple-400 flex items-center">
-                ${UI_Icons.render('hammer', 'mr-1.5 w-3.5 h-3.5')}
-                Configuration Blocks
+          <!-- BLOCKS PANEL (flex) -->
+          <section class="flex-1 flex flex-col bg-surface border border-border-subtle rounded-lg overflow-hidden">
+            <div class="p-3 border-b border-border-subtle flex items-center justify-between">
+              <h3 class="text-xs font-semibold text-zinc-200 flex items-center">
+                <i data-lucide="blocks" class="w-3 h-3 mr-1.5 text-emerald-400"></i>
+                Blocks
               </h3>
+              <div class="flex items-center space-x-1">
+                <button id="btn-add-block" class="icon-btn-sm" title="Add block">
+                  <i data-lucide="plus" class="w-3 h-3"></i>
+                </button>
+                <button id="btn-add-conditional" class="icon-btn-sm" title="Add conditional">
+                  <i data-lucide="git-branch" class="w-3 h-3"></i>
+                </button>
+                <button id="btn-generate-ai" class="icon-btn-sm" title="AI Generate">
+                  <i data-lucide="sparkles" class="w-3 h-3"></i>
+                </button>
+              </div>
             </div>
-            <div class="flex-1 overflow-y-auto p-2 space-y-2" id="blocks-panel">
-              <!-- Populated by JS -->
-            </div>
-          </div>
+            <div class="flex-1 overflow-y-auto p-2 space-y-1.5" id="blocks-list"></div>
+          </section>
 
-          <!-- Column 3: Live Preview (300px) -->
-          <div class="w-[300px] bg-surface rounded-md border border-border flex flex-col overflow-hidden h-full">
-            <div class="p-2 border-b border-border bg-surface-elevated flex justify-between items-center">
-              <h3 class="font-bold text-[10px] uppercase text-purple-400 flex items-center">
-                ${UI_Icons.render('shield-check', 'mr-1.5 w-3.5 h-3.5')}
-                Live Preview (.rsc)
+          <!-- PREVIEW PANEL (320px) -->
+          <aside class="w-[320px] flex flex-col bg-elevated border border-border-subtle rounded-lg overflow-hidden">
+            <div class="p-3 border-b border-border-subtle flex items-center justify-between">
+              <h3 class="text-xs font-semibold text-zinc-200 flex items-center">
+                <i data-lucide="eye" class="w-3 h-3 mr-1.5 text-purple-400"></i>
+                Live Preview
               </h3>
-              <span class="text-[9px] text-text-muted font-mono">Auto-updates</span>
+              <button id="btn-copy-preview" class="icon-btn-sm" title="Copy">
+                <i data-lucide="copy" class="w-3 h-3"></i>
+              </button>
             </div>
-            <pre id="preview-output" class="flex-1 overflow-auto p-3 text-[10px] font-mono text-secondary whitespace-pre-wrap select-all bg-app"></pre>
-          </div>
+            <div class="flex-1 overflow-auto p-3 bg-app">
+              <pre id="preview-content" class="text-[11px] font-mono text-emerald-400 whitespace-pre-wrap leading-relaxed"></pre>
+            </div>
+          </aside>
         </div>
       </div>
     `;
 
-    // Render components
+    this.setupListeners();
     this.renderVariables();
     this.renderBlocks();
     this.updatePreview();
-    this.setupListeners();
-
     if (typeof lucide !== 'undefined') {
       lucide.createIcons();
     }
@@ -143,26 +163,37 @@ const BuildTab = {
   async editBlock(index) {
     const block = this.blocks[index];
 
+    if (block.isConditional) {
+      const condition = await PromptModal.show({
+        title: 'Set Condition',
+        message: 'Example: ROUTEROS_VERSION == 7',
+        placeholder: 'VARIABLE == value',
+        defaultValue: block.condition || '',
+        confirmText: 'Apply',
+        cancelText: 'Cancel'
+      });
+      if (condition !== null) {
+        block.condition = condition;
+        block.name = `IF ${condition}`;
+        this.renderBlocks();
+        this.updatePreview();
+      }
+      return;
+    }
+
     const modal = document.createElement('div');
     modal.className = 'fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-8';
     modal.innerHTML = `
       <div class="bg-surface border border-border rounded-lg max-w-5xl w-full max-h-[90vh] flex flex-col shadow-2xl font-sans">
         <div class="flex items-center justify-between p-4 border-b border-border bg-surface-elevated">
-          <h3 class="text-sm font-semibold text-primary">Edit Block: ${block.name}</h3>
-          <button class="btn-close text-secondary hover:text-primary text-xl">✕</button>
+          <h3 class="text-sm font-semibold text-zinc-100">Edit Block: ${block.name}</h3>
+          <button class="btn-close text-secondary hover:text-zinc-100 text-xl">✕</button>
         </div>
-        ${block.isConditional ? `
-          <div class="p-3 bg-yellow-900/20 border-b border-yellow-700/50 flex items-center space-x-2">
-            <span class="text-yellow-400 text-xs font-semibold">Conditional Block - Condition:</span>
-            <input type="text" id="conditional-condition-edit" value="${block.condition}"
-              class="flex-1 bg-surface border border-border rounded px-2 py-1 text-xs font-mono text-yellow-300">
-          </div>
-        ` : ''}
         <div class="p-6 overflow-y-auto flex-1 flex flex-col">
           <div id="monaco-container" class="flex-1 min-h-[500px]"></div>
         </div>
         <div class="flex justify-end space-x-2 p-4 border-t border-border bg-surface-elevated/30">
-          <button class="btn-cancel bg-transparent text-primary border border-border hover:bg-white/5 px-4 py-2 rounded-md text-xs font-medium">Cancel</button>
+          <button class="btn-cancel bg-transparent text-zinc-100 border border-border hover:bg-white/5 px-4 py-2 rounded-md text-xs font-medium">Cancel</button>
           <button class="btn-save bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-md text-xs font-medium">Save Changes</button>
         </div>
       </div>
@@ -189,69 +220,34 @@ const BuildTab = {
     modal.querySelector('.btn-save').addEventListener('click', () => {
       const newContent = typeof MonacoIntegration !== 'undefined' && MonacoIntegration.getContent ? MonacoIntegration.getContent() : '';
       this.blocks[index].content = newContent;
-
-      if (block.isConditional) {
-        const newCondition = modal.querySelector('#conditional-condition-edit').value.trim();
-        this.blocks[index].condition = newCondition;
-        this.blocks[index].name = `IF ${newCondition}`;
-      }
-
       closeModal();
       this.renderBlocks();
       this.updatePreview();
     });
   },
 
-  addConditionalBlock() {
-    const modal = document.createElement('div');
-    modal.className = 'fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-8';
-    modal.innerHTML = `
-      <div class="bg-surface rounded-lg border border-border max-w-md w-full p-6 shadow-2xl font-sans">
-        <h3 class="text-sm font-semibold mb-4 text-primary">Add Conditional Block</h3>
-        <p class="text-xs text-secondary mb-3">Example conditions:</p>
-        <ul class="text-xs text-text-muted mb-4 space-y-1 font-mono">
-          <li>• ROUTEROS_VERSION == 7</li>
-          <li>• PPPoE_ENABLED == true</li>
-          <li>• BGP_ENABLED != false</li>
-        </ul>
-        <input type="text" id="condition-input" placeholder="e.g., ROUTEROS_VERSION == 7"
-          class="w-full bg-surface border border-border rounded px-3 py-2 text-xs font-mono mb-4 text-white">
-        <div class="flex justify-end space-x-2">
-          <button class="btn-cancel bg-transparent text-primary border border-border hover:bg-white/5 px-4 py-2 rounded-md text-xs font-medium">Cancel</button>
-          <button class="btn-confirm bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-md text-xs font-medium">Create Block</button>
-        </div>
-      </div>
-    `;
-    document.body.appendChild(modal);
-
-    const closeModal = () => modal.remove();
-    modal.querySelector('.btn-cancel').addEventListener('click', closeModal);
-    modal.addEventListener('click', (e) => { if (e.target === modal) closeModal(); });
-
-    const input = modal.querySelector('#condition-input');
-    input.focus();
-    input.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter') modal.querySelector('.btn-confirm').click();
-      if (e.key === 'Escape') closeModal();
+  async addConditionalBlock() {
+    const condition = await PromptModal.show({
+      title: 'Add Conditional Block',
+      message: 'Example: ROUTEROS_VERSION == 7',
+      placeholder: 'VARIABLE == value',
+      defaultValue: '',
+      confirmText: 'Create Block',
+      cancelText: 'Cancel'
     });
+    if (!condition) return;
 
-    modal.querySelector('.btn-confirm').addEventListener('click', () => {
-      const condition = input.value.trim();
-      if (!condition) { closeModal(); return; }
-
-      this.blocks.push({
-        id: `conditional-${Date.now()}`,
-        name: `IF ${condition}`,
-        category: 'conditional',
-        enabled: true,
-        content: `# IF ${condition}\n# Add your conditional RouterOS commands here\n# ENDIF`,
-        isConditional: true,
-        condition: condition
-      });
-      closeModal();
-      this.renderBlocks();
-      this.updatePreview();
+    this.blocks.push({
+      id: `conditional-${Date.now()}`,
+      name: `IF ${condition}`,
+      category: 'conditional',
+      enabled: true,
+      content: `# IF ${condition}\n# Add your conditional RouterOS commands here\n# ENDIF`,
+      isConditional: true,
+      condition: condition
     });
+    this.renderBlocks();
+    this.updatePreview();
   },
 
   renderBlocks() {
@@ -261,52 +257,39 @@ const BuildTab = {
     container.innerHTML = this.blocks.map((block, index) => {
       const isExpanded = !!block.expanded;
       return `
-      <div class="block-card group bg-surface border ${block.enabled ? 'border-purple-500/20' : 'border-border'} rounded-md p-2 hover:border-purple-500/30 transition-all relative"
-           data-index="${index}"
-           ${block.isConditional ? 'data-conditional="true"' : ''}
-           data-category="${block.category || 'general'}">
-        <div class="flex items-center justify-between select-none">
-          <div class="flex items-center space-x-2 flex-1 cursor-pointer card-header-toggle" data-index="${index}">
-            <span class="text-zinc-500 hover:text-white transition">
-              ${UI_Icons.render(isExpanded ? 'chevron-down' : 'chevron-right', 'w-3 h-3')}
-            </span>
-            <input type="checkbox" ${block.enabled ? 'checked' : ''} class="block-toggle rounded text-purple-600 focus:ring-purple-500 bg-app border-border h-3 w-3" data-index="${index}">
-            <span class="font-medium text-white text-[11px] truncate max-w-[120px]">${block.name}</span>
-            <span class="text-[9px] text-zinc-500 bg-surface-elevated px-1.5 py-0.5 rounded font-mono uppercase">${block.category || 'general'}</span>
+      <div class="block-card ${block.enabled ? '' : 'opacity-50'} ${isExpanded ? 'expanded' : ''}" draggable="true" data-index="${index}" ${block.isConditional ? 'data-conditional="true"' : ''} data-category="${block.category || 'general'}">
+        <div class="block-card-header">
+          <div class="flex items-center space-x-2 flex-1 min-w-0 card-header-toggle" data-index="${index}">
+            <div class="drag-handle text-zinc-500 hover:text-purple-400 cursor-grab active:cursor-grabbing select-none mr-1.5">⋮⋮</div>
+            <input type="checkbox" ${block.enabled ? 'checked' : ''} class="block-toggle w-3.5 h-3.5 rounded border-border-subtle bg-elevated text-indigo-500 focus:ring-indigo-500/50" data-index="${index}">
+            <span class="text-xs font-medium text-zinc-200 truncate">${block.name}</span>
+            <span class="text-[9px] text-zinc-500 bg-surface px-1.5 py-0.5 rounded font-mono uppercase">${block.category || 'general'}</span>
             ${block.isConditional ? '<span class="text-[9px] text-yellow-500 bg-yellow-900/10 px-1.5 py-0.5 rounded font-mono">IF</span>' : ''}
           </div>
-          <div class="flex items-center space-x-1.5 opacity-0 group-hover:opacity-100 transition-opacity duration-150">
-            <button class="btn-edit-block text-[10px] text-purple-400 hover:text-purple-300 font-medium px-1 hover:bg-white/5 rounded" data-index="${index}">Edit</button>
-            <button class="btn-duplicate-block text-[10px] text-zinc-400 hover:text-white font-medium px-1 hover:bg-white/5 rounded" data-index="${index}">Duplicate</button>
-            <button class="btn-remove-block text-[10px] text-zinc-500 hover:text-red-400 font-medium px-1 hover:bg-white/5 rounded" data-index="${index}">Remove</button>
+          <div class="block-card-actions flex items-center space-x-1">
+            <button class="icon-btn-sm btn-edit-block" data-index="${index}" title="Edit">
+              <i data-lucide="pencil" class="w-3 h-3"></i>
+            </button>
+            <button class="icon-btn-sm btn-duplicate-block" data-index="${index}" title="Duplicate">
+              <i data-lucide="copy" class="w-3 h-3"></i>
+            </button>
+            <button class="icon-btn-sm btn-remove-block" data-index="${index}" title="Remove">
+              <i data-lucide="trash-2" class="w-3 h-3"></i>
+            </button>
           </div>
         </div>
-        ${isExpanded ? `
-          <div class="mt-2 border-t border-border/40 pt-2 animate-apple-reveal">
-            <pre class="text-[10px] text-zinc-300 font-mono bg-app p-2 rounded max-h-32 overflow-y-auto whitespace-pre-wrap select-all border border-border">${this.escapeHtml(block.content)}</pre>
-          </div>
-        ` : ''}
+        <div class="block-card-preview">
+          <pre class="text-[10px] font-mono text-zinc-400 bg-surface rounded p-2 overflow-x-auto whitespace-pre-wrap">${this.escapeHtml(block.content)}</pre>
+        </div>
       </div>
       `;
     }).join('');
 
-    if (typeof BlockDragDrop !== 'undefined' && BlockDragDrop.init) {
-      setTimeout(() => BlockDragDrop.init(container), 50);
-    }
-
-    container.querySelectorAll('.card-header-toggle').forEach(el => {
-      el.addEventListener('click', (e) => {
-        if (e.target.type === 'checkbox') return; // Don't trigger on checkbox click
-        const index = parseInt(el.dataset.index);
-        this.blocks[index].expanded = !this.blocks[index].expanded;
-        this.renderBlocks();
-      });
-    });
-
+    // Event listeners
     container.querySelectorAll('.block-toggle').forEach(cb => {
       cb.addEventListener('change', (e) => {
-        const index = parseInt(e.target.dataset.index);
-        this.blocks[index].enabled = e.target.checked;
+        const index = parseInt(e.currentTarget.dataset.index);
+        this.blocks[index].enabled = e.currentTarget.checked;
         this.renderBlocks();
         this.updatePreview();
       });
@@ -314,14 +297,16 @@ const BuildTab = {
 
     container.querySelectorAll('.btn-edit-block').forEach(btn => {
       btn.addEventListener('click', (e) => {
-        const index = parseInt(btn.dataset.index);
+        e.stopPropagation();
+        const index = parseInt(e.currentTarget.dataset.index);
         this.editBlock(index);
       });
     });
 
     container.querySelectorAll('.btn-duplicate-block').forEach(btn => {
       btn.addEventListener('click', (e) => {
-        const index = parseInt(btn.dataset.index);
+        e.stopPropagation();
+        const index = parseInt(e.currentTarget.dataset.index);
         const duplicate = JSON.parse(JSON.stringify(this.blocks[index]));
         duplicate.id = `duplicate-${Date.now()}`;
         duplicate.name += ' (copy)';
@@ -333,12 +318,31 @@ const BuildTab = {
 
     container.querySelectorAll('.btn-remove-block').forEach(btn => {
       btn.addEventListener('click', (e) => {
-        const index = parseInt(btn.dataset.index);
+        e.stopPropagation();
+        const index = parseInt(e.currentTarget.dataset.index);
         this.blocks.splice(index, 1);
         this.renderBlocks();
         this.updatePreview();
       });
     });
+
+    // Click to expand/collapse
+    container.querySelectorAll('.block-card').forEach(card => {
+      card.addEventListener('click', (e) => {
+        if (e.target.closest('button') || e.target.closest('input') || e.target.closest('.drag-handle')) return;
+        card.classList.toggle('expanded');
+        const index = parseInt(card.dataset.index);
+        this.blocks[index].expanded = card.classList.contains('expanded');
+      });
+    });
+
+    if (typeof BlockDragDrop !== 'undefined' && BlockDragDrop.init) {
+      setTimeout(() => BlockDragDrop.init(container), 50);
+    }
+
+    if (typeof lucide !== 'undefined') {
+      lucide.createIcons();
+    }
   },
 
   renderVariables() {
@@ -359,10 +363,6 @@ const BuildTab = {
             </div>
           `).join('')}
         </div>
-      </div>
-      <div class="mt-3">
-        <h4 class="text-[9px] font-bold text-zinc-500 uppercase tracking-wider mb-1.5 select-none">Auto-Derived</h4>
-        <div class="space-y-1" id="derived-variables-list"></div>
       </div>
     `;
 
@@ -427,8 +427,57 @@ const BuildTab = {
     this.updatePreview();
   },
 
+  async addVariable() {
+    const name = await PromptModal.show({
+      title: 'Add Variable',
+      message: 'Enter name of the variable:',
+      placeholder: 'e.g., WAN_INTERFACE_2',
+      confirmText: 'Add',
+      cancelText: 'Cancel'
+    });
+    if (!name) return;
+    const value = await PromptModal.show({
+      title: 'Variable Value',
+      message: `Enter value for ${name.toUpperCase()}:`,
+      placeholder: 'Value...',
+      confirmText: 'Set',
+      cancelText: 'Cancel'
+    });
+    if (value === null) return;
+    BuilderEngine.setVariable(name.toUpperCase(), value);
+    this.renderVariables();
+    this.updatePreview();
+  },
+
+  async addBlock() {
+    const name = await PromptModal.show({
+      title: 'Add Configuration Block',
+      message: 'Enter a name for this block:',
+      placeholder: 'e.g., Custom Firewall Rules',
+      confirmText: 'Add Block',
+      cancelText: 'Cancel'
+    });
+    if (!name) return;
+
+    this.blocks.push({
+      id: `manual-block-${Date.now()}`,
+      name: name,
+      category: 'manual',
+      enabled: true,
+      content: `# ${name}\n# Enter your RouterOS commands here`
+    });
+    this.renderBlocks();
+    this.updatePreview();
+  },
+
   async generateBlockWithAI() {
-    const description = prompt('Describe the block you want to generate (e.g., "WireGuard server with peer configuration"):');
+    const description = await PromptModal.show({
+      title: 'Generate Block with AI',
+      message: 'Describe what you want to generate. The AI will create RouterOS commands with {{VARIABLE}} placeholders where appropriate.',
+      placeholder: 'e.g., WireGuard server with peer configuration',
+      confirmText: 'Generate',
+      cancelText: 'Cancel'
+    });
     if (!description) return;
 
     const modal = document.createElement('div');
@@ -511,8 +560,15 @@ const BuildTab = {
     this.updatePreview();
   },
 
-  saveToLibrary() {
-    const name = prompt('Project name:', 'My MikroTik Config');
+  async saveToLibrary() {
+    const name = await PromptModal.show({
+      title: 'Save to Library',
+      message: 'Enter a name for this project:',
+      placeholder: 'e.g., Client ABC - EOLO Setup',
+      defaultValue: 'My MikroTik Config',
+      confirmText: 'Save',
+      cancelText: 'Cancel'
+    });
     if (!name) return;
 
     const project = {
@@ -540,7 +596,7 @@ const BuildTab = {
   },
 
   async importExport() {
-    const textareaHtml = `<textarea id="import-textarea" placeholder="Paste your MikroTik .rsc export here..." class="w-full h-64 bg-surface border border-border rounded p-3 text-xs font-mono text-primary focus:border-purple-500 focus:outline-none"></textarea>`;
+    const textareaHtml = `<textarea id="import-textarea" placeholder="Paste your MikroTik .rsc export here..." class="w-full h-64 bg-surface border border-border rounded p-3 text-xs font-mono text-zinc-100 focus:border-purple-500 focus:outline-none"></textarea>`;
     const footerHtml = `
       <button class="btn-cancel bg-transparent text-primary border border-border hover:bg-white/5 px-4 py-2 rounded-md text-xs font-medium">Cancel</button>
       <button class="btn-parse bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-md text-xs font-medium">Parse & Import</button>
@@ -601,14 +657,14 @@ const BuildTab = {
       let content = '<div class="space-y-4">';
 
       if (result.errors && result.errors.length > 0) {
-        content += '<div><h4 class="font-bold text-red-450 mb-2 text-xs">Errors:</h4><div class="space-y-2">';
-        content += result.errors.map(e => `<div class="text-xs text-red-350 bg-red-950/20 px-3 py-2 rounded border border-red-950/30">✕ ${e}</div>`).join('');
+        content += '<div><h4 class="font-bold text-red-400 mb-2 text-xs">Errors:</h4><div class="space-y-2">';
+        content += result.errors.map(e => `<div class="text-xs text-red-300 bg-red-950/20 px-3 py-2 rounded border border-red-950/30">✕ ${e}</div>`).join('');
         content += '</div></div>';
       }
 
       if (result.warnings && result.warnings.length > 0) {
-        content += '<div><h4 class="font-bold text-yellow-450 mb-2 text-xs">Warnings:</h4><div class="space-y-2">';
-        content += result.warnings.map(w => `<div class="text-xs text-yellow-350 bg-yellow-950/20 px-3 py-2 rounded border border-yellow-950/30">⚠ ${w}</div>`).join('');
+        content += '<div><h4 class="font-bold text-yellow-400 mb-2 text-xs">Warnings:</h4><div class="space-y-2">';
+        content += result.warnings.map(w => `<div class="text-xs text-yellow-300 bg-yellow-950/20 px-3 py-2 rounded border border-yellow-950/30">⚠ ${w}</div>`).join('');
         content += '</div></div>';
       }
 
@@ -629,11 +685,11 @@ const BuildTab = {
       <div class="space-y-4">
         <div>
           <label class="block text-[11px] text-text-muted mb-1 font-semibold">First Configuration</label>
-          <textarea id="compare-textarea-1" placeholder="Paste first configuration..." class="w-full h-48 bg-surface border border-border rounded p-3 text-xs font-mono text-primary focus:border-purple-500 focus:outline-none"></textarea>
+          <textarea id="compare-textarea-1" placeholder="Paste first configuration..." class="w-full h-48 bg-surface border border-border rounded p-3 text-xs font-mono text-zinc-100 focus:border-purple-500 focus:outline-none"></textarea>
         </div>
         <div>
           <label class="block text-[11px] text-text-muted mb-1 font-semibold">Second Configuration</label>
-          <textarea id="compare-textarea-2" placeholder="Paste second configuration..." class="w-full h-48 bg-surface border border-border rounded p-3 text-xs font-mono text-primary focus:border-purple-500 focus:outline-none"></textarea>
+          <textarea id="compare-textarea-2" placeholder="Paste second configuration..." class="w-full h-48 bg-surface border border-border rounded p-3 text-xs font-mono text-zinc-100 focus:border-purple-500 focus:outline-none"></textarea>
         </div>
         <div id="diff-result" class="mt-4 font-mono text-xs"></div>
       </div>
@@ -679,7 +735,7 @@ const BuildTab = {
       saveLibBtn.addEventListener('click', () => this.saveToLibrary());
     }
 
-    const exportBtn = document.getElementById('btn-export-rsc');
+    const exportBtn = document.getElementById('btn-export-rsc') || document.getElementById('btn-download-rsc');
     if (exportBtn) {
       exportBtn.addEventListener('click', () => {
         const content = BuilderEngine.renderFullConfig();
@@ -707,6 +763,45 @@ const BuildTab = {
 
     const btnAddConditional = document.getElementById('btn-add-conditional');
     if (btnAddConditional) btnAddConditional.addEventListener('click', () => this.addConditionalBlock());
+
+    const btnAddVar = document.getElementById('btn-add-variable');
+    if (btnAddVar) btnAddVar.addEventListener('click', () => this.addVariable());
+
+    const btnAddBlock = document.getElementById('btn-add-block');
+    if (btnAddBlock) btnAddBlock.addEventListener('click', () => this.addBlock());
+
+    const btnToggleDerived = document.getElementById('btn-toggle-derived');
+    if (btnToggleDerived) {
+      btnToggleDerived.addEventListener('click', () => {
+        const list = document.getElementById('derived-variables-list');
+        const icon = btnToggleDerived.querySelector('i');
+        if (list) {
+          list.classList.toggle('hidden');
+          if (icon) {
+            if (list.classList.contains('hidden')) {
+              icon.setAttribute('data-lucide', 'chevron-down');
+            } else {
+              icon.setAttribute('data-lucide', 'chevron-up');
+            }
+            if (typeof lucide !== 'undefined') {
+              lucide.createIcons();
+            }
+          }
+        }
+      });
+    }
+
+    const btnCopyPreview = document.getElementById('btn-copy-preview');
+    if (btnCopyPreview) {
+      btnCopyPreview.addEventListener('click', () => {
+        const preview = document.getElementById('preview-content');
+        if (preview && preview.textContent) {
+          navigator.clipboard.writeText(preview.textContent).then(() => {
+            alert('Configuration copied to clipboard!');
+          });
+        }
+      });
+    }
   },
 
   escapeHtml(text) {

@@ -11,6 +11,23 @@ const AuditTab = {
       step2Desc: 'Our fully client-side Privacy Shield scrubs all passwords, secrets, IPs, and MACs before any transmission.',
       step3Title: 'Expert Audit',
       step3Desc: 'The system diagnoses vulnerabilities, flags issues, and generates precise corrective RouterOS CLI delta commands.',
+      compactTitle: 'MikrotikAssistant',
+      compactDesc: 'Privacy-first RouterOS configuration auditor & generator',
+      compactStep1Title: 'Paste Config',
+      compactStep1Desc: 'RouterOS export or logs',
+      compactStep2Title: 'Local Masking',
+      compactStep2Desc: 'Privacy shield active',
+      compactStep3Title: 'Expert Audit',
+      compactStep3Desc: 'AI-powered analysis',
+      quickActions: 'Quick Actions',
+      qaFirewallTitle: 'Audit Firewall',
+      qaFirewallDesc: 'Security vulnerability check',
+      qaVlanTitle: 'VLAN Setup',
+      qaVlanDesc: 'Generate VLAN config',
+      qaRoutingTitle: 'Fix Routing',
+      qaRoutingDesc: 'PPPoE/WAN diagnostics',
+      qaQueueTitle: 'Bandwidth Queues',
+      qaQueueDesc: 'Traffic shaping config',
       scenariosHeader: 'Quick Start Scenarios',
       scenarioFirewallTitle: 'Audit my Firewall Security',
       scenarioFirewallDesc: 'Pre-fills a basic firewall configuration and requests a vulnerability audit.',
@@ -67,6 +84,23 @@ const AuditTab = {
       step2Desc: 'Il nostro scudo privacy lato client cancella password, segreti, IP e MAC prima di ogni trasmissione.',
       step3Title: 'Expert Audit',
       step3Desc: 'Il sistema individua vulnerabilità, segnala problemi e genera comandi RouterOS CLI delta correttivi accurati.',
+      compactTitle: 'MikrotikAssistant',
+      compactDesc: 'Auditor e generatore di configurazioni RouterOS privato',
+      compactStep1Title: 'Incolla Config',
+      compactStep1Desc: 'Esporta RouterOS o log',
+      compactStep2Title: 'Mascheramento Locale',
+      compactStep2Desc: 'Scudo privacy attivo',
+      compactStep3Title: 'Expert Audit',
+      compactStep3Desc: 'Analisi basata su AI',
+      quickActions: 'Azioni Rapide',
+      qaFirewallTitle: 'Audit Firewall',
+      qaFirewallDesc: 'Controllo vulnerabilità sicurezza',
+      qaVlanTitle: 'Configura VLAN',
+      qaVlanDesc: 'Genera configurazione VLAN',
+      qaRoutingTitle: 'Risolvi Routing',
+      qaRoutingDesc: 'Diagnostica PPPoE/WAN',
+      qaQueueTitle: 'Code di Banda',
+      qaQueueDesc: 'Configurazione traffic shaping',
       scenariosHeader: 'Scenari di Avvio Rapido',
       scenarioFirewallTitle: 'Verifica la Sicurezza del Firewall',
       scenarioFirewallDesc: 'Pre-compila una configurazione firewall di base e richiede un audit di vulnerabilità.',
@@ -164,19 +198,8 @@ const AuditTab = {
 
     const t = this.getT();
 
-    // Clean emojis from localized texts
-    const cleanWelcomeTitle = t.welcomeTitle.replace(/🛡|🧙‍♂️|📊|🛠️|📚|⚙️|🔍|📋|💾|➕|🕸️|🚀|🔌/g, '').trim();
-    const cleanWelcomeDesc = t.welcomeDesc.replace(/🛡|🧙‍♂️|📊|🛠️|📚|⚙️|🔍|📋|💾|➕|🕸️|🚀|🔌/g, '').trim();
-    const cleanWelcomePrivacy = t.welcomePrivacy.replace(/🛡|🧙‍♂️|📊|🛠️|📚|⚙️|🔍|📋|💾|➕|🕸️|🚀|🔌/g, '').trim();
-    const cleanStep1Title = t.step1Title.replace(/🛡|🧙‍♂️|📊|🛠️|📚|⚙️|🔍|📋|💾|➕|🕸️|🚀|🔌/g, '').trim();
-    const cleanStep2Title = t.step2Title.replace(/🛡|🧙‍♂️|📊|🛠️|📚|⚙️|🔍|📋|💾|➕|🕸️|🚀|🔌/g, '').trim();
-    const cleanStep3Title = t.step3Title.replace(/🛡|🧙‍♂️|📊|🛠️|📚|⚙️|🔍|📋|💾|➕|🕸️|🚀|🔌/g, '').trim();
-    const cleanStep1Desc = t.step1Desc.replace(/🛡|🧙‍♂️|📊|🛠️|📚|⚙️|🔍|📋|💾|➕|🕸️|🚀|🔌/g, '').trim();
-    const cleanStep2Desc = t.step2Desc.replace(/🛡|🧙‍♂️|📊|🛠️|📚|⚙️|🔍|📋|💾|➕|🕸️|🚀|🔌/g, '').trim();
-    const cleanStep3Desc = t.step3Desc.replace(/🛡|🧙‍♂️|📊|🛠️|📚|⚙️|🔍|📋|💾|➕|🕸️|🚀|🔌/g, '').trim();
-
     container.innerHTML = `
-      <div class="audit-container flex flex-row h-full min-h-0 w-full bg-app text-zinc-100 overflow-hidden relative font-sans text-xs">
+      <div class="audit-container flex flex-row h-full min-h-0 w-full bg-app text-primary overflow-hidden relative font-sans text-xs">
 
         <!-- MAIN CHAT COLUMN -->
         <div class="flex-1 flex flex-col h-full min-w-0 relative">
@@ -217,76 +240,80 @@ const AuditTab = {
           <!-- CHAT STREAM OR WELCOME STATE -->
           <div id="chat-messages-stream" class="flex-1 overflow-y-auto p-4 space-y-4">
 
-            <!-- WELCOME SCREEN (Empty State) -->
-            <div id="panel-welcome" class="flex flex-col items-center justify-center p-2 max-w-2xl mx-auto py-8 animate-apple-reveal">
-              <h2 class="text-xs font-semibold text-zinc-400 tracking-wider uppercase mb-1" id="ui-label-welcome-title">
-                ${cleanWelcomeTitle}
-              </h2>
-              <p class="text-zinc-500 text-[11px] text-center mb-4 max-w-lg leading-relaxed" id="ui-label-welcome-desc">
-                ${cleanWelcomeDesc}
-              </p>
-              <div class="bg-purple-950/20 border border-purple-500/20 text-purple-300 text-[10px] px-3 py-1.5 rounded max-w-lg text-center mb-6" id="ui-label-welcome-privacy">
-                ${cleanWelcomePrivacy}
+            <!-- WELCOME SCREEN (Empty State - Compact Version) -->
+            <div id="panel-welcome" class="flex-1 flex flex-col items-center justify-start pt-12 px-8 max-w-3xl mx-auto animate-apple-reveal">
+              <!-- Compact Hero -->
+              <div class="text-center mb-8 max-w-2xl">
+                <h2 class="text-lg font-semibold text-primary mb-2">${t.compactTitle || 'MikrotikAssistant'}</h2>
+                <p class="text-xs text-secondary">${t.compactDesc || 'Privacy-first RouterOS configuration auditor & generator'}</p>
               </div>
 
-              <!-- 3-Step Privacy Shield How-it-Works -->
-              <div class="grid grid-cols-1 md:grid-cols-3 gap-3 w-full max-w-lg mb-8 select-none">
-                <div class="bg-surface border border-border p-3 rounded flex flex-col items-center text-center">
-                  <div class="w-6 h-6 rounded-full bg-purple-950/20 border border-purple-500/20 flex items-center justify-center text-purple-400 font-bold mb-2 text-[10px]">
-                    ${UI_Icons.render('file-text', 'w-3 h-3')}
+              <!-- Compact 3-Step Carousel -->
+              <div class="w-full max-w-3xl mb-6 select-none">
+                <div class="flex items-center justify-between bg-surface border border-border-subtle rounded-lg p-4">
+                  <div class="flex items-center space-x-3 flex-1">
+                    <div class="w-8 h-8 rounded-md bg-indigo-500/10 border border-indigo-500/30 flex items-center justify-center shrink-0">
+                      <i data-lucide="clipboard" class="w-4 h-4 text-indigo-400"></i>
+                    </div>
+                    <div>
+                      <div class="text-xs font-medium text-primary">${t.compactStep1Title || 'Paste Config'}</div>
+                      <div class="text-[10px] text-muted">${t.compactStep1Desc || 'RouterOS export or logs'}</div>
+                    </div>
                   </div>
-                  <h4 class="font-bold text-[10px] text-white mb-0.5" id="ui-step-1-title">${cleanStep1Title}</h4>
-                  <p class="text-[10px] text-zinc-400 leading-snug" id="ui-step-1-desc">${cleanStep1Desc}</p>
-                </div>
-                <div class="bg-surface border border-border p-3 rounded flex flex-col items-center text-center">
-                  <div class="w-6 h-6 rounded-full bg-purple-950/20 border border-purple-500/20 flex items-center justify-center text-purple-400 font-bold mb-2 text-[10px]">
-                    ${UI_Icons.render('shield', 'w-3 h-3')}
+                  <div class="w-8 h-px bg-border-subtle shrink-0 mx-2"></div>
+                  <div class="flex items-center space-x-3 flex-1">
+                    <div class="w-8 h-8 rounded-md bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center shrink-0">
+                      <i data-lucide="shield" class="w-4 h-4 text-emerald-400"></i>
+                    </div>
+                    <div>
+                      <div class="text-xs font-medium text-primary">${t.compactStep2Title || 'Local Masking'}</div>
+                      <div class="text-[10px] text-muted">${t.compactStep2Desc || 'Privacy shield active'}</div>
+                    </div>
                   </div>
-                  <h4 class="font-bold text-[10px] text-white mb-0.5" id="ui-step-2-title">${cleanStep2Title}</h4>
-                  <p class="text-[10px] text-zinc-400 leading-snug" id="ui-step-2-desc">${cleanStep2Desc}</p>
-                </div>
-                <div class="bg-surface border border-border p-3 rounded flex flex-col items-center text-center">
-                  <div class="w-6 h-6 rounded-full bg-purple-950/20 border border-purple-500/20 flex items-center justify-center text-purple-400 font-bold mb-2 text-[10px]">
-                    ${UI_Icons.render('terminal', 'w-3 h-3')}
+                  <div class="w-8 h-px bg-border-subtle shrink-0 mx-2"></div>
+                  <div class="flex items-center space-x-3 flex-1">
+                    <div class="w-8 h-8 rounded-md bg-purple-500/10 border border-purple-500/30 flex items-center justify-center shrink-0">
+                      <i data-lucide="scan" class="w-4 h-4 text-purple-400"></i>
+                    </div>
+                    <div>
+                      <div class="text-xs font-medium text-primary">${t.compactStep3Title || 'Expert Audit'}</div>
+                      <div class="text-[10px] text-muted">${t.compactStep3Desc || 'AI-powered analysis'}</div>
+                    </div>
                   </div>
-                  <h4 class="font-bold text-[10px] text-white mb-0.5" id="ui-step-3-title">${cleanStep3Title}</h4>
-                  <p class="text-[10px] text-zinc-400 leading-snug" id="ui-step-3-desc">${cleanStep3Desc}</p>
                 </div>
               </div>
 
-              <!-- Interactive Scenario Cards -->
-              <div class="w-full max-w-lg">
-                <div class="grid grid-cols-2 gap-2.5">
-                  <button id="btn-scenario-firewall" class="group bg-surface hover:bg-white/5 border border-border p-2.5 rounded text-left transition duration-150 active:scale-[0.98] focus:outline-none max-w-[140px] mx-auto w-full h-[100px] flex flex-col justify-between">
-                    <div class="flex items-center space-x-1.5 mb-1 select-none">
-                      ${UI_Icons.render('shield-check', 'w-3.5 h-3.5 text-purple-400')}
-                      <h4 class="font-bold text-[10px] text-white group-hover:text-purple-400 truncate w-full" id="ui-scenario-firewall-title">${t.scenarioFirewallTitle.replace(/🛡️|🕸️|🚀|🔌/g, '')}</h4>
+              <!-- Compact Quick Actions (2x2 grid, small) -->
+              <div class="w-full max-w-2xl">
+                <div class="text-[10px] uppercase tracking-wider text-muted mb-3 text-center">${t.quickActions || 'Quick Actions'}</div>
+                <div class="grid grid-cols-2 gap-2">
+                  <button id="btn-scenario-firewall" class="quick-action bg-surface hover:bg-elevated border border-border-subtle rounded-md p-3 text-left transition-all" data-action="firewall">
+                    <div class="flex items-center space-x-2 mb-1">
+                      <i data-lucide="shield-check" class="w-3 h-3 text-indigo-400"></i>
+                      <span class="text-xs font-medium text-primary">${t.qaFirewallTitle || 'Audit Firewall'}</span>
                     </div>
-                    <p class="text-[10px] text-zinc-400 leading-snug line-clamp-3" id="ui-scenario-firewall-desc">${t.scenarioFirewallDesc}</p>
+                    <div class="text-[10px] text-secondary line-clamp-2">${t.qaFirewallDesc || 'Security vulnerability check'}</div>
                   </button>
-
-                  <button id="btn-scenario-vlan" class="group bg-surface hover:bg-white/5 border border-border p-2.5 rounded text-left transition duration-150 active:scale-[0.98] focus:outline-none max-w-[140px] mx-auto w-full h-[100px] flex flex-col justify-between">
-                    <div class="flex items-center space-x-1.5 mb-1 select-none">
-                      ${UI_Icons.render('network', 'w-3.5 h-3.5 text-purple-400')}
-                      <h4 class="font-bold text-[10px] text-white group-hover:text-purple-400 truncate w-full" id="ui-scenario-vlan-title">${t.scenarioVlanTitle.replace(/🛡️|🕸️|🚀|🔌/g, '')}</h4>
+                  <button id="btn-scenario-vlan" class="quick-action bg-surface hover:bg-elevated border border-border-subtle rounded-md p-3 text-left transition-all" data-action="vlan">
+                    <div class="flex items-center space-x-2 mb-1">
+                      <i data-lucide="layers" class="w-3 h-3 text-emerald-400"></i>
+                      <span class="text-xs font-medium text-primary">${t.qaVlanTitle || 'VLAN Setup'}</span>
                     </div>
-                    <p class="text-[10px] text-zinc-400 leading-snug line-clamp-3" id="ui-scenario-vlan-desc">${t.scenarioVlanDesc}</p>
+                    <div class="text-[10px] text-secondary line-clamp-2">${t.qaVlanDesc || 'Generate VLAN config'}</div>
                   </button>
-
-                  <button id="btn-scenario-queues" class="group bg-surface hover:bg-white/5 border border-border p-2.5 rounded text-left transition duration-150 active:scale-[0.98] focus:outline-none max-w-[140px] mx-auto w-full h-[100px] flex flex-col justify-between">
-                    <div class="flex items-center space-x-1.5 mb-1 select-none">
-                      ${UI_Icons.render('zap', 'w-3.5 h-3.5 text-purple-400')}
-                      <h4 class="font-bold text-[10px] text-white group-hover:text-purple-400 truncate w-full" id="ui-scenario-queues-title">${t.scenarioQueuesTitle.replace(/🛡️|🕸️|🚀|🔌/g, '')}</h4>
+                  <button id="btn-scenario-pppoe" class="quick-action bg-surface hover:bg-elevated border border-border-subtle rounded-md p-3 text-left transition-all" data-action="routing">
+                    <div class="flex items-center space-x-2 mb-1">
+                      <i data-lucide="route" class="w-3 h-3 text-amber-400"></i>
+                      <span class="text-xs font-medium text-primary">${t.qaRoutingTitle || 'Fix Routing'}</span>
                     </div>
-                    <p class="text-[10px] text-zinc-400 leading-snug line-clamp-3" id="ui-scenario-queues-desc">${t.scenarioQueuesDesc}</p>
+                    <div class="text-[10px] text-secondary line-clamp-2">${t.qaRoutingDesc || 'PPPoE/WAN diagnostics'}</div>
                   </button>
-
-                  <button id="btn-scenario-pppoe" class="group bg-surface hover:bg-white/5 border border-border p-2.5 rounded text-left transition duration-150 active:scale-[0.98] focus:outline-none max-w-[140px] mx-auto w-full h-[100px] flex flex-col justify-between">
-                    <div class="flex items-center space-x-1.5 mb-1 select-none">
-                      ${UI_Icons.render('plug', 'w-3.5 h-3.5 text-purple-400')}
-                      <h4 class="font-bold text-[10px] text-white group-hover:text-purple-400 truncate w-full" id="ui-scenario-pppoe-title">${t.scenarioPppoeTitle.replace(/🛡️|🕸️|🚀|🔌/g, '')}</h4>
+                  <button id="btn-scenario-queues" class="quick-action bg-surface hover:bg-elevated border border-border-subtle rounded-md p-3 text-left transition-all" data-action="queue">
+                    <div class="flex items-center space-x-2 mb-1">
+                      <i data-lucide="gauge" class="w-3 h-3 text-purple-400"></i>
+                      <span class="text-xs font-medium text-primary">${t.qaQueueTitle || 'Bandwidth Queues'}</span>
                     </div>
-                    <p class="text-[10px] text-zinc-400 leading-snug line-clamp-3" id="ui-scenario-pppoe-desc">${t.scenarioPppoeDesc}</p>
+                    <div class="text-[10px] text-secondary line-clamp-2">${t.qaQueueDesc || 'Traffic shaping config'}</div>
                   </button>
                 </div>
               </div>
@@ -672,6 +699,10 @@ const AuditTab = {
     this.updatePrivacyShieldCountLabel();
     this.renderHistoryList();
     this.syncSidebarState();
+
+    if (typeof lucide !== 'undefined') {
+      lucide.createIcons();
+    }
   },
 
   bindDOMReferences() {
