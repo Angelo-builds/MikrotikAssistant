@@ -370,3 +370,25 @@ body {
 .animate-bounce {
   animation: none !important;
 }
+
+/* Ensure code blocks have proper spacing when grouped */
+.code-block-container + .code-block-container {
+  margin-top: 4px;
+}
+
+/* Make it clear when commands are grouped */
+.code-block-content code {
+  display: block;
+}
+
+.code-block-content code .command-line {
+  display: block;
+  padding: 2px 0;
+}
+
+/* Add subtle separator between grouped commands */
+.code-block-content code .command-line + .command-line {
+  border-top: 1px solid var(--border-subtle, #3f3f46);
+  margin-top: 4px;
+  padding-top: 4px;
+}

@@ -6,19 +6,28 @@ const Utils = {
     /^\[(find|get|print)\s/i,                        // [find interface=ether1]
     /^:\s*(global|local|if|for|foreach|do|while|put|log|error|beep|delay|execute|pick|len|typeof|tonum|tostr|toarray|toip|toip6|toid)\b/i,
     /^#\s/,                                          // # comment
+    /^\/ip\s/i,                                      // /ip address
+    /^\/interface\s/i,                               // /interface bridge
+    /^\/system\s/i,                                  // /system clock
+    /^\/routing\s/i,                                 // /routing bgp
+    /^\/queue\s/i,                                   // /queue simple
+    /^\/tool\s/i,                                    // /tool mac-server
+    /^\/ipv6\s/i,                                    // /ipv6 settings
   ],
 
   isRouterOSCommand(line) {
+    const self = (typeof this !== 'undefined' && this && this.ROUTEROS_COMMAND_PATTERNS) ? this : Utils;
     const trimmed = line.trim();
     if (!trimmed) return false;
-    return (trimmed.startsWith('/') && /^\/[a-z]/i.test(trimmed)) || Utils.ROUTEROS_COMMAND_PATTERNS.some(pattern => pattern.test(trimmed));
+    return (trimmed.startsWith('/') && /^\/[a-z]/i.test(trimmed)) || self.ROUTEROS_COMMAND_PATTERNS.some(pattern => pattern.test(trimmed));
   },
 
   isLikelyDescription(text) {
+    const self = (typeof this !== 'undefined' && this && this.isRouterOSCommand) ? this : Utils;
     const trimmed = text.trim();
     // If it's mostly Italian/English words (not commands), it's a description
     const wordCount = trimmed.split(/\s+/).length;
-    const commandLikeLines = trimmed.split('\n').filter(l => Utils.isRouterOSCommand(l)).length;
+    const commandLikeLines = trimmed.split('\n').filter(l => self.isRouterOSCommand(l)).length;
     return commandLikeLines === 0 && wordCount > 2;
   },
 
@@ -38,7 +47,14 @@ const Utils = {
   },
 
   createCodeBlockHtml(code, lang = 'RouterOS') {
-    const escapedCode = Utils.escapeHtml(code);
+    const self = (typeof this !== 'undefined' && this && this.escapeHtml) ? this : Utils;
+    const lines = code.split('\n');
+    let innerContent = '';
+    if (lang.toUpperCase() === 'ROUTEROS') {
+      innerContent = lines.map(l => `<span class="command-line">${self.escapeHtml(l)}</span>`).join('');
+    } else {
+      innerContent = self.escapeHtml(code);
+    }
     return `
       <div class="code-block-container">
         <div class="code-block-header">
@@ -47,7 +63,7 @@ const Utils = {
             <i data-lucide="copy" class="w-3 h-3"></i>
           </button>
         </div>
-        <pre class="code-block-content"><code>${escapedCode}</code></pre>
+        <pre class="code-block-content"><code>${innerContent}</code></pre>
       </div>
     `;
   },
@@ -97,6 +113,7 @@ const Utils = {
 
     // PHASE 3: Post-process to wrap orphan RouterOS commands
     // Split by <br> and process each line
+    const self = (typeof this !== 'undefined' && this && this.isRouterOSCommand) ? this : Utils;
     const lines = html.split('<br>');
     const processedLines = [];
     let inCodeBlock = false;
@@ -107,13 +124,15 @@ const Utils = {
       const line = lines[i];
 
       // Skip if it's a placeholder for an existing code block
-      if (line.match(/__CODEBLOCK_\d+__/)) {
-        processedLines.push(line);
-        continue;
-      }
-
-      // Skip HTML tags (headers, lists, etc.)
-      if (line.match(/^<[a-z]/i)) {
+      if (line.match(/__CODEBLOCK_\d+__/) || line.match(/^<[a-z]/i)) {
+        // Flush any accumulated code block before placeholders or tags
+        if (inCodeBlock && codeBlockBuffer.length > 0) {
+          const codeContent = codeBlockBuffer.join('\n');
+          const blockHtml = self.createCodeBlockHtml(codeContent, codeBlockLang);
+          processedLines.push(blockHtml);
+          codeBlockBuffer = [];
+          inCodeBlock = false;
+        }
         processedLines.push(line);
         continue;
       }
@@ -121,18 +140,50 @@ const Utils = {
       // Check if this line is a RouterOS command
       const cleanLine = line.replace(/<\/?[a-z][^>]*>/gi, '').trim();
 
-      if (Utils.isRouterOSCommand(cleanLine)) {
-        if (!inCodeBlock) {
-          inCodeBlock = true;
-          codeBlockBuffer = [cleanLine];
+      if (!cleanLine) {
+        // Empty lines can be skipped or flushed depending on whether they separate blocks
+        if (inCodeBlock && codeBlockBuffer.length > 0) {
+          const codeContent = codeBlockBuffer.join('\n');
+          const blockHtml = self.createCodeBlockHtml(codeContent, codeBlockLang);
+          processedLines.push(blockHtml);
+          codeBlockBuffer = [];
+          inCodeBlock = false;
+        }
+        processedLines.push(line);
+        continue;
+      }
+
+      const isCommand =
+        self.isRouterOSCommand(cleanLine) ||
+        cleanLine.startsWith('/') ||
+        cleanLine.startsWith(':') ||
+        cleanLine.startsWith('\\') ||  // continuation
+        ['export', 'import', 'print', 'enable', 'disable', 'reset', 'reboot', 'shutdown', 'backup', 'restore'].some(cmd => cleanLine.toLowerCase() === cmd) ||
+        (cleanLine.includes('=') && /^(add|set|remove|move)\s/i.test(cleanLine));
+
+      if (isCommand) {
+        if (cleanLine.startsWith('\\')) {
+          // It's a RouterOS continuation line. Append to the previous line in the buffer if we are currently in a code block.
+          if (inCodeBlock && codeBlockBuffer.length > 0) {
+            codeBlockBuffer[codeBlockBuffer.length - 1] += ' ' + cleanLine;
+          } else {
+            // Fallback if no block is active
+            inCodeBlock = true;
+            codeBlockBuffer = [cleanLine];
+          }
         } else {
-          codeBlockBuffer.push(cleanLine);
+          if (!inCodeBlock) {
+            inCodeBlock = true;
+            codeBlockBuffer = [cleanLine];
+          } else {
+            codeBlockBuffer.push(cleanLine);
+          }
         }
       } else {
         // Flush any accumulated code block
         if (inCodeBlock && codeBlockBuffer.length > 0) {
           const codeContent = codeBlockBuffer.join('\n');
-          const blockHtml = Utils.createCodeBlockHtml(codeContent, codeBlockLang);
+          const blockHtml = self.createCodeBlockHtml(codeContent, codeBlockLang);
           processedLines.push(blockHtml);
           codeBlockBuffer = [];
           inCodeBlock = false;
@@ -144,7 +195,7 @@ const Utils = {
     // Flush remaining code block
     if (inCodeBlock && codeBlockBuffer.length > 0) {
       const codeContent = codeBlockBuffer.join('\n');
-      const blockHtml = Utils.createCodeBlockHtml(codeContent, codeBlockLang);
+      const blockHtml = self.createCodeBlockHtml(codeContent, codeBlockLang);
       processedLines.push(blockHtml);
     }
 
