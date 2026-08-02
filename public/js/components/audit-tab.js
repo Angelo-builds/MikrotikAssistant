@@ -156,187 +156,200 @@ const AuditTab = {
 
     const t = this.getT();
 
+    // Clean emojis from localized texts
+    const cleanWelcomeTitle = t.welcomeTitle.replace(/🛡|🧙‍♂️|📊|🛠️|📚|⚙️|🔍|📋|💾|➕|🕸️|🚀|🔌/g, '').trim();
+    const cleanWelcomeDesc = t.welcomeDesc.replace(/🛡|🧙‍♂️|📊|🛠️|📚|⚙️|🔍|📋|💾|➕|🕸️|🚀|🔌/g, '').trim();
+    const cleanWelcomePrivacy = t.welcomePrivacy.replace(/🛡|🧙‍♂️|📊|🛠️|📚|⚙️|🔍|📋|💾|➕|🕸️|🚀|🔌/g, '').trim();
+    const cleanStep1Title = t.step1Title.replace(/🛡|🧙‍♂️|📊|🛠️|📚|⚙️|🔍|📋|💾|➕|🕸️|🚀|🔌/g, '').trim();
+    const cleanStep2Title = t.step2Title.replace(/🛡|🧙‍♂️|📊|🛠️|📚|⚙️|🔍|📋|💾|➕|🕸️|🚀|🔌/g, '').trim();
+    const cleanStep3Title = t.step3Title.replace(/🛡|🧙‍♂️|📊|🛠️|📚|⚙️|🔍|📋|💾|➕|🕸️|🚀|🔌/g, '').trim();
+    const cleanStep1Desc = t.step1Desc.replace(/🛡|🧙‍♂️|📊|🛠️|📚|⚙️|🔍|📋|💾|➕|🕸️|🚀|🔌/g, '').trim();
+    const cleanStep2Desc = t.step2Desc.replace(/🛡|🧙‍♂️|📊|🛠️|📚|⚙️|🔍|📋|💾|➕|🕸️|🚀|🔌/g, '').trim();
+    const cleanStep3Desc = t.step3Desc.replace(/🛡|🧙‍♂️|📊|🛠️|📚|⚙️|🔍|📋|💾|➕|🕸️|🚀|🔌/g, '').trim();
+
     container.innerHTML = `
-      <div class="audit-container flex flex-row h-full min-h-0 w-full bg-gray-900 text-gray-100 overflow-hidden relative">
+      <div class="audit-container flex flex-row h-full min-h-0 w-full bg-app text-zinc-100 overflow-hidden relative font-sans text-xs">
 
         <!-- MAIN CHAT COLUMN -->
         <div class="flex-1 flex flex-col h-full min-w-0 relative">
 
           <!-- SUBHEADER -->
-          <div class="flex items-center justify-between px-6 py-3 border-b border-gray-700 bg-gray-800 shrink-0 select-none">
-            <div class="flex items-center space-x-3">
-              <span class="text-sm font-bold text-purple-400">🧙‍♂️ Mik the Winbox Wizard</span>
-              <span id="llm-status-badge" class="flex items-center space-x-2 text-xs">
-                <span id="llm-status-dot" class="w-2.5 h-2.5 bg-gray-500 rounded-full"></span>
-                <span id="llm-status-text" class="text-gray-400 font-medium">LLM Offline</span>
+          <div class="flex items-center justify-between px-4 py-2 border-b border-border bg-surface shrink-0 select-none">
+            <div class="flex items-center space-x-2">
+              ${UI_Icons.render('terminal', 'text-purple-500 w-3.5 h-3.5')}
+              <span class="text-xs font-bold text-purple-400">Mik local audit</span>
+              <span id="llm-status-badge" class="flex items-center space-x-1 text-[10px]">
+                <span id="llm-status-dot" class="w-1.5 h-1.5 bg-gray-500 rounded-full"></span>
+                <span id="llm-status-text" class="text-zinc-400 font-medium">LLM Offline</span>
               </span>
-              <span id="privacy-count-badge" class="text-[10px] bg-purple-900/40 border border-purple-500/20 text-purple-300 px-2 py-0.5 rounded-full font-semibold">
-                🛡️ Privacy Guard: 6/6 Active
+              <span id="privacy-count-badge" class="text-[10px] bg-purple-950/20 border border-purple-500/20 text-purple-300 px-1.5 py-0.5 rounded font-semibold">
+                Privacy Guard: 6/6 Active
               </span>
             </div>
             <div class="flex items-center space-x-2">
-              <select id="setting-language-audit" class="bg-gray-700 border border-gray-600 rounded px-2 py-1 text-xs text-white focus:outline-none">
+              <select id="setting-language-audit" class="bg-surface border border-border rounded px-2 py-0.5 text-[10px] text-white focus:outline-none">
                 <option value="auto" ${this.state.language === 'auto' ? 'selected' : ''}>Auto-Detect</option>
                 <option value="en" ${this.state.language === 'en' ? 'selected' : ''}>English</option>
                 <option value="it" ${this.state.language === 'it' ? 'selected' : ''}>Italiano</option>
               </select>
-              <button id="btn-toggle-sidebar" class="text-gray-400 hover:text-white p-1.5 rounded hover:bg-gray-700 transition" title="Toggle Control Center">
-                <svg class="w-5 h-5 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
-                </svg>
+              <button id="btn-toggle-sidebar" class="text-zinc-400 hover:text-white p-1 rounded hover:bg-white/5 transition" title="Toggle Control Center">
+                ${UI_Icons.render('sidebar', 'w-3.5 h-3.5')}
               </button>
             </div>
           </div>
 
           <!-- DRAG OVERLAY -->
-          <div id="global-drag-overlay" class="hidden absolute inset-0 bg-purple-900/40 backdrop-blur-sm z-50 flex flex-col items-center justify-center border-4 border-dashed border-purple-500 m-4 rounded-2xl select-none">
-            <span class="text-6xl mb-4">📎</span>
-            <h3 class="text-2xl font-bold text-white mb-2" id="ui-drag-title">${t.dragTitle || 'Drop RouterOS Configuration File'}</h3>
-            <p class="text-purple-300 text-sm" id="ui-drag-desc">${t.dragDesc || 'Accepts .rsc, .txt, or .log exports'}</p>
+          <div id="global-drag-overlay" class="hidden absolute inset-0 bg-purple-950/40 backdrop-blur-sm z-50 flex flex-col items-center justify-center border-2 border-dashed border-purple-500 m-4 rounded select-none">
+            ${UI_Icons.render('paperclip', 'w-10 h-10 text-purple-400 mb-2')}
+            <h3 class="text-sm font-bold text-white mb-1" id="ui-drag-title">Drop RouterOS Configuration File</h3>
+            <p class="text-purple-300 text-[10px]" id="ui-drag-desc">Accepts .rsc, .txt, or .log exports</p>
           </div>
 
           <!-- CHAT STREAM OR WELCOME STATE -->
-          <div id="chat-messages-stream" class="flex-1 overflow-y-auto p-6 space-y-6">
+          <div id="chat-messages-stream" class="flex-1 overflow-y-auto p-4 space-y-4">
 
             <!-- WELCOME SCREEN (Empty State) -->
-            <div id="panel-welcome" class="flex flex-col items-center justify-center p-4 max-w-4xl mx-auto py-12 animate-apple-reveal">
-              <h2 class="text-2xl font-extrabold text-white text-center mb-2 tracking-tight" id="ui-label-welcome-title">
-                ${t.welcomeTitle}
+            <div id="panel-welcome" class="flex flex-col items-center justify-center p-2 max-w-2xl mx-auto py-8 animate-apple-reveal">
+              <h2 class="text-xs font-semibold text-zinc-400 tracking-wider uppercase mb-1" id="ui-label-welcome-title">
+                ${cleanWelcomeTitle}
               </h2>
-              <p class="text-gray-400 text-sm text-center mb-6 max-w-2xl" id="ui-label-welcome-desc">
-                ${t.welcomeDesc}
+              <p class="text-zinc-500 text-[11px] text-center mb-4 max-w-lg leading-relaxed" id="ui-label-welcome-desc">
+                ${cleanWelcomeDesc}
               </p>
-              <div class="bg-purple-950/20 border border-purple-500/20 text-purple-300 text-xs px-5 py-3 rounded-2xl max-w-2xl text-center mb-10 shadow" id="ui-label-welcome-privacy">
-                ${t.welcomePrivacy}
+              <div class="bg-purple-950/20 border border-purple-500/20 text-purple-300 text-[10px] px-3 py-1.5 rounded max-w-lg text-center mb-6" id="ui-label-welcome-privacy">
+                ${cleanWelcomePrivacy}
               </div>
 
               <!-- 3-Step Privacy Shield How-it-Works -->
-              <div class="grid grid-cols-1 md:grid-cols-3 gap-6 w-full max-w-3xl mb-12 select-none">
-                <div class="bg-gray-800 border border-gray-700/50 p-5 rounded-2xl flex flex-col items-center text-center">
-                  <div class="w-10 h-10 rounded-full bg-purple-900/40 border border-purple-500/30 flex items-center justify-center text-purple-400 font-black mb-3">1</div>
-                  <h4 class="font-bold text-sm text-white mb-1" id="ui-step-1-title">${t.step1Title}</h4>
-                  <p class="text-xs text-gray-400 leading-relaxed" id="ui-step-1-desc">${t.step1Desc}</p>
+              <div class="grid grid-cols-1 md:grid-cols-3 gap-3 w-full max-w-lg mb-8 select-none">
+                <div class="bg-surface border border-border p-3 rounded flex flex-col items-center text-center">
+                  <div class="w-6 h-6 rounded-full bg-purple-950/20 border border-purple-500/20 flex items-center justify-center text-purple-400 font-bold mb-2 text-[10px]">
+                    ${UI_Icons.render('file-text', 'w-3 h-3')}
+                  </div>
+                  <h4 class="font-bold text-[10px] text-white mb-0.5" id="ui-step-1-title">${cleanStep1Title}</h4>
+                  <p class="text-[10px] text-zinc-400 leading-snug" id="ui-step-1-desc">${cleanStep1Desc}</p>
                 </div>
-                <div class="bg-gray-800 border border-gray-700/50 p-5 rounded-2xl flex flex-col items-center text-center">
-                  <div class="w-10 h-10 rounded-full bg-purple-900/40 border border-purple-500/30 flex items-center justify-center text-purple-400 font-black mb-3">2</div>
-                  <h4 class="font-bold text-sm text-white mb-1" id="ui-step-2-title">${t.step2Title}</h4>
-                  <p class="text-xs text-gray-400 leading-relaxed" id="ui-step-2-desc">${t.step2Desc}</p>
+                <div class="bg-surface border border-border p-3 rounded flex flex-col items-center text-center">
+                  <div class="w-6 h-6 rounded-full bg-purple-950/20 border border-purple-500/20 flex items-center justify-center text-purple-400 font-bold mb-2 text-[10px]">
+                    ${UI_Icons.render('shield', 'w-3 h-3')}
+                  </div>
+                  <h4 class="font-bold text-[10px] text-white mb-0.5" id="ui-step-2-title">${cleanStep2Title}</h4>
+                  <p class="text-[10px] text-zinc-400 leading-snug" id="ui-step-2-desc">${cleanStep2Desc}</p>
                 </div>
-                <div class="bg-gray-800 border border-gray-700/50 p-5 rounded-2xl flex flex-col items-center text-center">
-                  <div class="w-10 h-10 rounded-full bg-purple-900/40 border border-purple-500/30 flex items-center justify-center text-purple-400 font-black mb-3">3</div>
-                  <h4 class="font-bold text-sm text-white mb-1" id="ui-step-3-title">${t.step3Title}</h4>
-                  <p class="text-xs text-gray-400 leading-relaxed" id="ui-step-3-desc">${t.step3Desc}</p>
+                <div class="bg-surface border border-border p-3 rounded flex flex-col items-center text-center">
+                  <div class="w-6 h-6 rounded-full bg-purple-950/20 border border-purple-500/20 flex items-center justify-center text-purple-400 font-bold mb-2 text-[10px]">
+                    ${UI_Icons.render('terminal', 'w-3 h-3')}
+                  </div>
+                  <h4 class="font-bold text-[10px] text-white mb-0.5" id="ui-step-3-title">${cleanStep3Title}</h4>
+                  <p class="text-[10px] text-zinc-400 leading-snug" id="ui-step-3-desc">${cleanStep3Desc}</p>
                 </div>
               </div>
 
               <!-- Interactive Scenario Cards -->
-              <div class="w-full max-w-3xl">
-                <h3 class="text-xs font-black uppercase text-gray-500 tracking-wider mb-4 text-center select-none" id="ui-scenarios-header">
-                  ${t.scenariosHeader}
-                </h3>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <button id="btn-scenario-firewall" class="group bg-gray-850 hover:bg-gray-800 border border-gray-700/65 hover:border-purple-500/30 p-4 rounded-2xl text-left transition duration-250 active:scale-[0.98] focus:outline-none">
-                    <div class="flex items-center space-x-2 mb-1.5">
-                      <span class="text-lg">🛡️</span>
-                      <h4 class="font-bold text-sm text-white group-hover:text-purple-400 transition" id="ui-scenario-firewall-title">${t.scenarioFirewallTitle}</h4>
+              <div class="w-full max-w-lg">
+                <div class="grid grid-cols-2 gap-2.5">
+                  <button id="btn-scenario-firewall" class="group bg-surface hover:bg-white/5 border border-border p-2.5 rounded text-left transition duration-150 active:scale-[0.98] focus:outline-none max-w-[140px] mx-auto w-full h-[100px] flex flex-col justify-between">
+                    <div class="flex items-center space-x-1.5 mb-1 select-none">
+                      ${UI_Icons.render('shield-check', 'w-3.5 h-3.5 text-purple-400')}
+                      <h4 class="font-bold text-[10px] text-white group-hover:text-purple-400 truncate w-full" id="ui-scenario-firewall-title">${t.scenarioFirewallTitle.replace(/🛡️|🕸️|🚀|🔌/g, '')}</h4>
                     </div>
-                    <p class="text-xs text-gray-400 leading-relaxed" id="ui-scenario-firewall-desc">${t.scenarioFirewallDesc}</p>
+                    <p class="text-[10px] text-zinc-400 leading-snug line-clamp-3" id="ui-scenario-firewall-desc">${t.scenarioFirewallDesc}</p>
                   </button>
 
-                  <button id="btn-scenario-vlan" class="group bg-gray-850 hover:bg-gray-800 border border-gray-700/65 hover:border-purple-500/30 p-4 rounded-2xl text-left transition duration-250 active:scale-[0.98] focus:outline-none">
-                    <div class="flex items-center space-x-2 mb-1.5">
-                      <span class="text-lg">🕸️</span>
-                      <h4 class="font-bold text-sm text-white group-hover:text-purple-400 transition" id="ui-scenario-vlan-title">${t.scenarioVlanTitle}</h4>
+                  <button id="btn-scenario-vlan" class="group bg-surface hover:bg-white/5 border border-border p-2.5 rounded text-left transition duration-150 active:scale-[0.98] focus:outline-none max-w-[140px] mx-auto w-full h-[100px] flex flex-col justify-between">
+                    <div class="flex items-center space-x-1.5 mb-1 select-none">
+                      ${UI_Icons.render('network', 'w-3.5 h-3.5 text-purple-400')}
+                      <h4 class="font-bold text-[10px] text-white group-hover:text-purple-400 truncate w-full" id="ui-scenario-vlan-title">${t.scenarioVlanTitle.replace(/🛡️|🕸️|🚀|🔌/g, '')}</h4>
                     </div>
-                    <p class="text-xs text-gray-400 leading-relaxed" id="ui-scenario-vlan-desc">${t.scenarioVlanDesc}</p>
+                    <p class="text-[10px] text-zinc-400 leading-snug line-clamp-3" id="ui-scenario-vlan-desc">${t.scenarioVlanDesc}</p>
                   </button>
 
-                  <button id="btn-scenario-queues" class="group bg-gray-850 hover:bg-gray-800 border border-gray-700/65 hover:border-purple-500/30 p-4 rounded-2xl text-left transition duration-250 active:scale-[0.98] focus:outline-none">
-                    <div class="flex items-center space-x-2 mb-1.5">
-                      <span class="text-lg">🚀</span>
-                      <h4 class="font-bold text-sm text-white group-hover:text-purple-400 transition" id="ui-scenario-queues-title">${t.scenarioQueuesTitle}</h4>
+                  <button id="btn-scenario-queues" class="group bg-surface hover:bg-white/5 border border-border p-2.5 rounded text-left transition duration-150 active:scale-[0.98] focus:outline-none max-w-[140px] mx-auto w-full h-[100px] flex flex-col justify-between">
+                    <div class="flex items-center space-x-1.5 mb-1 select-none">
+                      ${UI_Icons.render('zap', 'w-3.5 h-3.5 text-purple-400')}
+                      <h4 class="font-bold text-[10px] text-white group-hover:text-purple-400 truncate w-full" id="ui-scenario-queues-title">${t.scenarioQueuesTitle.replace(/🛡️|🕸️|🚀|🔌/g, '')}</h4>
                     </div>
-                    <p class="text-xs text-gray-400 leading-relaxed" id="ui-scenario-queues-desc">${t.scenarioQueuesDesc}</p>
+                    <p class="text-[10px] text-zinc-400 leading-snug line-clamp-3" id="ui-scenario-queues-desc">${t.scenarioQueuesDesc}</p>
                   </button>
 
-                  <button id="btn-scenario-pppoe" class="group bg-gray-850 hover:bg-gray-800 border border-gray-700/65 hover:border-purple-500/30 p-4 rounded-2xl text-left transition duration-250 active:scale-[0.98] focus:outline-none">
-                    <div class="flex items-center space-x-2 mb-1.5">
-                      <span class="text-lg">🔌</span>
-                      <h4 class="font-bold text-sm text-white group-hover:text-purple-400 transition" id="ui-scenario-pppoe-title">${t.scenarioPppoeTitle}</h4>
+                  <button id="btn-scenario-pppoe" class="group bg-surface hover:bg-white/5 border border-border p-2.5 rounded text-left transition duration-150 active:scale-[0.98] focus:outline-none max-w-[140px] mx-auto w-full h-[100px] flex flex-col justify-between">
+                    <div class="flex items-center space-x-1.5 mb-1 select-none">
+                      ${UI_Icons.render('plug', 'w-3.5 h-3.5 text-purple-400')}
+                      <h4 class="font-bold text-[10px] text-white group-hover:text-purple-400 truncate w-full" id="ui-scenario-pppoe-title">${t.scenarioPppoeTitle.replace(/🛡️|🕸️|🚀|🔌/g, '')}</h4>
                     </div>
-                    <p class="text-xs text-gray-400 leading-relaxed" id="ui-scenario-pppoe-desc">${t.scenarioPppoeDesc}</p>
+                    <p class="text-[10px] text-zinc-400 leading-snug line-clamp-3" id="ui-scenario-pppoe-desc">${t.scenarioPppoeDesc}</p>
                   </button>
                 </div>
               </div>
             </div>
 
             <!-- MESSAGES CONTAINER -->
-            <div id="chat-messages-container" class="space-y-6"></div>
+            <div id="chat-messages-container" class="space-y-4"></div>
 
           </div>
 
           <!-- SMART CHIPS PANEL -->
-          <div id="smart-chips-container" class="hidden px-6 py-2.5 bg-gray-800/40 border-t border-gray-700/50 flex flex-wrap gap-2 animate-apple-reveal select-none"></div>
+          <div id="smart-chips-container" class="hidden px-4 py-1.5 bg-surface/40 border-t border-border flex flex-wrap gap-1.5 animate-apple-reveal select-none"></div>
 
           <!-- CHAT INPUT & ATTACHMENTS PANEL -->
-          <div class="p-6 border-t border-gray-700 bg-gray-800 shrink-0">
+          <div class="p-3 border-t border-border bg-surface shrink-0">
 
             <!-- SUGGESTION CHIPS (Above textarea) -->
-            <div id="suggestion-chips-container" class="hidden flex flex-wrap gap-2 mb-3 select-none"></div>
+            <div id="suggestion-chips-container" class="hidden flex flex-wrap gap-1.5 mb-2 select-none"></div>
 
             <!-- FILE INFORMATION BAR -->
-            <div id="file-info-bar" class="hidden mb-3 p-3 bg-purple-950/20 border border-purple-500/20 rounded-xl flex items-center justify-between select-none">
-              <div class="flex items-center space-x-2.5">
-                <span class="text-lg">📎</span>
-                <span id="file-name-label" class="text-xs font-bold text-purple-300"></span>
-                <span id="file-size-label" class="text-[10px] text-purple-400 font-mono"></span>
+            <div id="file-info-bar" class="hidden mb-2 p-2 bg-purple-950/20 border border-purple-500/20 rounded flex items-center justify-between select-none">
+              <div class="flex items-center space-x-2">
+                ${UI_Icons.render('paperclip', 'w-3.5 h-3.5 text-purple-400')}
+                <span id="file-name-label" class="text-[11px] font-bold text-purple-300"></span>
+                <span id="file-size-label" class="text-[9px] text-purple-400 font-mono"></span>
               </div>
-              <button id="btn-remove-file" class="text-gray-400 hover:text-red-400 transition p-1" title="Remove attachment">✕</button>
+              <button id="btn-remove-file" class="text-zinc-400 hover:text-red-400 transition p-1" title="Remove attachment">✕</button>
             </div>
 
             <!-- TEXTAREA INPUT WRAPPER -->
             <div class="relative">
               <textarea
                 id="chat-message"
-                class="w-full bg-gray-900 border border-gray-700 rounded-xl px-4 py-3 pr-12 resize-none focus:outline-none focus:border-purple-500 text-sm leading-relaxed placeholder-gray-500 transition-colors"
+                class="w-full bg-app border border-border rounded-md px-3 py-1.5 pr-10 resize-none focus:outline-none focus:border-purple-500 text-xs leading-relaxed placeholder-zinc-600 transition-colors h-8"
                 rows="1"
                 placeholder="Describe your issue, run slash commands (/), or paste RouterOS configs safely..."
               ></textarea>
 
               <!-- PALETTE: SLASH COMMANDS -->
-              <div id="slash-palette" class="hidden absolute bottom-full left-0 mb-2 w-72 bg-gray-800 border border-gray-700 rounded-xl shadow-2xl overflow-hidden select-none z-50">
-                <div class="px-3.5 py-1.5 bg-gray-900/60 border-b border-gray-700 text-[10px] font-bold uppercase tracking-wider text-purple-400">Slash Commands</div>
-                <div class="max-h-48 overflow-y-auto">
-                  <div class="slash-item flex items-center justify-between p-2.5 hover:bg-purple-600/10 cursor-pointer text-xs group" data-command="/audit">
+              <div id="slash-palette" class="hidden absolute bottom-full left-0 mb-1 w-64 bg-surface-elevated border border-border rounded shadow-2xl overflow-hidden select-none z-50">
+                <div class="px-2.5 py-1 bg-app border-b border-border text-[9px] font-bold uppercase tracking-wider text-purple-400">Slash Commands</div>
+                <div class="max-h-36 overflow-y-auto">
+                  <div class="slash-item flex items-center justify-between p-2 hover:bg-purple-600/10 cursor-pointer text-[11px] group" data-command="/audit">
                     <span class="font-mono font-bold text-purple-400 group-hover:text-purple-300">/audit</span>
-                    <span class="text-gray-400 text-[10px]">Multi-agent deep dive analysis</span>
+                    <span class="text-zinc-500 text-[9px]">Multi-agent deep dive analysis</span>
                   </div>
-                  <div class="slash-item flex items-center justify-between p-2.5 hover:bg-purple-600/10 cursor-pointer text-xs group" data-command="/explain">
+                  <div class="slash-item flex items-center justify-between p-2 hover:bg-purple-600/10 cursor-pointer text-[11px] group" data-command="/explain">
                     <span class="font-mono font-bold text-purple-400 group-hover:text-purple-300">/explain</span>
-                    <span class="text-gray-400 text-[10px]">Explain configuration in simple terms</span>
+                    <span class="text-zinc-500 text-[9px]">Explain configuration in simple terms</span>
                   </div>
-                  <div class="slash-item flex items-center justify-between p-2.5 hover:bg-purple-600/10 cursor-pointer text-xs group" data-command="/queue">
+                  <div class="slash-item flex items-center justify-between p-2 hover:bg-purple-600/10 cursor-pointer text-[11px] group" data-command="/queue">
                     <span class="font-mono font-bold text-purple-400 group-hover:text-purple-300">/queue</span>
-                    <span class="text-gray-400 text-[10px]">Open bandwidth queue builder</span>
+                    <span class="text-zinc-500 text-[9px]">Open bandwidth queue builder</span>
                   </div>
                 </div>
               </div>
 
               <!-- PALETTE: AT MODIFIERS -->
-              <div id="at-palette" class="hidden absolute bottom-full left-0 mb-2 w-72 bg-gray-800 border border-gray-700 rounded-xl shadow-2xl overflow-hidden select-none z-50">
-                <div class="px-3.5 py-1.5 bg-gray-900/60 border-b border-gray-700 text-[10px] font-bold uppercase tracking-wider text-purple-400">Context Modifiers</div>
-                <div class="max-h-48 overflow-y-auto">
-                  <div class="at-item flex items-center justify-between p-2.5 hover:bg-purple-600/10 cursor-pointer text-xs group" data-modifier="@strict">
+              <div id="at-palette" class="hidden absolute bottom-full left-0 mb-1 w-64 bg-surface-elevated border border-border rounded shadow-2xl overflow-hidden select-none z-50">
+                <div class="px-2.5 py-1 bg-app border-b border-border text-[9px] font-bold uppercase tracking-wider text-purple-400">Context Modifiers</div>
+                <div class="max-h-36 overflow-y-auto">
+                  <div class="at-item flex items-center justify-between p-2 hover:bg-purple-600/10 cursor-pointer text-[11px] group" data-modifier="@strict">
                     <span class="font-mono font-bold text-purple-400 group-hover:text-purple-300">@strict</span>
-                    <span class="text-gray-400 text-[10px]">Output commands only, no talking</span>
+                    <span class="text-zinc-500 text-[9px]">Output commands only, no talking</span>
                   </div>
-                  <div class="at-item flex items-center justify-between p-2.5 hover:bg-purple-600/10 cursor-pointer text-xs group" data-modifier="@beginner">
+                  <div class="at-item flex items-center justify-between p-2 hover:bg-purple-600/10 cursor-pointer text-[11px] group" data-modifier="@beginner">
                     <span class="font-mono font-bold text-purple-400 group-hover:text-purple-300">@beginner</span>
-                    <span class="text-gray-400 text-[10px]">Simple concepts for junior admins</span>
+                    <span class="text-zinc-500 text-[9px]">Simple concepts for junior admins</span>
                   </div>
-                  <div class="at-item flex items-center justify-between p-2.5 hover:bg-purple-600/10 cursor-pointer text-xs group" data-modifier="@wiki">
+                  <div class="at-item flex items-center justify-between p-2 hover:bg-purple-600/10 cursor-pointer text-[11px] group" data-modifier="@wiki">
                     <span class="font-mono font-bold text-purple-400 group-hover:text-purple-300">@wiki</span>
-                    <span class="text-gray-400 text-[10px]">Enforce MikroTik wiki standards</span>
+                    <span class="text-zinc-500 text-[9px]">Enforce MikroTik wiki standards</span>
                   </div>
                 </div>
               </div>
@@ -344,56 +357,48 @@ const AuditTab = {
             </div>
 
             <!-- ACTION BUTTONS ROW -->
-            <div class="flex items-center justify-between mt-3.5 select-none">
-              <div class="flex items-center space-x-2.5">
+            <div class="flex items-center justify-between mt-2 select-none">
+              <div class="flex items-center space-x-1.5">
                 <!-- Toggle Attachment Drawer button -->
-                <button id="btn-toggle-drawer" class="w-11 h-11 rounded-xl bg-gray-700 hover:bg-gray-600 hover:text-white text-gray-300 transition duration-200 flex items-center justify-center focus:outline-none" title="Paste Config Drawer">
-                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
-                  </svg>
+                <button id="btn-toggle-drawer" class="w-7 h-7 rounded bg-app hover:bg-white/5 border border-border text-zinc-300 transition duration-150 flex items-center justify-center focus:outline-none" title="Paste Config Drawer">
+                  ${UI_Icons.render('paperclip', 'w-3.5 h-3.5')}
                 </button>
-                <button id="btn-attach-file-upload" class="w-11 h-11 rounded-xl bg-gray-700 hover:bg-gray-600 hover:text-white text-gray-300 transition duration-200 flex items-center justify-center focus:outline-none" title="Upload Config File">
-                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path>
-                  </svg>
+                <button id="btn-attach-file-upload" class="w-7 h-7 rounded bg-app hover:bg-white/5 border border-border text-zinc-300 transition duration-150 flex items-center justify-center focus:outline-none" title="Upload Config File">
+                  ${UI_Icons.render('upload', 'w-3.5 h-3.5')}
                 </button>
                 <input type="file" id="file-input" class="hidden" accept=".rsc,.txt,.log">
               </div>
 
-              <!-- Submit button: Fixed size w-11 h-11 with centered layouts to prevent shift -->
-              <button id="btn-submit" class="w-11 h-11 rounded-xl bg-purple-600 hover:bg-purple-700 text-white transition-all duration-300 active:scale-95 flex items-center justify-center focus:outline-none shadow-lg hover:shadow-purple-500/20" title="Submit Audit">
+              <!-- Submit button: Compact w-7 h-7 with centered layouts to prevent shift -->
+              <button id="btn-submit" class="w-7 h-7 rounded bg-purple-600 hover:bg-purple-700 text-white transition-all duration-150 active:scale-95 flex items-center justify-center focus:outline-none" title="Submit Audit">
                 <!-- Send Icon -->
-                <svg id="submit-icon" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3"></path>
-                </svg>
+                <span id="submit-icon">${UI_Icons.render('arrow-right', 'w-3.5 h-3.5')}</span>
                 <!-- Loading Spinner (initially hidden) -->
-                <svg id="loading-spinner" class="hidden w-5 h-5 text-white animate-spin" fill="none" viewBox="0 0 24 24">
+                <svg id="loading-spinner" class="hidden w-3.5 h-3.5 text-white animate-spin" fill="none" viewBox="0 0 24 24">
                   <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                   <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                 </svg>
                 <!-- Stop/Abort Icon (initially hidden) -->
-                <svg id="stop-icon" class="hidden w-5 h-5 text-red-200" fill="currentColor" viewBox="0 0 20 20">
-                  <rect x="4" y="4" width="12" height="12" rx="2" />
-                </svg>
+                <span id="stop-icon" class="hidden">${UI_Icons.render('square', 'w-3 h-3 text-red-200')}</span>
               </button>
             </div>
 
             <!-- COLLAPSIBLE ATTACHMENTS DRAWER -->
-            <div id="attachment-drawer" class="hidden mt-4 p-4 bg-gray-900 rounded-xl border border-gray-700 animate-apple-reveal select-none">
-              <div class="flex items-center justify-between mb-2">
-                <span class="text-xs font-bold text-gray-400 uppercase tracking-wider" id="ui-label-paste-config">RouterOS Config or Log Export</span>
-                <div class="flex space-x-2">
-                  <button id="btn-format-config" class="text-[10px] bg-gray-800 hover:bg-gray-700 text-purple-400 px-2 py-1 rounded border border-gray-700 font-bold transition">Format Config</button>
-                  <button id="btn-analyze-shadows" class="text-[10px] bg-gray-800 hover:bg-gray-700 text-amber-400 px-2 py-1 rounded border border-gray-700 font-bold transition">Detect Shadows</button>
-                  <button id="btn-clear-attachment" class="text-[10px] bg-gray-800 hover:bg-red-950/40 text-red-400 px-2 py-1 rounded border border-gray-700 font-bold transition">Clear</button>
+            <div id="attachment-drawer" class="hidden mt-2 p-2 bg-app rounded border border-border animate-apple-reveal select-none">
+              <div class="flex items-center justify-between mb-1.5">
+                <span class="text-[10px] font-bold text-zinc-400 uppercase tracking-wider" id="ui-label-paste-config">RouterOS Config or Log Export</span>
+                <div class="flex space-x-1.5">
+                  <button id="btn-format-config" class="text-[9px] bg-surface hover:bg-white/5 text-purple-400 px-1.5 py-0.5 rounded border border-border font-bold transition">Format Config</button>
+                  <button id="btn-analyze-shadows" class="text-[9px] bg-surface hover:bg-white/5 text-amber-400 px-1.5 py-0.5 rounded border border-border font-bold transition">Detect Shadows</button>
+                  <button id="btn-clear-attachment" class="text-[9px] bg-surface hover:bg-red-950/40 text-red-400 px-1.5 py-0.5 rounded border border-border font-bold transition">Clear</button>
                 </div>
               </div>
               <textarea
                 id="pasted-config"
-                class="w-full h-40 bg-black/60 border border-gray-800 rounded-lg p-3 font-mono text-[11px] leading-normal text-slate-300 placeholder-slate-600 focus:outline-none focus:border-purple-500/50"
+                class="w-full h-24 bg-surface border border-border rounded p-2 font-mono text-[10px] leading-normal text-zinc-300 placeholder-zinc-600 focus:outline-none focus:border-purple-500"
                 placeholder="# Paste a .rsc export configuration here... (All IP/MAC/secrets will be masked locally before sending to AI, and restored instantly!)"
               ></textarea>
-              <div id="config-summary-badge" class="hidden mt-2 flex items-center space-x-1.5 text-[10px] bg-purple-950/40 border border-purple-500/20 text-purple-300 px-2.5 py-1 rounded-full w-max font-bold">
+              <div id="config-summary-badge" class="hidden mt-1.5 flex items-center space-x-1.5 text-[9px] bg-purple-950/20 border border-purple-500/20 text-purple-300 px-2 py-0.5 rounded-full w-max font-bold">
                 <span id="config-summary-badge-text"></span>
               </div>
             </div>
@@ -402,96 +407,116 @@ const AuditTab = {
         </div>
 
         <!-- RIGHT SIDE: COLLAPSIBLE CONTROL CENTER SIDEBAR -->
-        <div id="sidebar-control-center" class="w-80 border-l border-gray-700 bg-gray-800 flex flex-col h-full transition-all duration-300 shrink-0 select-none">
+        <div id="sidebar-control-center" class="w-[240px] border-l border-border bg-surface flex flex-col h-full transition-all duration-150 shrink-0 select-none">
 
           <!-- SIDEBAR TABS HEADER -->
-          <div class="grid grid-cols-4 border-b border-gray-700 text-center text-xs bg-gray-900/40 font-bold p-1 shrink-0">
-            <button id="sidebar-tab-history" class="py-2 rounded-lg text-purple-400 bg-gray-800 border border-gray-700 transition" title="Audit History">📜</button>
-            <button id="sidebar-tab-queues" class="py-2 rounded-lg text-gray-400 hover:text-white transition" title="Queue Generator">📈</button>
-            <button id="sidebar-tab-context" class="py-2 rounded-lg text-gray-400 hover:text-white transition" title="Context Selector">⚙️</button>
-            <button id="sidebar-tab-preferences" class="py-2 rounded-lg text-gray-400 hover:text-white transition" title="Privacy Settings">🛡️</button>
+          <div class="grid grid-cols-4 border-b border-border text-center text-xs bg-surface-elevated/45 p-1 shrink-0">
+            <button id="sidebar-tab-history" class="py-1 px-1 rounded hover:bg-white/5 transition flex items-center justify-center text-zinc-400" title="Audit History">
+              ${UI_Icons.render('history', 'w-3.5 h-3.5')}
+            </button>
+            <button id="sidebar-tab-queues" class="py-1 px-1 rounded hover:bg-white/5 transition flex items-center justify-center text-zinc-400" title="Queue Generator">
+              ${UI_Icons.render('activity', 'w-3.5 h-3.5')}
+            </button>
+            <button id="sidebar-tab-context" class="py-1 px-1 rounded hover:bg-white/5 transition flex items-center justify-center text-zinc-400" title="Context Selector">
+              ${UI_Icons.render('cpu', 'w-3.5 h-3.5')}
+            </button>
+            <button id="sidebar-tab-preferences" class="py-1 px-1 rounded hover:bg-white/5 transition flex items-center justify-center text-zinc-400" title="Privacy Settings">
+              ${UI_Icons.render('shield', 'w-3.5 h-3.5')}
+            </button>
           </div>
 
           <!-- SIDEBAR TAB CONTENTS CONTAINER -->
-          <div class="flex-1 overflow-y-auto p-4 min-h-0">
+          <div class="flex-1 overflow-y-auto p-3 min-h-0">
 
             <!-- HISTORY TAB -->
             <div id="sidebar-section-history" class="flex flex-col h-full min-h-0">
-              <div class="flex items-center justify-between mb-3 shrink-0">
-                <h3 class="text-xs font-bold uppercase tracking-wider text-gray-400" id="ui-label-history-title">${t.historyTitle}</h3>
-                <button id="btn-clear-history" class="text-[10px] bg-red-950/40 hover:bg-red-900/30 text-red-400 px-2 py-0.5 border border-red-500/20 rounded font-bold transition">${t.clearHistory}</button>
+              <div class="flex items-center justify-between mb-2 shrink-0">
+                <h3 class="text-[10px] font-bold uppercase tracking-wider text-zinc-400" id="ui-label-history-title">${t.historyTitle.replace(/📜|📈|⚙️|🛡️/g, '')}</h3>
+                <button id="btn-clear-history" title="Wipe All" class="text-zinc-500 hover:text-red-500 transition p-1 hover:bg-red-500/10 rounded-md inline-flex items-center justify-center h-6 w-6">
+                  ${UI_Icons.render('trash-2', 'w-3.5 h-3.5')}
+                </button>
               </div>
-              <input
-                id="search-history"
-                type="text"
-                placeholder="${t.searchHistoryPlaceholder}"
-                class="w-full bg-gray-900 border border-gray-700 rounded-lg px-3 py-2 text-xs focus:outline-none focus:border-purple-500 shrink-0"
-              >
-              <div id="history-items-container" class="flex-1 overflow-y-auto space-y-2 mt-3 pr-1 min-h-0">
-                <div id="ui-history-empty" class="text-center py-8 text-gray-500 text-xs font-medium">${t.historyEmpty}</div>
+              <div class="relative w-full shrink-0">
+                <div class="absolute inset-y-0 left-0 pl-2 flex items-center pointer-events-none text-zinc-500">
+                  ${UI_Icons.render('search', 'w-3 h-3')}
+                </div>
+                <input
+                  id="search-history"
+                  type="text"
+                  title="Search saved audits"
+                  class="w-full bg-app border border-border rounded-md pl-7 pr-2 py-1 text-[11px] focus:outline-none focus:border-purple-500 text-white"
+                >
+              </div>
+              <div id="history-items-container" class="flex-1 overflow-y-auto space-y-1.5 mt-2 pr-1 min-h-0">
+                <div id="ui-history-empty" class="text-center py-6 text-zinc-500 text-[10px] font-medium">${t.historyEmpty}</div>
               </div>
             </div>
 
             <!-- QUEUE GENERATOR TAB -->
-            <div id="sidebar-section-queues" class="hidden space-y-4">
-              <h3 id="ui-queue-header" class="text-xs font-bold uppercase tracking-wider text-gray-400 flex items-center gap-1.5 border-b border-gray-700 pb-2">
-                <span>🚀</span> ${t.queueHeader}
+            <div id="sidebar-section-queues" class="hidden space-y-3">
+              <h3 id="ui-queue-header" class="text-[10px] font-bold uppercase tracking-wider text-zinc-400 flex items-center gap-1.5 border-b border-border pb-1.5 select-none">
+                ${UI_Icons.render('activity', 'w-3.5 h-3.5 text-purple-400')}
+                <span>${t.queueHeader.replace(/🚀/g, '').trim()}</span>
               </h3>
-              <div class="space-y-3">
+              <div class="space-y-2">
                 <div>
-                  <label id="ui-label-queue-name" class="block text-[10px] font-black uppercase text-gray-500 mb-1">${t.queueTargetName}</label>
-                  <input id="queue-target-name" type="text" placeholder="Guest-WiFi" class="w-full bg-gray-900 border border-gray-700 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-purple-500">
+                  <label id="ui-label-queue-name" class="block text-[9px] font-bold uppercase text-zinc-500 mb-0.5">${t.queueTargetName}</label>
+                  <input id="queue-target-name" type="text" placeholder="Guest-WiFi" class="w-full bg-app border border-border rounded px-2 py-1 text-xs text-white focus:outline-none focus:border-purple-500">
                 </div>
                 <div>
-                  <label id="ui-label-queue-ip" class="block text-[10px] font-black uppercase text-gray-500 mb-1">${t.queueTargetIp}</label>
-                  <input id="queue-target-ip" type="text" placeholder="192.168.20.0/24" class="w-full bg-gray-900 border border-gray-700 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-purple-500">
+                  <label id="ui-label-queue-ip" class="block text-[9px] font-bold uppercase text-zinc-500 mb-0.5">${t.queueTargetIp}</label>
+                  <input id="queue-target-ip" type="text" placeholder="192.168.20.0/24" class="w-full bg-app border border-border rounded px-2 py-1 text-xs text-white focus:outline-none focus:border-purple-500">
                 </div>
-                <div class="grid grid-cols-2 gap-2.5">
+                <div class="grid grid-cols-2 gap-2">
                   <div>
-                    <label id="ui-label-queue-upload" class="block text-[10px] font-black uppercase text-gray-500 mb-1">${t.queueMaxUpload}</label>
-                    <input id="queue-max-upload" type="number" placeholder="10" class="w-full bg-gray-900 border border-gray-700 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-purple-500 font-mono">
+                    <label id="ui-label-queue-upload" class="block text-[9px] font-bold uppercase text-zinc-500 mb-0.5">${t.queueMaxUpload}</label>
+                    <input id="queue-max-upload" type="number" placeholder="10" class="w-full bg-app border border-border rounded px-2 py-1 text-xs text-white focus:outline-none focus:border-purple-500 font-mono">
                   </div>
                   <div>
-                    <label id="ui-label-queue-download" class="block text-[10px] font-black uppercase text-gray-500 mb-1">${t.queueMaxDownload}</label>
-                    <input id="queue-max-download" type="number" placeholder="10" class="w-full bg-gray-900 border border-gray-700 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-purple-500 font-mono">
+                    <label id="ui-label-queue-download" class="block text-[9px] font-bold uppercase text-zinc-500 mb-0.5">${t.queueMaxDownload}</label>
+                    <input id="queue-max-download" type="number" placeholder="10" class="w-full bg-app border border-border rounded px-2 py-1 text-xs text-white focus:outline-none focus:border-purple-500 font-mono">
                   </div>
                 </div>
                 <div>
-                  <label id="ui-label-queue-priority" class="block text-[10px] font-black uppercase text-gray-500 mb-1">${t.queuePriority}</label>
-                  <select id="queue-priority" class="w-full bg-gray-900 border border-gray-700 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-purple-500 font-mono">
+                  <label id="ui-label-queue-priority" class="block text-[9px] font-bold uppercase text-zinc-500 mb-0.5">${t.queuePriority}</label>
+                  <select id="queue-priority" class="w-full bg-app border border-border rounded px-2 py-1 text-xs text-white focus:outline-none focus:border-purple-500 font-mono">
                     <option value="1">1 (Highest)</option>
                     <option value="4">4 (Normal)</option>
                     <option value="8" selected>8 (Lowest)</option>
                   </select>
                 </div>
-                <button id="btn-queue-generate" class="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 rounded-lg text-xs transition active:scale-95 shadow-lg">${t.queueGenerateBtn}</button>
+                <button id="btn-queue-generate" class="w-full btn-primary h-7 font-bold text-xs shadow-lg mt-2">${t.queueGenerateBtn}</button>
 
                 <!-- QUEUE READY OUTPUT -->
-                <div id="queue-code-output-container" class="hidden space-y-2 border-t border-gray-700 pt-3">
-                  <span id="ui-queue-output-title" class="block text-[10px] font-black uppercase text-gray-500">${t.queueOutputTitle}</span>
-                  <div class="p-2.5 rounded-lg bg-black/60 border border-gray-800 text-[11px] font-mono select-all text-slate-300 break-all" id="queue-code-block"></div>
-                  <button id="btn-queue-copy" class="w-full bg-gray-700 hover:bg-gray-600 text-white font-bold py-1.5 rounded border border-gray-600 text-[11px] transition active:scale-95 flex items-center justify-center space-x-1">
-                    <span>📋</span> <span id="ui-label-queue-copy-btn">${t.queueCopyBtn}</span>
+                <div id="queue-code-output-container" class="hidden space-y-2 border-t border-border pt-2">
+                  <span id="ui-queue-output-title" class="block text-[9px] font-bold uppercase text-zinc-500">${t.queueOutputTitle}</span>
+                  <div class="p-2 rounded bg-app border border-border text-[10px] font-mono select-all text-zinc-300 break-all" id="queue-code-block"></div>
+                  <button id="btn-queue-copy" class="w-full btn-secondary h-7 font-bold text-xs flex items-center justify-center space-x-1 mt-1">
+                    ${UI_Icons.render('copy', 'w-3 h-3 mr-1')}
+                    <span id="ui-label-queue-copy-btn">${t.queueCopyBtn.replace(/📋/g, '')}</span>
                   </button>
                 </div>
               </div>
             </div>
 
             <!-- CONTEXT SELECTOR TAB -->
-            <div id="sidebar-section-context" class="hidden space-y-4">
-              <h3 class="text-xs font-bold uppercase tracking-wider text-gray-400 border-b border-gray-700 pb-2">🌐 RouterOS Context</h3>
-              <div class="space-y-3">
+            <div id="sidebar-section-context" class="hidden space-y-3">
+              <h3 class="text-[10px] font-bold uppercase tracking-wider text-zinc-400 border-b border-border pb-1.5 select-none flex items-center gap-1.5">
+                ${UI_Icons.render('cpu', 'w-3.5 h-3.5 text-purple-400')}
+                <span>RouterOS Context</span>
+              </h3>
+              <div class="space-y-2">
                 <div>
-                  <label class="block text-[10px] font-black uppercase text-gray-500 mb-1">RouterOS Version</label>
-                  <select id="select-ros-version" class="w-full bg-gray-900 border border-gray-700 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-purple-500">
+                  <label class="block text-[9px] font-bold uppercase text-zinc-500 mb-0.5">RouterOS Version</label>
+                  <select id="select-ros-version" class="w-full bg-app border border-border rounded px-2 py-1 text-xs text-white focus:outline-none focus:border-purple-500">
                     <option value="auto" selected>Auto-Detect / Infer</option>
                     <option value="v7">v7 (Latest release)</option>
                     <option value="v6">v6 (Legacy release)</option>
                   </select>
                 </div>
                 <div>
-                  <label class="block text-[10px] font-black uppercase text-gray-500 mb-1">Hardware Model / Arch</label>
-                  <select id="select-hardware" class="w-full bg-gray-900 border border-gray-700 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-purple-500">
+                  <label class="block text-[9px] font-bold uppercase text-zinc-500 mb-0.5">Hardware Model / Arch</label>
+                  <select id="select-hardware" class="w-full bg-app border border-border rounded px-2 py-1 text-xs text-white focus:outline-none focus:border-purple-500">
                     <option value="auto" selected>Auto-Detect / Infer</option>
                     <option value="RB5009">RB5009 (ARM64 / WiFiWave2)</option>
                     <option value="hEX S">hEX S (MMIPS / HW Offload)</option>
@@ -503,56 +528,59 @@ const AuditTab = {
             </div>
 
             <!-- PRIVACY SHIELDS TAB -->
-            <div id="sidebar-section-preferences" class="hidden space-y-4">
-              <h3 class="text-xs font-bold uppercase tracking-wider text-gray-400 border-b border-gray-700 pb-2">🛡️ Client Privacy Shields</h3>
-              <div class="space-y-3">
+            <div id="sidebar-section-preferences" class="hidden space-y-3">
+              <h3 class="text-[10px] font-bold uppercase tracking-wider text-zinc-400 border-b border-border pb-1.5 select-none flex items-center gap-1.5">
+                ${UI_Icons.render('shield', 'w-3.5 h-3.5 text-purple-400')}
+                <span>Client Privacy Shields</span>
+              </h3>
+              <div class="space-y-2.5">
 
                 <div class="flex items-start justify-between">
                   <div>
                     <label id="ui-mask-ips-title" class="block text-[11px] font-bold text-white">${t.settingsMaskIpsTitle || 'Mask IP Addresses'}</label>
-                    <span id="ui-mask-ips-desc" class="text-[9px] text-gray-400 leading-normal">${t.settingsMaskIpsDesc || 'Scans IPv4/6; maps to placeholders'}</span>
+                    <span id="ui-mask-ips-desc" class="text-[9px] text-zinc-500 leading-normal">${t.settingsMaskIpsDesc || 'Scans IPv4/6; maps to placeholders'}</span>
                   </div>
-                  <input type="checkbox" id="mask-ips" class="accent-purple-500 mt-1" checked>
+                  <input type="checkbox" id="mask-ips" class="accent-purple-500 mt-1 h-3.5 w-3.5" checked>
                 </div>
 
                 <div class="flex items-start justify-between">
                   <div>
-                    <label id="ui-mask-macs-title" class="block text-[11px] font-bold text-white">${t.settingsMaskMacsTitle || 'Mask MAC Hardware ID'}</label>
-                    <span id="ui-mask-macs-desc" class="text-[9px] text-gray-400 leading-normal">${t.settingsMaskMacsDesc || 'Hides physical hex hardware interfaces'}</span>
+                    <label id="ui-mask-macs-title" class="block text-[11px] font-bold text-white">${t.settingsMaskMacsTitle || 'Mask hardware identifiers'}</label>
+                    <span id="ui-mask-macs-desc" class="text-[9px] text-zinc-500 leading-normal">${t.settingsMaskMacsDesc || 'Hides physical hex hardware interfaces'}</span>
                   </div>
-                  <input type="checkbox" id="mask-macs" class="accent-purple-500 mt-1" checked>
+                  <input type="checkbox" id="mask-macs" class="accent-purple-500 mt-1 h-3.5 w-3.5" checked>
                 </div>
 
                 <div class="flex items-start justify-between">
                   <div>
                     <label id="ui-mask-secrets-title" class="block text-[11px] font-bold text-white">${t.settingsMaskSecretsTitle || 'Mask Keys & Secrets'}</label>
-                    <span id="ui-mask-secrets-desc" class="text-[9px] text-gray-400 leading-normal">${t.settingsMaskSecretsDesc || 'Hides security-profiles, passwords, pre-shared keys'}</span>
+                    <span id="ui-mask-secrets-desc" class="text-[9px] text-zinc-500 leading-normal">${t.settingsMaskSecretsDesc || 'Hides security-profiles, passwords, pre-shared keys'}</span>
                   </div>
-                  <input type="checkbox" id="mask-secrets" class="accent-purple-500 mt-1" checked>
+                  <input type="checkbox" id="mask-secrets" class="accent-purple-500 mt-1 h-3.5 w-3.5" checked>
                 </div>
 
                 <div class="flex items-start justify-between">
                   <div>
                     <label id="ui-mask-interfaces-title" class="block text-[11px] font-bold text-white">${t.settingsMaskInterfacesTitle || 'Mask Custom Interfaces'}</label>
-                    <span id="ui-mask-interfaces-desc" class="text-[9px] text-gray-400 leading-normal">${t.settingsMaskInterfacesDesc || 'Keeps standard names, masks custom'}</span>
+                    <span id="ui-mask-interfaces-desc" class="text-[9px] text-zinc-500 leading-normal">${t.settingsMaskInterfacesDesc || 'Keeps standard names, masks custom'}</span>
                   </div>
-                  <input type="checkbox" id="mask-interfaces" class="accent-purple-500 mt-1" checked>
+                  <input type="checkbox" id="mask-interfaces" class="accent-purple-500 mt-1 h-3.5 w-3.5" checked>
                 </div>
 
                 <div class="flex items-start justify-between">
                   <div>
                     <label id="ui-mask-domains-title" class="block text-[11px] font-bold text-white">${t.settingsMaskDomainsTitle || 'Mask Domain Names'}</label>
-                    <span id="ui-mask-domains-desc" class="text-[9px] text-gray-400 leading-normal">${t.settingsMaskDomainsDesc || 'Hides external server addresses & DDNS urls'}</span>
+                    <span id="ui-mask-domains-desc" class="text-[9px] text-zinc-500 leading-normal">${t.settingsMaskDomainsDesc || 'Hides external server addresses & DDNS urls'}</span>
                   </div>
-                  <input type="checkbox" id="mask-domains" class="accent-purple-500 mt-1" checked>
+                  <input type="checkbox" id="mask-domains" class="accent-purple-500 mt-1 h-3.5 w-3.5" checked>
                 </div>
 
                 <div class="flex items-start justify-between">
                   <div>
                     <label id="ui-mask-identity-title" class="block text-[11px] font-bold text-white">${t.settingsMaskIdentityTitle || 'Mask Router system identity'}</label>
-                    <span id="ui-mask-identity-desc" class="text-[9px] text-gray-400 leading-normal">${t.settingsMaskIdentityDesc || 'Redacts custom system labels or hardware handles'}</span>
+                    <span id="ui-mask-identity-desc" class="text-[9px] text-zinc-500 leading-normal">${t.settingsMaskIdentityDesc || 'Redacts custom system labels or hardware handles'}</span>
                   </div>
-                  <input type="checkbox" id="mask-identity" class="accent-purple-500 mt-1" checked>
+                  <input type="checkbox" id="mask-identity" class="accent-purple-500 mt-1 h-3.5 w-3.5" checked>
                 </div>
 
               </div>
@@ -564,32 +592,32 @@ const AuditTab = {
 
       </div>
 
-      <!-- VISUAL DIFF VIEWER MODAL -->
-      <div id="modal-diff" class="hidden fixed inset-0 bg-black/85 backdrop-blur-sm z-50 flex items-center justify-center p-6 select-none">
-        <div class="bg-gray-800 border border-gray-700 rounded-2xl max-w-6xl w-full max-h-[85vh] flex flex-col overflow-hidden shadow-2xl animate-apple-reveal">
-          <div class="flex items-center justify-between p-4 border-b border-gray-700 bg-gray-900/60">
-            <h3 class="text-sm font-extrabold text-white uppercase tracking-wider">Visual Config Diff</h3>
-            <button id="btn-close-diff" class="text-gray-400 hover:text-white text-2xl font-bold transition">×</button>
+      <!-- VISUAL DIFF VIEWER MODAL (Max width 600px, padding 16px) -->
+      <div id="modal-diff" class="hidden fixed inset-0 bg-black/85 backdrop-blur-sm z-50 flex items-center justify-center p-4 select-none">
+        <div class="bg-surface border border-border rounded-lg max-w-[600px] w-full max-h-[80vh] flex flex-col overflow-hidden shadow-2xl animate-apple-reveal">
+          <div class="flex items-center justify-between p-3 border-b border-border bg-surface-elevated">
+            <h3 class="text-xs font-bold text-white uppercase tracking-wider">Visual Config Diff</h3>
+            <button id="btn-close-diff" class="text-zinc-400 hover:text-white text-xl font-bold transition">✕</button>
           </div>
-          <div class="p-4 bg-gray-800/40 border-b border-gray-700/50 flex items-center justify-between">
-            <div class="flex space-x-2">
-              <button id="diff-view-mode-split" class="px-3 py-1.5 text-xs font-bold rounded bg-slate-700 text-purple-400 border border-purple-500/30 transition">Split</button>
-              <button id="diff-view-mode-unified" class="px-3 py-1.5 text-xs font-bold rounded text-slate-400 hover:text-white transition">Unified</button>
+          <div class="p-3 bg-surface-elevated/40 border-b border-border flex items-center justify-between">
+            <div class="flex space-x-1.5">
+              <button id="diff-view-mode-split" class="px-2 py-1 text-[10px] font-bold rounded bg-zinc-800 text-purple-400 border border-purple-500/20 transition">Split</button>
+              <button id="diff-view-mode-unified" class="px-2 py-1 text-[10px] font-bold rounded text-zinc-400 hover:text-white transition">Unified</button>
             </div>
-            <div id="ui-label-diff-unified-desc" class="text-[10px] text-gray-400">${t.diffUnifiedDesc}</div>
+            <div id="ui-label-diff-unified-desc" class="text-[9px] text-zinc-500">${t.diffUnifiedDesc.replace(/🛡️|🕸️|🚀|🔌/g, '')}</div>
           </div>
 
-          <div class="flex-1 overflow-y-auto p-4 min-h-0 bg-gray-950 font-mono text-xs">
+          <div class="flex-1 overflow-y-auto p-3 min-h-0 bg-app font-mono text-[11px]">
             <table class="w-full border-collapse">
               <thead id="diff-split-headers">
-                <tr class="border-b border-gray-800 text-gray-500 font-bold text-[10px] uppercase">
-                  <th id="ui-label-diff-original" class="w-1/2 text-left p-2 border-r border-gray-800">${t.diffOriginalHeader}</th>
-                  <th id="ui-label-diff-corrected" class="w-1/2 text-left p-2">${t.diffCorrectedHeader}</th>
+                <tr class="border-b border-border text-zinc-500 font-bold text-[9px] uppercase">
+                  <th id="ui-label-diff-original" class="w-1/2 text-left p-1.5 border-r border-border">${t.diffOriginalHeader.replace(/🛡️|🕸️|🚀|🔌/g, '')}</th>
+                  <th id="ui-label-diff-corrected" class="w-1/2 text-left p-1.5">${t.diffCorrectedHeader.replace(/🛡️|🕸️|🚀|🔌/g, '')}</th>
                 </tr>
               </thead>
               <thead id="diff-unified-header" class="hidden">
-                <tr class="border-b border-gray-800 text-gray-500 font-bold text-[10px] uppercase">
-                  <th class="text-left p-2">Unified Comparison Lines</th>
+                <tr class="border-b border-border text-zinc-500 font-bold text-[9px] uppercase">
+                  <th class="text-left p-1.5">Unified Comparison Lines</th>
                 </tr>
               </thead>
               <tbody id="diff-table-body" class="select-text"></tbody>
@@ -598,26 +626,26 @@ const AuditTab = {
         </div>
       </div>
 
-      <!-- FIX CHECKLIST MODAL -->
-      <div id="modal-commands" class="hidden fixed inset-0 bg-black/85 backdrop-blur-sm z-50 flex items-center justify-center p-6 select-none">
-        <div class="bg-gray-800 border border-gray-700 rounded-2xl max-w-4xl w-full max-h-[80vh] flex flex-col overflow-hidden shadow-2xl animate-apple-reveal">
-          <div class="flex items-center justify-between p-4 border-b border-gray-700 bg-gray-900/60">
-            <h3 class="text-sm font-extrabold text-white uppercase tracking-wider">Interactive Fix Checklist</h3>
-            <button id="btn-close-commands" class="text-gray-400 hover:text-white text-2xl font-bold transition">×</button>
+      <!-- FIX CHECKLIST MODAL (Max width 600px, padding 16px) -->
+      <div id="modal-commands" class="hidden fixed inset-0 bg-black/85 backdrop-blur-sm z-50 flex items-center justify-center p-4 select-none">
+        <div class="bg-surface border border-border rounded-lg max-w-[600px] w-full max-h-[80vh] flex flex-col overflow-hidden shadow-2xl animate-apple-reveal">
+          <div class="flex items-center justify-between p-3 border-b border-border bg-surface-elevated">
+            <h3 class="text-xs font-bold text-white uppercase tracking-wider">Interactive Fix Checklist</h3>
+            <button id="btn-close-commands" class="text-zinc-400 hover:text-white text-xl font-bold transition">✕</button>
           </div>
-          <div class="p-4 bg-gray-850 border-b border-gray-700/50 flex items-center justify-between">
-            <div class="flex space-x-2">
-              <button id="command-view-mode-checklist" class="px-3 py-1.5 text-xs font-bold rounded bg-slate-700 text-emerald-400 border border-emerald-500/30 transition">Checklist</button>
-              <button id="command-view-mode-raw" class="px-3 py-1.5 text-xs font-bold rounded text-slate-400 hover:text-white transition">Raw Terminal</button>
+          <div class="p-3 bg-surface-elevated/40 border-b border-border flex items-center justify-between">
+            <div class="flex space-x-1.5">
+              <button id="command-view-mode-checklist" class="px-2 py-1 text-[10px] font-bold rounded bg-zinc-800 text-emerald-400 border border-emerald-500/20 transition">Checklist</button>
+              <button id="command-view-mode-raw" class="px-2 py-1 text-[10px] font-bold rounded text-zinc-400 hover:text-white transition">Raw Terminal</button>
             </div>
-            <div id="ui-label-commands-tip" class="text-[10px] text-gray-400">${t.commandsTip}</div>
+            <div id="ui-label-commands-tip" class="text-[9px] text-zinc-500">${t.commandsTip.replace(/🛡️|🕸️|🚀|🔌/g, '')}</div>
           </div>
-          <div class="flex-1 overflow-y-auto p-5 min-h-0">
+          <div class="flex-1 overflow-y-auto p-3 min-h-0">
             <!-- CHECKLIST INTERACTIVE CONTAINER -->
-            <div id="commands-checklist-container" class="space-y-2.5"></div>
+            <div id="commands-checklist-container" class="space-y-1.5"></div>
             <!-- RAW CODE CONTAINER -->
             <div id="commands-raw-container" class="hidden h-full">
-              <pre class="bg-black/50 border border-gray-800 rounded-xl p-4 font-mono text-xs overflow-x-auto text-slate-300 select-all" id="commands-block"></pre>
+              <pre class="bg-app border border-border rounded p-3 font-mono text-[10px] overflow-x-auto text-zinc-300 select-all" id="commands-block"></pre>
             </div>
           </div>
         </div>
@@ -906,7 +934,7 @@ const AuditTab = {
     const tabs = [this.els.sidebarTabHistory, this.els.sidebarTabQueues, this.els.sidebarTabContext, this.els.sidebarTabPreferences];
     tabs.forEach(el => {
       if (el) {
-        el.className = 'py-2 rounded-lg text-gray-400 hover:text-white transition';
+        el.className = 'py-1 px-1 rounded hover:bg-white/5 transition flex items-center justify-center text-zinc-400';
       }
     });
 
@@ -934,7 +962,7 @@ const AuditTab = {
     }
 
     if (activeBtn) {
-      activeBtn.className = 'py-2 rounded-lg text-purple-400 bg-gray-800 border border-gray-700 transition';
+      activeBtn.className = 'py-1 px-1 rounded text-purple-400 bg-surface border border-border transition flex items-center justify-center';
     }
     if (activeSection) {
       activeSection.classList.remove('hidden');
@@ -947,9 +975,9 @@ const AuditTab = {
     if (!el) return;
     if (this.state.isSidebarOpen) {
       el.classList.remove('w-0', 'border-l-0', 'opacity-0');
-      el.classList.add('w-80', 'border-l');
+      el.classList.add('w-[240px]', 'border-l');
     } else {
-      el.classList.remove('w-80', 'border-l');
+      el.classList.remove('w-[240px]', 'border-l');
       el.classList.add('w-0', 'border-l-0', 'opacity-0');
     }
   },
@@ -2173,25 +2201,25 @@ const AuditTab = {
   appendUserMessageBubble(messageText, pastedConfigText) {
     const container = this.els.chatMessagesContainer;
     const bubble = document.createElement('div');
-    bubble.className = 'flex flex-col space-y-2.5 items-end max-w-3xl ml-auto w-full select-text animate-apple-reveal';
+    bubble.className = 'flex flex-col space-y-1.5 items-end max-w-3xl ml-auto w-full select-text animate-apple-reveal';
 
     let attachmentHtml = '';
     if (pastedConfigText) {
       attachmentHtml = `
-        <div class="text-xs rounded-2xl p-3 bg-gray-800 border border-gray-700 max-w-full font-mono text-[10px] text-gray-400 select-text overflow-x-auto max-h-40 whitespace-pre">
-          <span class="block text-[9px] font-black uppercase text-purple-400 tracking-wider mb-1 select-none">📎 Attached RSC Export</span>
+        <div class="text-[11px] rounded p-2.5 bg-surface border border-border max-w-[65%] font-mono text-zinc-400 select-text overflow-x-auto max-h-32 whitespace-pre">
+          <span class="block text-[9px] font-bold uppercase text-purple-400 tracking-wider mb-1 select-none">Attached RSC Export</span>
           <span>${pastedConfigText.trim()}</span>
         </div>
       `;
     }
 
     bubble.innerHTML = `
-      <div class="flex items-center space-x-2 text-[10px] text-gray-500 font-semibold select-none">
+      <div class="flex items-center space-x-2 text-[10px] text-zinc-500 font-semibold select-none">
         <span>You</span>
         <span>•</span>
         <span>${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
       </div>
-      <div class="bg-purple-600 text-white text-xs p-4 rounded-2xl leading-relaxed shadow-lg max-w-full">
+      <div class="bg-indigo-600 text-white text-xs px-3 py-2 rounded-md leading-relaxed max-w-[65%]">
         ${messageText || 'Analyze attached configuration.'}
       </div>
       ${attachmentHtml}
@@ -2213,7 +2241,7 @@ const AuditTab = {
 
     const container = this.els.chatMessagesContainer;
     const wrapper = document.createElement('div');
-    wrapper.className = 'flex flex-col space-y-2.5 items-start max-w-3xl mr-auto w-full select-text animate-apple-reveal';
+    wrapper.className = 'flex flex-col space-y-1.5 items-start max-w-3xl mr-auto w-full select-text animate-apple-reveal';
 
     const parsed = this.parseAIResponse(result.rawResponse || result.explanation || '');
     if (parsed.explanation) result.explanation = parsed.explanation;
@@ -2255,16 +2283,16 @@ const AuditTab = {
         parsedVlan = window.parseVlanConfig(result.correctedConfig || pasted || '');
         if (parsedVlan && parsedVlan.length > 0) {
           vlanHtml = `
-            <div class="mt-4 p-4 bg-gray-950 border border-purple-500/20 rounded-2xl w-full vlan-topology-section select-none">
-              <div class="flex items-center justify-between mb-2 pb-2 border-b border-gray-800">
-                <div class="flex items-center gap-2">
-                  <span class="text-sm">🕸️</span>
-                  <span class="text-xs font-black uppercase tracking-wider text-white">Bridge VLAN Topology</span>
+            <div class="mt-2.5 p-3 bg-surface border border-border rounded w-full vlan-topology-section select-none">
+              <div class="flex items-center justify-between mb-1.5 pb-1.5 border-b border-border">
+                <div class="flex items-center gap-1.5">
+                  ${UI_Icons.render('network', 'w-3.5 h-3.5 text-purple-400')}
+                  <span class="text-[10px] font-bold uppercase tracking-wider text-white">Bridge VLAN Topology</span>
                 </div>
-                <button class="interactive-map-btn bg-purple-500/10 hover:bg-purple-500/20 text-purple-400 border border-purple-500/30 px-3 py-1.5 rounded-lg text-xs font-medium transition active:scale-95">Interactive Map</button>
+                <button class="interactive-map-btn bg-purple-500/10 hover:bg-purple-500/20 text-purple-400 border border-purple-500/30 px-2 py-1 rounded text-[10px] font-medium transition active:scale-95">Interactive Map</button>
               </div>
-              <p class="text-[10px] text-gray-500 mb-3">Dynamically extracted from active Bridge & Port configurations.</p>
-              <div class="mermaid-diagram-container overflow-x-auto bg-gray-900 rounded-xl p-3 border border-gray-800 flex justify-center">
+              <p class="text-[9px] text-zinc-500 mb-2">Dynamically extracted from active Bridge & Port configurations.</p>
+              <div class="mermaid-diagram-container overflow-x-auto bg-app rounded p-2.5 border border-border flex justify-center">
                 <div class="mermaid w-full text-center">${window.generateVlanMermaidGraph(parsedVlan)}</div>
               </div>
             </div>
@@ -2278,28 +2306,30 @@ const AuditTab = {
     let actionButtonsHtml = '';
     if (hasDiff || hasCommands || hasCorrectedConfig || hasExtracted) {
       actionButtonsHtml = `
-        <div class="flex flex-wrap items-center gap-2 mt-4 pt-4 border-t border-gray-700/50 select-none">
+        <div class="flex flex-wrap items-center gap-1.5 mt-3 pt-3 border-t border-border select-none">
           ${hasDiff ? `
-          <button id="btn-show-diff" class="px-3 py-1.5 text-xs font-medium rounded-md flex items-center gap-1.5 transition-all bg-purple-600/20 hover:bg-purple-600/30 text-purple-300 border border-purple-500/30 hover:border-purple-400/50">
-            <span>🔍</span> Diff
+          <button id="btn-show-diff" title="Compare Diff" class="w-6 h-6 rounded-md hover:bg-white/5 transition flex items-center justify-center text-zinc-400 border border-border">
+            ${UI_Icons.render('git-branch', 'w-3 h-3')}
           </button>
           ` : ''}
           ${hasCommands ? `
-          <button id="btn-show-checklist" class="px-3 py-1.5 text-xs font-medium rounded-md flex items-center gap-1.5 transition-all bg-gray-700/50 hover:bg-gray-700 text-gray-300 border border-gray-600/50 hover:border-gray-500">
-            <span>📋</span> Checklist
+          <button id="btn-show-checklist" title="Fix Checklist" class="w-6 h-6 rounded-md hover:bg-white/5 transition flex items-center justify-center text-zinc-400 border border-border">
+            ${UI_Icons.render('list', 'w-3 h-3')}
           </button>
           ` : ''}
           ${hasCorrectedConfig ? `
-          <button id="btn-download-rsc" class="px-3 py-1.5 text-xs font-medium rounded-md flex items-center gap-1.5 transition-all bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-300 border border-emerald-500/30 hover:border-emerald-400/50">
-            <span>💾</span> <span class="rsc-btn-label">.rsc</span>
+          <button id="btn-download-rsc" title="Download .rsc" class="w-6 h-6 rounded-md hover:bg-white/5 transition flex items-center justify-center text-zinc-400 border border-border">
+            ${UI_Icons.render('download', 'w-3 h-3')}
           </button>
           ` : ''}
           ${hasCorrectedConfig ? `
-          <button class="btn-action bg-blue-600/20 text-blue-400 border border-blue-500/30 px-3 py-1.5 rounded-lg text-xs hover:bg-blue-600/30" data-action="send-to-build">🛠️ Send to Builder</button>
+          <button class="btn-action w-6 h-6 rounded-md hover:bg-white/5 transition flex items-center justify-center text-zinc-400 border border-border" data-action="send-to-build" title="Send to Builder">
+            ${UI_Icons.render('hammer', 'w-3 h-3')}
+          </button>
           ` : ''}
           ${hasExtracted || hasCommands ? `
-          <button id="btn-copy-commands" class="px-3 py-1.5 text-xs font-medium rounded-md flex items-center gap-1.5 transition-all bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-300 border border-emerald-500/30 hover:border-emerald-400/50">
-            <span>📋</span> Copy
+          <button id="btn-copy-commands" title="Copy Commands" class="w-6 h-6 rounded-md hover:bg-white/5 transition flex items-center justify-center text-zinc-400 border border-border">
+            ${UI_Icons.render('copy', 'w-3 h-3')}
           </button>
           ` : ''}
         </div>
@@ -2307,13 +2337,14 @@ const AuditTab = {
     }
 
     wrapper.innerHTML = `
-      <div class="flex items-center space-x-2 text-[10px] text-gray-500 font-semibold select-none">
-        <span class="text-purple-400">🧙‍♂️ Mik the Winbox Wizard</span>
+      <div class="flex items-center space-x-2 text-[10px] text-zinc-500 font-semibold select-none">
+        ${UI_Icons.render('terminal', 'text-purple-400 w-3.5 h-3.5')}
+        <span>Mik</span>
         <span>•</span>
         <span>${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
       </div>
-      <div class="chat-bubble-assistant text-xs text-gray-300 bg-gray-800 border border-gray-700 p-5 rounded-2xl leading-relaxed shadow-xl max-w-full w-full">
-        <div class="prose prose-invert max-w-none">${explanationHtml}</div>
+      <div class="chat-bubble-assistant text-xs text-zinc-300 bg-transparent border-l-2 border-indigo-500/50 pl-3 leading-relaxed max-w-full w-full">
+        <div class="prose prose-invert max-w-none text-zinc-300">${explanationHtml}</div>
         ${vlanHtml}
         ${actionButtonsHtml}
       </div>
@@ -2384,22 +2415,22 @@ const AuditTab = {
   appendOrchestratorResponse(result) {
     const container = this.els.chatMessagesContainer;
     const wrapper = document.createElement('div');
-    wrapper.className = 'flex flex-col space-y-4 items-start max-w-3xl mr-auto w-full select-text animate-apple-reveal';
+    wrapper.className = 'flex flex-col space-y-2.5 items-start max-w-3xl mr-auto w-full select-text animate-apple-reveal';
 
     const execSummaryHtml = typeof window.renderMarkdown === 'function' ? window.renderMarkdown(result.executiveSummary || '') : result.executiveSummary || '';
 
-    let agentCardsHtml = '<div class="grid grid-cols-1 md:grid-cols-3 gap-4 my-4 w-full">';
+    let agentCardsHtml = '<div class="grid grid-cols-1 md:grid-cols-3 gap-2.5 my-2 w-full">';
     if (result.agentCards && Array.isArray(result.agentCards)) {
       result.agentCards.forEach(agent => {
-        const icon = agent.role === 'security' ? '🛡️' : (agent.role === 'vlan' ? '🗺️' : '🌐');
+        const iconName = agent.role === 'security' ? 'shield-check' : (agent.role === 'vlan' ? 'network' : 'globe');
         const agentContentHtml = typeof window.renderMarkdown === 'function' ? window.renderMarkdown(agent.content || '') : agent.content || '';
         agentCardsHtml += `
-          <div class="bg-gray-900 border border-gray-700/60 rounded-xl p-4 flex flex-col space-y-2">
-            <div class="flex items-center space-x-2 border-b border-gray-700/40 pb-2 mb-2 select-none">
-              <span class="text-base">${icon}</span>
-              <span class="font-bold text-xs uppercase tracking-wider text-white">${agent.title || 'Agent'}</span>
+          <div class="bg-surface border border-border rounded p-3 flex flex-col space-y-1.5">
+            <div class="flex items-center space-x-1.5 border-b border-border pb-1.5 mb-1.5 select-none">
+              ${UI_Icons.render(iconName, 'w-3.5 h-3.5 text-purple-400')}
+              <span class="font-bold text-[10px] uppercase tracking-wider text-white">${agent.title || 'Agent'}</span>
             </div>
-            <div class="text-[11px] leading-relaxed text-gray-300 overflow-y-auto max-h-60 select-text">
+            <div class="text-[11px] leading-relaxed text-zinc-300 overflow-y-auto max-h-40 select-text">
               ${agentContentHtml}
             </div>
           </div>
@@ -2412,21 +2443,18 @@ const AuditTab = {
     const unifiedFixScriptText = result.unifiedFixScript || '';
 
     const unifiedScriptHtml = `
-      <div class="relative group/code my-4 border border-gray-700 rounded-xl overflow-hidden bg-gray-950 shadow-lg select-text w-full">
-        <div class="flex items-center justify-between px-4 py-2 bg-gray-900 border-b border-gray-700 select-none">
-          <div class="flex items-center space-x-1.5 text-gray-400 font-sans text-xs font-semibold">
-            <span>🛠️ Unified Fix Script (Copy All)</span>
+      <div class="relative group/code my-2 border border-border rounded overflow-hidden bg-app select-text w-full">
+        <div class="flex items-center justify-between px-3 py-1.5 bg-surface border-b border-border select-none">
+          <div class="flex items-center space-x-1.5 text-zinc-400 font-sans text-[10px] font-semibold">
+            ${UI_Icons.render('terminal', 'w-3 h-3 text-purple-400')}
+            <span>Unified Fix Script (Copy All)</span>
           </div>
-          <button onclick="copySnippetText('${uniqueId}', this)" class="text-gray-400 hover:text-white transition flex items-center focus:outline-none p-1 rounded-md hover:bg-gray-800">
-            <svg class="w-4 h-4 copy-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
-            </svg>
-            <svg class="w-4 h-4 check-icon hidden text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" />
-            </svg>
+          <button onclick="copySnippetText('${uniqueId}', this)" class="text-zinc-400 hover:text-white transition flex items-center focus:outline-none p-1 rounded hover:bg-white/5">
+            <i data-lucide="copy" class="w-3.5 h-3.5 copy-icon"></i>
+            <i data-lucide="check" class="w-3.5 h-3.5 check-icon hidden text-emerald-400"></i>
           </button>
         </div>
-        <pre id="${uniqueId}" class="p-4 text-gray-300 overflow-x-auto leading-relaxed select-all font-mono text-[12px] bg-gray-950">${unifiedFixScriptText.trim()}</pre>
+        <pre id="${uniqueId}" class="p-3 text-zinc-300 overflow-x-auto leading-relaxed select-all font-mono text-[11px] bg-app">${unifiedFixScriptText.trim()}</pre>
       </div>
     `;
 
@@ -2439,37 +2467,41 @@ const AuditTab = {
     let actionButtonsHtml = '';
     if (hasDiff || hasCorrectedConfig) {
       actionButtonsHtml = `
-        <div class="flex flex-wrap items-center gap-2 mt-4 pt-4 border-t border-gray-750 select-none w-full">
+        <div class="flex flex-wrap items-center gap-1.5 mt-3 pt-3 border-t border-border select-none w-full">
           ${hasDiff ? `
-          <button id="btn-orch-show-diff" class="px-3 py-1.5 text-xs font-medium rounded-md flex items-center gap-1.5 transition-all bg-purple-600/20 hover:bg-purple-600/30 text-purple-300 border border-purple-500/30 hover:border-purple-400/50">
-            <span>🔍</span> Diff
+          <button id="btn-orch-show-diff" title="Compare Diff" class="w-6 h-6 rounded-md hover:bg-white/5 transition flex items-center justify-center text-zinc-400 border border-border">
+            ${UI_Icons.render('git-branch', 'w-3 h-3')}
           </button>
           ` : ''}
           ${hasCorrectedConfig ? `
-          <button id="btn-orch-download-rsc" class="px-3 py-1.5 text-xs font-medium rounded-md flex items-center gap-1.5 transition-all bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-300 border border-emerald-500/30 hover:border-emerald-400/50">
-            <span>💾</span> <span class="rsc-btn-label">.rsc</span>
+          <button id="btn-orch-download-rsc" title="Download .rsc" class="w-6 h-6 rounded-md hover:bg-white/5 transition flex items-center justify-center text-zinc-400 border border-border">
+            ${UI_Icons.render('download', 'w-3 h-3')}
           </button>
           ` : ''}
           ${hasCorrectedConfig ? `
-          <button class="btn-action bg-blue-600/20 text-blue-400 border border-blue-500/30 px-3 py-1.5 rounded-lg text-xs hover:bg-blue-600/30" data-action="send-to-build">🛠️ Send to Builder</button>
+          <button class="btn-action w-6 h-6 rounded-md hover:bg-white/5 transition flex items-center justify-center text-zinc-400 border border-border" data-action="send-to-build" title="Send to Builder">
+            ${UI_Icons.render('hammer', 'w-3 h-3')}
+          </button>
           ` : ''}
         </div>
       `;
     }
 
     wrapper.innerHTML = `
-      <div class="flex items-center space-x-2 text-[10px] text-gray-500 font-semibold select-none">
-        <span class="text-purple-400 font-bold">🧠 Multi-Agent Orchestrator</span>
+      <div class="flex items-center space-x-2 text-[10px] text-zinc-500 font-semibold select-none">
+        ${UI_Icons.render('cpu', 'text-purple-400 w-3.5 h-3.5')}
+        <span>Multi-Agent Orchestrator</span>
         <span>•</span>
         <span>${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
       </div>
-      <div class="chat-bubble-assistant text-xs text-gray-300 bg-gray-800 border border-gray-700 p-5 rounded-2xl leading-relaxed shadow-xl max-w-full w-full flex flex-col">
+      <div class="chat-bubble-assistant text-xs text-zinc-300 bg-transparent border-l-2 border-indigo-500/50 pl-3 leading-relaxed max-w-full w-full flex flex-col">
         <!-- Executive Summary -->
-        <div class="bg-purple-950/20 border border-purple-500/20 rounded-xl p-4 w-full mb-4">
-          <h3 class="text-sm font-bold text-purple-400 mb-2 flex items-center gap-1.5 select-none">
-            <span>🧠</span> Orchestrator Summary
+        <div class="bg-purple-950/20 border border-purple-500/20 rounded p-3 w-full mb-2.5">
+          <h3 class="text-xs font-bold text-purple-400 mb-1 flex items-center gap-1.5 select-none">
+            ${UI_Icons.render('terminal', 'w-3.5 h-3.5')}
+            <span>Orchestrator Summary</span>
           </h3>
-          <div class="text-xs leading-relaxed text-gray-300 select-text">${execSummaryHtml}</div>
+          <div class="text-[11px] leading-relaxed text-zinc-300 select-text">${execSummaryHtml}</div>
         </div>
 
         <!-- Agent Cards Grid -->
@@ -2521,7 +2553,7 @@ const AuditTab = {
   renderShadowDetectorResults(data) {
     const container = this.els.chatMessagesContainer;
     const wrapper = document.createElement('div');
-    wrapper.className = 'flex flex-col space-y-2.5 items-start max-w-3xl mr-auto w-full select-text animate-apple-reveal';
+    wrapper.className = 'flex flex-col space-y-1.5 items-start max-w-3xl mr-auto w-full select-text animate-apple-reveal';
 
     let explanationHtml = '';
     if (typeof window.renderMarkdown === 'function') {
@@ -2535,42 +2567,42 @@ const AuditTab = {
 
     if (shadowRules.length === 0) {
       cardsHtml = `
-        <div class="mt-4 p-4 rounded-xl border border-emerald-500/30 bg-emerald-950/15 text-emerald-200 w-full flex items-center space-x-3 shadow-emerald-glow select-none">
-          <span class="text-xl">🛡️</span>
+        <div class="mt-2.5 p-3 rounded border border-emerald-500/20 bg-emerald-950/10 text-emerald-200 w-full flex items-center space-x-2.5 select-none">
+          ${UI_Icons.render('shield', 'w-4 h-4 text-emerald-400')}
           <div>
-            <h4 class="font-bold text-xs uppercase tracking-wide text-emerald-400">Perfect Rule Sequencing Detected</h4>
-            <p class="text-[11px] leading-relaxed font-medium mt-1">Excellent! No shadowed or redundant firewall filter or NAT rules were detected. Your traffic ordering is secure and clean.</p>
+            <h4 class="font-bold text-[10px] uppercase tracking-wide text-emerald-400">Perfect Rule Sequencing Detected</h4>
+            <p class="text-[11px] leading-relaxed font-medium mt-0.5">Excellent! No shadowed or redundant firewall filter or NAT rules were detected. Your traffic ordering is secure and clean.</p>
           </div>
         </div>
       `;
     } else {
-      cardsHtml = '<div class="space-y-3.5 w-full mt-4">';
+      cardsHtml = '<div class="space-y-2.5 w-full mt-2.5">';
       shadowRules.forEach((rule, idx) => {
         cardsHtml += `
-          <div class="p-4 rounded-xl border border-gray-700 bg-gray-900 flex flex-col space-y-3 shadow-lg select-text">
-            <div class="flex items-center justify-between pb-2 border-b border-gray-800 select-none">
-              <span class="px-2 py-0.5 text-[9px] bg-red-500/15 text-red-400 font-extrabold uppercase rounded-full">Shadowed Rule #${idx + 1}</span>
-              <span class="text-[10px] text-gray-500 font-bold">Rule Sequence Conflict</span>
+          <div class="p-3 rounded border border-border bg-surface flex flex-col space-y-2 select-text">
+            <div class="flex items-center justify-between pb-1.5 border-b border-border select-none">
+              <span class="px-1.5 py-0.5 text-[9px] bg-red-500/15 text-red-400 font-bold uppercase rounded">Shadowed Rule #${idx + 1}</span>
+              <span class="text-[9px] text-zinc-500 font-bold">Rule Sequence Conflict</span>
             </div>
 
-            <div class="space-y-2">
-              <div class="flex flex-col space-y-1">
-                <span class="text-[10px] uppercase font-black tracking-wider text-red-400 select-none">🔴 The Shadowed Rule (Will never be hit)</span>
-                <div class="p-2.5 rounded-lg bg-red-950/20 border border-red-500/20 text-red-300 font-mono text-[11px] leading-normal break-all select-all">
+            <div class="space-y-1.5">
+              <div class="flex flex-col space-y-0.5">
+                <span class="text-[9px] uppercase font-bold tracking-wider text-red-400 select-none">The Shadowed Rule (Will never be hit)</span>
+                <div class="p-2 rounded bg-app border border-border text-red-300 font-mono text-[10px] leading-normal break-all select-all">
                   ${rule.shadowedRule}
                 </div>
               </div>
 
-              <div class="flex flex-col space-y-1">
-                <span class="text-[10px] uppercase font-black tracking-wider text-amber-400 select-none">🟡 Rule Causing the Shadow (Precedes & blocks)</span>
-                <div class="p-2.5 rounded-lg bg-amber-950/20 border border-amber-500/20 text-amber-300 font-mono text-[11px] leading-normal break-all select-all">
+              <div class="flex flex-col space-y-0.5">
+                <span class="text-[9px] uppercase font-bold tracking-wider text-amber-400 select-none">Rule Causing the Shadow (Precedes & blocks)</span>
+                <div class="p-2 rounded bg-app border border-border text-amber-300 font-mono text-[10px] leading-normal break-all select-all">
                   ${rule.causingRule}
                 </div>
               </div>
 
-              <div class="flex flex-col space-y-1 pt-1">
-                <span class="text-[10px] uppercase font-black tracking-wider text-purple-400 select-none">🟢 Recommended Rule Alignment</span>
-                <div class="p-2.5 rounded-lg bg-purple-950/20 border border-purple-500/20 text-purple-200 font-bold text-xs leading-relaxed select-all">
+              <div class="flex flex-col space-y-0.5 pt-0.5">
+                <span class="text-[9px] uppercase font-bold tracking-wider text-purple-400 select-none">Recommended Rule Alignment</span>
+                <div class="p-2 rounded bg-purple-950/10 border border-purple-500/20 text-purple-200 font-semibold text-xs leading-relaxed select-all">
                   ${rule.fix}
                 </div>
               </div>
@@ -2582,17 +2614,18 @@ const AuditTab = {
     }
 
     wrapper.innerHTML = `
-      <div class="flex items-center space-x-2 text-[10px] text-gray-500 font-semibold select-none">
-        <span class="text-purple-400">🧙‍♂️ Mik the Winbox Wizard</span>
+      <div class="flex items-center space-x-2 text-[10px] text-zinc-500 font-semibold select-none">
+        ${UI_Icons.render('terminal', 'text-purple-400 w-3.5 h-3.5')}
+        <span>Mik</span>
         <span>•</span>
         <span>${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
       </div>
-      <div class="chat-bubble-assistant text-xs text-gray-300 bg-gray-800 border border-gray-700 p-5 rounded-2xl leading-relaxed shadow-xl max-w-full w-full">
-        <div class="mb-4 pb-3 border-b border-gray-700/50 flex items-center space-x-2 select-none">
-          <span class="text-lg">🛡️</span>
-          <h3 class="text-xs font-black uppercase tracking-wider text-purple-400">Firewall Shadow Detector Analysis</h3>
+      <div class="chat-bubble-assistant text-xs text-zinc-300 bg-transparent border-l-2 border-indigo-500/50 pl-3 leading-relaxed max-w-full w-full">
+        <div class="mb-2 pb-2 border-b border-border flex items-center space-x-1.5 select-none">
+          ${UI_Icons.render('shield', 'w-4 h-4 text-purple-400')}
+          <h3 class="text-xs font-bold uppercase tracking-wider text-purple-400">Firewall Shadow Detector Analysis</h3>
         </div>
-        <div class="prose prose-invert max-w-none">${explanationHtml}</div>
+        <div class="prose prose-invert max-w-none text-zinc-300">${explanationHtml}</div>
         ${cardsHtml}
       </div>
     `;
