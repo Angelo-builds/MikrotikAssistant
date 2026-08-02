@@ -3,6 +3,7 @@ const cors = require('cors');
 const path = require('path');
 const { mask, unmask } = require('./privacyShield');
 const { injectContext } = require('./mikrotik-wiki-context');
+const { ROUTEROS_FORMAT_RULES } = require('./backend/constants');
 
 const app = express();
 
@@ -125,6 +126,10 @@ function getLocalizedSystemPrompt(baseSystemPrompt, language, routerOsVersion, h
 
   if (contextInjection) {
     base = `${base}\n\n[CONTEXT INTEGRATION]:\n${contextInjection}`;
+  }
+
+  if (!base.includes('CRITICAL RouterOS Response Format Rules:')) {
+    base += ROUTEROS_FORMAT_RULES;
   }
 
   if (language === 'it') {
@@ -494,6 +499,11 @@ ${routingRes}`;
 
     // Inject custom best practice wiki context if keywords are present in chatMessage or pastedConfig
     systemPrompt = injectContext(systemPrompt || DEFAULT_SYSTEM_PROMPT, chatMessage, pastedConfig);
+
+    // Always append formats to standard request prompts
+    if (!systemPrompt.includes('CRITICAL RouterOS Response Format Rules:')) {
+      systemPrompt += ROUTEROS_FORMAT_RULES;
+    }
 
     console.log('🛡️ [Mik\'s Privacy Shield] Masking complete. Channeling masked query to the LLM.');
 

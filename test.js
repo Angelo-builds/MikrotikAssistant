@@ -362,6 +362,44 @@ add user=testuser password=testpass interface=ether1
   const valResult4 = ConfigValidator.validate(depVars, depBlocks);
   assert(valResult4.warnings.some(w => w.includes('Bridge LAN block')), 'Should warning about missing Bridge LAN');
 
+  // Unit Test 17: Aggressive Command Grouping and Visual Elements
+  console.log('\n--- Unit Test 17: Regression and Aggressive Grouping ---\n');
+
+  // Test: Consecutive commands grouped in single code block
+  const multiCommandInput = 'Step 1:\n/ip address add address=192.168.1.1/24 interface=ether1\n/ip address add address=10.0.0.1/24 interface=ether2\nStep 2: done';
+  const multiResult = renderMarkdown(multiCommandInput);
+  assert(multiResult.includes('code-block-container'), 'Should wrap commands in code block');
+  // Verify both commands are in the SAME block, not separate ones
+  const blockCount = (multiResult.match(/code-block-container/g) || []).length;
+  assert(blockCount === 1, `Should group consecutive commands in ONE block, got ${blockCount}`);
+
+  // Test: Orphan commands (no backticks) get wrapped
+  const orphanCommand = 'Configure the interface:\n/ip firewall filter add action=drop chain=input';
+  const orphanResult = renderMarkdown(orphanCommand);
+  assert(orphanResult.includes('code-block-container'), 'Should wrap orphan commands');
+  assert(orphanResult.includes('/ip firewall filter'), 'Should preserve command content');
+
+  // Test: Descriptive text inside code block rendered as normal text
+  const descInBlock = '```\n2. Creazione del pool DHCP\n```';
+  const descResult = renderMarkdown(descInBlock);
+  assert(!descResult.includes('code-block-container') || descResult.includes('md-description'), 'Should render description as normal text');
+
+  // Test: Mermaid blocks preserved
+  const mermaidInput = 'Graph:\n```mermaid\ngraph TD\nA-->B\n```';
+  const mermaidResult = renderMarkdown(mermaidInput);
+  assert(mermaidResult.includes('class="mermaid'), 'Should preserve mermaid blocks');
+
+  // Test: Inline code preserved
+  const inlineInput = 'Configure `ether4` interface';
+  const inlineResult = renderMarkdown(inlineInput);
+  assert(inlineResult.includes('inline-code'), 'Should render inline code');
+  assert(inlineResult.includes('ether4'), 'Should preserve inline code content');
+
+  // Test: Empty backticks cleaned up
+  const emptyBackticks = 'Some text `` more text';
+  const emptyResult = renderMarkdown(emptyBackticks);
+  assert(!emptyResult.includes('<code></code>'), 'Should not render empty code blocks');
+
   console.log('\n=======================================');
   if (failures === 0) {
     console.log('🎉 ALL INTEGRATION & UNIT TESTS PASSED SUCCESSFULLY! 🎉');
