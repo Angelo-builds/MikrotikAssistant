@@ -2608,6 +2608,36 @@ const AuditTab = {
 
     container.appendChild(wrapper);
     this.scrollStreamToBottom();
+
+    // Hook event listeners for the copy buttons in code blocks inside orchestrator response
+    const codeBlockCopyButtons = wrapper.querySelectorAll('.code-block-copy');
+    codeBlockCopyButtons.forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const code = decodeURIComponent(e.currentTarget.dataset.code);
+        navigator.clipboard.writeText(code).then(() => {
+          // Visual feedback
+          const icon = e.currentTarget.querySelector('i');
+          if (icon) {
+            icon.setAttribute('data-lucide', 'check');
+          }
+          if (typeof lucide !== 'undefined') {
+            lucide.createIcons();
+          }
+          setTimeout(() => {
+            if (icon) {
+              icon.setAttribute('data-lucide', 'copy');
+            }
+            if (typeof lucide !== 'undefined') {
+              lucide.createIcons();
+            }
+          }, 2000);
+        });
+      });
+    });
+
+    if (typeof lucide !== 'undefined') {
+      lucide.createIcons();
+    }
   },
 
   // Renders Firewall Shadow Detector outcomes

@@ -1,99 +1,25 @@
 const Utils = {
-  // Standard markdown parser tailored specifically for RouterOS styles.
-  renderMarkdown(text) {
-    if (!text) return '';
+  // RouterOS command patterns
+  ROUTEROS_COMMAND_PATTERNS: [
+    /^\/[a-z][a-z0-9-]*(\s+[a-z][a-z0-9-]*)*$/i,  // /ip firewall filter
+    /^(add|set|remove|move)\s+/i,                    // add action=drop
+    /^\[(find|get|print)\s/i,                        // [find interface=ether1]
+    /^:\s*(global|local|if|for|foreach|do|while|put|log|error|beep|delay|execute|pick|len|typeof|tonum|tostr|toarray|toip|toip6|toid)\b/i,
+    /^#\s/,                                          // # comment
+  ],
 
-    // Clean up empty backticks/space patterns (such as ` `bash ... ` `) which cause ugly grey squares
-    let html = text.replace(/(?<!\`)`[\s]*`(?!\`)/g, '');
+  isRouterOSCommand(line) {
+    const trimmed = line.trim();
+    if (!trimmed) return false;
+    return (trimmed.startsWith('/') && /^\/[a-z]/i.test(trimmed)) || Utils.ROUTEROS_COMMAND_PATTERNS.some(pattern => pattern.test(trimmed));
+  },
 
-    // 1. Handle fenced code blocks (```language ... ```) FIRST - before any other processing
-    // This prevents inline code from interfering with block code. Supports optional spaces/language.
-    const codeBlocks = [];
-    html = html.replace(/```(\w+)?\s*\n([\s\S]*?)```/g, (match, lang, code) => {
-      if (lang && lang.trim().toLowerCase() === 'mermaid') {
-        const placeholder = `__MERMAID_BLOCK_${codeBlocks.length}__`;
-        codeBlocks.push({ isMermaid: true, code: code.trim() });
-        return placeholder;
-      }
-      const placeholder = `__CODE_BLOCK_${codeBlocks.length}__`;
-      codeBlocks.push({ isMermaid: false, lang: lang || 'text', code: code.trim() });
-      return placeholder;
-    });
-
-    // 2. Handle inline code (single backticks) - but NOT if it's part of a placeholder
-    html = html.replace(/`([^`\r\n]+)`/g, (match, code) => {
-      return `<code class="inline-code font-mono text-[11px]">${Utils.escapeHtml(code)}</code>`;
-    });
-
-    // 3. Handle headers
-    html = html.replace(/^### (.*$)/gm, '<h3 class="text-sm font-semibold mt-3 mb-1">$1</h3>');
-    html = html.replace(/^## (.*$)/gm, '<h2 class="text-base font-semibold mt-4 mb-2">$1</h2>');
-    html = html.replace(/^# (.*$)/gm, '<h1 class="text-lg font-bold mt-4 mb-2">$1</h1>');
-
-    // 4. Handle bold and italic
-    html = html.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
-    html = html.replace(/\*(.*?)\*/g, '<em>$1</em>');
-
-    // 5. Handle lists
-    html = html.replace(/^- (.*$)/gm, '<li class="ml-4 list-disc">$1</li>');
-    html = html.replace(/^\* (.*$)/gm, '<li class="ml-4 list-disc">$1</li>');
-    html = html.replace(/^\d+\. (.*$)/gm, '<li class="ml-4 list-decimal">$1</li>');
-
-    // 6. Handle line breaks (but not inside code blocks)
-    html = html.replace(/\n/g, '<br>');
-
-    // 7. Restore code blocks with proper structure
-    codeBlocks.forEach((block, index) => {
-      if (block.isMermaid) {
-        const placeholder = `__MERMAID_BLOCK_${index}__`;
-        const mermaidHtml = `
-          <div class="mermaid bg-cyber-panel p-4 rounded-xl overflow-x-auto mt-4 select-none">
-            ${block.code}
-          </div>
-        `;
-        html = html.replace(placeholder, mermaidHtml);
-      } else {
-        const placeholder = `__CODE_BLOCK_${index}__`;
-        const code = block.code.trim();
-
-        // Check if language is explicitly RouterOS/routeros
-        const hasExplicitRouterOSLang = block.lang && block.lang.trim().toLowerCase() === 'routeros';
-
-        // Check if this "code block" actually contains a RouterOS command / statement
-        const isRouterOSCommand = /^\/[a-z]|^(add|set|remove|move)\s|^#|^\:|^\[(find|get|print)|^\d+\/[a-z]/i.test(code);
-        const isLikelyDescription = !hasExplicitRouterOSLang && !isRouterOSCommand && code.length < 200;
-
-        if (isLikelyDescription) {
-          // Render as normal text, not a code block
-          const textHtml = `<p class="text-xs text-zinc-400 my-2">${Utils.escapeHtml(code)}</p>`;
-          html = html.replace(placeholder, textHtml);
-        } else {
-          const escapedCode = Utils.escapeHtml(block.code);
-
-          // Capitalize language name nicely
-          let langName = block.lang ? block.lang.trim() : 'RouterOS';
-          if (langName.toLowerCase() === 'bash') langName = 'Bash';
-          else if (langName.toLowerCase() === 'routeros') langName = 'RouterOS';
-          else if (langName.toLowerCase() === 'sh') langName = 'Shell';
-          else langName = langName.charAt(0).toUpperCase() + langName.slice(1);
-
-          const codeBlockHtml = `
-            <div class="code-block-container">
-              <div class="code-block-header">
-                <span class="code-block-lang">${langName}</span>
-                <button class="code-block-copy" data-code="${encodeURIComponent(block.code)}">
-                  <i data-lucide="copy" class="w-3 h-3"></i>
-                </button>
-              </div>
-              <pre class="code-block-content"><code>${escapedCode}</code></pre>
-            </div>
-          `;
-          html = html.replace(placeholder, codeBlockHtml);
-        }
-      }
-    });
-
-    return html;
+  isLikelyDescription(text) {
+    const trimmed = text.trim();
+    // If it's mostly Italian/English words (not commands), it's a description
+    const wordCount = trimmed.split(/\s+/).length;
+    const commandLikeLines = trimmed.split('\n').filter(l => Utils.isRouterOSCommand(l)).length;
+    return commandLikeLines === 0 && wordCount > 2;
   },
 
   escapeHtml(text) {
@@ -109,6 +35,159 @@ const Utils = {
         .replace(/"/g, '&quot;')
         .replace(/'/g, '&#039;');
     }
+  },
+
+  createCodeBlockHtml(code, lang = 'RouterOS') {
+    const escapedCode = Utils.escapeHtml(code);
+    return `
+      <div class="code-block-container">
+        <div class="code-block-header">
+          <span class="code-block-lang">${lang.toUpperCase()}</span>
+          <button class="code-block-copy" data-code="${encodeURIComponent(code)}" title="Copy">
+            <i data-lucide="copy" class="w-3 h-3"></i>
+          </button>
+        </div>
+        <pre class="code-block-content"><code>${escapedCode}</code></pre>
+      </div>
+    `;
+  },
+
+  // Standard markdown parser tailored specifically for RouterOS styles.
+  renderMarkdown(text) {
+    if (!text) return '';
+
+    // Clean up empty backticks/space patterns (such as ` `bash ... ` `) which cause ugly grey squares
+    text = text.replace(/(?<!`)`\s*`(?!`)/g, '');
+
+    let html = text;
+
+    // PHASE 1: Extract fenced code blocks (``` ... ```)
+    const codeBlocks = [];
+    html = html.replace(/```(\w+)?\s*\n([\s\S]*?)```/g, (match, lang, code) => {
+      const lowerLang = (lang || '').toLowerCase().trim();
+      const placeholder = `__CODEBLOCK_${codeBlocks.length}__`;
+      if (lowerLang === 'mermaid') {
+        codeBlocks.push({ isMermaid: true, lang: 'mermaid', code: code.trim() });
+      } else {
+        codeBlocks.push({ isMermaid: false, lang: lowerLang, code: code.trim() });
+      }
+      return placeholder;
+    });
+
+    // PHASE 2: Standard markdown processing
+    // Headers
+    html = html.replace(/^### (.*$)/gm, '<h3 class="md-h3">$1</h3>');
+    html = html.replace(/^## (.*$)/gm, '<h2 class="md-h2">$1</h2>');
+    html = html.replace(/^# (.*$)/gm, '<h1 class="md-h1">$1</h1>');
+
+    // Bold and italic
+    html = html.replace(/\*\*(.*?)\*\*/g, '<strong class="font-semibold">$1</strong>');
+    html = html.replace(/\*(.*?)\*/g, '<em>$1</em>');
+
+    // Inline code (single backticks) - MUST come before line processing
+    html = html.replace(/`([^`\n]+)`/g, '<code class="inline-code font-mono text-[11px]">$1</code>');
+
+    // Lists
+    html = html.replace(/^- (.*$)/gm, '<li class="md-li ml-4 list-disc">$1</li>');
+    html = html.replace(/^\* (.*$)/gm, '<li class="md-li ml-4 list-disc">$1</li>');
+    html = html.replace(/^\d+\. (.*$)/gm, '<li class="md-li-num ml-4 list-decimal">$1</li>');
+
+    // Line breaks
+    html = html.replace(/\n/g, '<br>');
+
+    // PHASE 3: Post-process to wrap orphan RouterOS commands
+    // Split by <br> and process each line
+    const lines = html.split('<br>');
+    const processedLines = [];
+    let inCodeBlock = false;
+    let codeBlockBuffer = [];
+    let codeBlockLang = 'RouterOS';
+
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i];
+
+      // Skip if it's a placeholder for an existing code block
+      if (line.match(/__CODEBLOCK_\d+__/)) {
+        processedLines.push(line);
+        continue;
+      }
+
+      // Skip HTML tags (headers, lists, etc.)
+      if (line.match(/^<[a-z]/i)) {
+        processedLines.push(line);
+        continue;
+      }
+
+      // Check if this line is a RouterOS command
+      const cleanLine = line.replace(/<\/?[a-z][^>]*>/gi, '').trim();
+
+      if (Utils.isRouterOSCommand(cleanLine)) {
+        if (!inCodeBlock) {
+          inCodeBlock = true;
+          codeBlockBuffer = [cleanLine];
+        } else {
+          codeBlockBuffer.push(cleanLine);
+        }
+      } else {
+        // Flush any accumulated code block
+        if (inCodeBlock && codeBlockBuffer.length > 0) {
+          const codeContent = codeBlockBuffer.join('\n');
+          const blockHtml = Utils.createCodeBlockHtml(codeContent, codeBlockLang);
+          processedLines.push(blockHtml);
+          codeBlockBuffer = [];
+          inCodeBlock = false;
+        }
+        processedLines.push(line);
+      }
+    }
+
+    // Flush remaining code block
+    if (inCodeBlock && codeBlockBuffer.length > 0) {
+      const codeContent = codeBlockBuffer.join('\n');
+      const blockHtml = Utils.createCodeBlockHtml(codeContent, codeBlockLang);
+      processedLines.push(blockHtml);
+    }
+
+    html = processedLines.join('<br>');
+
+    // PHASE 4: Restore fenced code blocks with validation
+    codeBlocks.forEach((block, index) => {
+      const placeholder = `__CODEBLOCK_${index}__`;
+
+      if (block.isMermaid) {
+        const mermaidHtml = `
+          <div class="mermaid bg-cyber-panel p-4 rounded-xl overflow-x-auto mt-4 select-none">
+            ${block.code}
+          </div>
+        `;
+        html = html.replace(placeholder, mermaidHtml);
+      } else if (block.lang === 'text' || (!block.lang && Utils.isLikelyDescription(block.code))) {
+        const textHtml = `<p class="md-description text-xs text-zinc-400 my-2">${Utils.escapeHtml(block.code)}</p>`;
+        html = html.replace(placeholder, textHtml);
+      } else {
+        const escapedCode = Utils.escapeHtml(block.code);
+        let lang = block.lang || 'RouterOS';
+        if (lang.toLowerCase() === 'bash') lang = 'Bash';
+        else if (lang.toLowerCase() === 'routeros') lang = 'RouterOS';
+        else if (lang.toLowerCase() === 'sh') lang = 'Shell';
+        else lang = lang.charAt(0).toUpperCase() + lang.slice(1);
+
+        const blockHtml = `
+          <div class="code-block-container">
+            <div class="code-block-header">
+              <span class="code-block-lang">${lang.toUpperCase()}</span>
+              <button class="code-block-copy" data-code="${encodeURIComponent(block.code)}" title="Copy">
+                <i data-lucide="copy" class="w-3 h-3"></i>
+              </button>
+            </div>
+            <pre class="code-block-content"><code>${escapedCode}</code></pre>
+          </div>
+        `;
+        html = html.replace(placeholder, blockHtml);
+      }
+    });
+
+    return html;
   },
 
   extractRouterOsCommands(text) {

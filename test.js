@@ -112,7 +112,7 @@ function runAllTests() {
   // New Code Block content parsing (Fix 1) tests
   const descCodeBlock = '```\n2. Creazione del pool di indirizzi DHCP (range 100-200).\n```';
   const descHtml = renderMarkdown(descCodeBlock);
-  assert(descHtml.includes('class="text-xs text-zinc-400 my-2"'), 'Code block with only description should render as paragraph');
+  assert(descHtml.includes('class="md-description text-xs text-zinc-400 my-2"'), 'Code block with only description should render as paragraph');
   assert(!descHtml.includes('code-block-container'), 'Code block with only description should not render as a fenced code block');
 
   const commandCodeBlock = '```\n/ip pool add name=dhcp_pool ranges=100-200\n```';
