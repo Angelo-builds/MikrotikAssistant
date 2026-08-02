@@ -69,6 +69,15 @@ body {
 .border-subtle {
   border-color: var(--border-subtle) !important;
 }
+.text-primary {
+  color: var(--text-primary);
+}
+.text-secondary {
+  color: var(--text-secondary);
+}
+.text-muted {
+  color: var(--text-muted);
+}
 
 /* Force modern fonts globally */
 pre, code, kbd, samp, .font-mono {
