@@ -79,12 +79,12 @@ const LibTab = {
       return `
         <div class="flex items-center justify-between h-9 px-2.5 rounded hover:bg-white/5 transition group" data-preset-id="${preset.id}">
           <div class="flex items-center space-x-2.5 flex-1 min-w-0">
-            ${UI_Icons.render(icon, 'w-3.5 h-3.5 text-zinc-400 shrink-0')}
-            <span class="font-bold text-white text-xs truncate shrink-0 max-w-[120px]">${preset.name}</span>
-            <span class="text-[10px] text-zinc-500 truncate hidden sm:block">${preset.description}</span>
+            ${UI_Icons.render(icon, 'w-3.5 h-3.5 text-secondary shrink-0')}
+            <span class="font-bold text-primary text-xs truncate shrink-0 max-w-[120px]">${preset.name}</span>
+            <span class="text-[10px] text-secondary truncate hidden sm:block">${preset.description}</span>
           </div>
           <div class="flex items-center space-x-2 shrink-0">
-            <span class="text-[9px] font-mono text-zinc-500">${Object.keys(preset.variables).length}v / ${preset.enabledBlocks.length}b</span>
+            <span class="text-[9px] font-mono text-secondary">${Object.keys(preset.variables).length}v / ${preset.enabledBlocks.length}b</span>
             <button class="bg-purple-600 hover:bg-purple-700 text-white h-6 px-2.5 rounded text-[11px] font-medium transition active:scale-95" data-preset-id="${preset.id}">
               Load
             </button>
@@ -123,15 +123,15 @@ const LibTab = {
     list.innerHTML = items.map(item => `
       <div class="flex items-center justify-between h-9 px-2.5 rounded hover:bg-white/5 transition group" data-id="${item.id}">
         <div class="flex items-center space-x-2.5 flex-1 min-w-0">
-          ${UI_Icons.render('file-code', 'w-3.5 h-3.5 text-zinc-400 shrink-0')}
-          <span class="font-bold text-white text-xs truncate shrink-0 max-w-[140px]">${item.name}</span>
-          <span class="text-[9px] text-zinc-500 font-mono hidden sm:block">${new Date(item.updatedAt || item.createdAt).toLocaleDateString()}</span>
+          ${UI_Icons.render('file-code', 'w-3.5 h-3.5 text-secondary shrink-0')}
+          <span class="font-bold text-primary text-xs truncate shrink-0 max-w-[140px]">${item.name}</span>
+          <span class="text-[9px] text-secondary font-mono hidden sm:block">${new Date(item.updatedAt || item.createdAt).toLocaleDateString()}</span>
         </div>
         <div class="flex items-center space-x-1.5 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity duration-150">
           <button class="btn-load-lib bg-purple-600 hover:bg-purple-700 text-white h-6 px-2.5 rounded text-[11px] font-medium transition active:scale-95" data-id="${item.id}">
             Load
           </button>
-          <button class="btn-delete-lib text-zinc-500 hover:text-red-400 transition p-1 hover:bg-red-500/10 rounded h-6 w-6 flex items-center justify-center border border-border" data-id="${item.id}">
+          <button class="btn-delete-lib text-secondary hover:text-red-600 transition p-1 hover:bg-red-500/10 rounded h-6 w-6 flex items-center justify-center border border-border-subtle" data-id="${item.id}">
             ${UI_Icons.render('trash-2', 'w-3 h-3')}
           </button>
         </div>

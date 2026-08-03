@@ -295,31 +295,31 @@ const AuditTab = {
               <div class="w-full max-w-2xl">
                 <div class="text-[10px] uppercase tracking-wider text-muted mb-3 text-center">${t.quickActions || 'Quick Actions'}</div>
                 <div class="grid grid-cols-2 gap-2">
-                  <button id="btn-scenario-firewall" class="quick-action bg-surface hover:bg-elevated border border-border-subtle rounded-md p-3 text-left transition-all" data-action="firewall">
+                  <button id="btn-scenario-firewall" class="quick-action bg-surface hover:border-indigo-500/50 border border-border-subtle rounded-md p-3 text-left transition-all" data-action="firewall">
                     <div class="flex items-center space-x-2 mb-1">
-                      <i data-lucide="shield-check" class="w-3 h-3 text-indigo-400"></i>
-                      <span class="text-xs font-medium text-primary">${t.qaFirewallTitle || 'Audit Firewall'}</span>
+                      <i data-lucide="shield-check" class="w-4 h-4 text-indigo-600"></i>
+                      <span class="text-xs font-semibold text-primary">${t.qaFirewallTitle || 'Audit Firewall'}</span>
                     </div>
                     <div class="text-[10px] text-secondary line-clamp-2">${t.qaFirewallDesc || 'Security vulnerability check'}</div>
                   </button>
-                  <button id="btn-scenario-vlan" class="quick-action bg-surface hover:bg-elevated border border-border-subtle rounded-md p-3 text-left transition-all" data-action="vlan">
+                  <button id="btn-scenario-vlan" class="quick-action bg-surface hover:border-indigo-500/50 border border-border-subtle rounded-md p-3 text-left transition-all" data-action="vlan">
                     <div class="flex items-center space-x-2 mb-1">
-                      <i data-lucide="layers" class="w-3 h-3 text-emerald-400"></i>
-                      <span class="text-xs font-medium text-primary">${t.qaVlanTitle || 'VLAN Setup'}</span>
+                      <i data-lucide="layers" class="w-4 h-4 text-emerald-600"></i>
+                      <span class="text-xs font-semibold text-primary">${t.qaVlanTitle || 'VLAN Setup'}</span>
                     </div>
                     <div class="text-[10px] text-secondary line-clamp-2">${t.qaVlanDesc || 'Generate VLAN config'}</div>
                   </button>
-                  <button id="btn-scenario-pppoe" class="quick-action bg-surface hover:bg-elevated border border-border-subtle rounded-md p-3 text-left transition-all" data-action="routing">
+                  <button id="btn-scenario-pppoe" class="quick-action bg-surface hover:border-indigo-500/50 border border-border-subtle rounded-md p-3 text-left transition-all" data-action="routing">
                     <div class="flex items-center space-x-2 mb-1">
-                      <i data-lucide="route" class="w-3 h-3 text-amber-400"></i>
-                      <span class="text-xs font-medium text-primary">${t.qaRoutingTitle || 'Fix Routing'}</span>
+                      <i data-lucide="route" class="w-4 h-4 text-amber-600"></i>
+                      <span class="text-xs font-semibold text-primary">${t.qaRoutingTitle || 'Fix Routing'}</span>
                     </div>
                     <div class="text-[10px] text-secondary line-clamp-2">${t.qaRoutingDesc || 'PPPoE/WAN diagnostics'}</div>
                   </button>
-                  <button id="btn-scenario-queues" class="quick-action bg-surface hover:bg-elevated border border-border-subtle rounded-md p-3 text-left transition-all" data-action="queue">
+                  <button id="btn-scenario-queues" class="quick-action bg-surface hover:border-indigo-500/50 border border-border-subtle rounded-md p-3 text-left transition-all" data-action="queue">
                     <div class="flex items-center space-x-2 mb-1">
-                      <i data-lucide="gauge" class="w-3 h-3 text-purple-400"></i>
-                      <span class="text-xs font-medium text-primary">${t.qaQueueTitle || 'Bandwidth Queues'}</span>
+                      <i data-lucide="gauge" class="w-4 h-4 text-purple-600"></i>
+                      <span class="text-xs font-semibold text-primary">${t.qaQueueTitle || 'Bandwidth Queues'}</span>
                     </div>
                     <div class="text-[10px] text-secondary line-clamp-2">${t.qaQueueDesc || 'Traffic shaping config'}</div>
                   </button>
@@ -1184,7 +1184,7 @@ const AuditTab = {
   showToast(message, type = 'info') {
     const container = document.getElementById('toast-container');
     const toast = document.createElement('div');
-    toast.className = 'p-3 rounded-xl border flex items-center space-x-2.5 shadow-xl transition-all duration-300 transform translate-y-2 opacity-0 select-text z-50 pointer-events-auto bg-gray-900 border-gray-700 text-gray-100';
+    toast.className = 'p-3 rounded-xl border flex items-center space-x-2.5 shadow-xl transition-all duration-300 transform translate-y-2 opacity-0 select-text z-50 pointer-events-auto bg-[var(--bg-surface)] border-[var(--border-subtle)] text-[var(--text-primary)]';
 
     if (type === 'success') {
       toast.className = 'p-3 rounded-xl border flex items-center space-x-2.5 shadow-xl transition-all duration-300 transform translate-y-2 opacity-0 select-text z-50 pointer-events-auto bg-emerald-950 border-emerald-500 text-emerald-200';
@@ -1193,6 +1193,7 @@ const AuditTab = {
       toast.className = 'p-3 rounded-xl border flex items-center space-x-2.5 shadow-xl transition-all duration-300 transform translate-y-2 opacity-0 select-text z-50 pointer-events-auto bg-red-950 border-red-500 text-red-200';
       toast.innerHTML = `<span>🔴</span> <span class="text-xs font-semibold">${message}</span>`;
     } else {
+      toast.className = 'p-3 rounded-xl border flex items-center space-x-2.5 shadow-xl transition-all duration-300 transform translate-y-2 opacity-0 select-text z-50 pointer-events-auto bg-[var(--bg-surface)] border-[var(--border-subtle)] text-[var(--text-primary)]';
       toast.innerHTML = `<span>🔵</span> <span class="text-xs font-semibold">${message}</span>`;
     }
 
@@ -1715,13 +1716,13 @@ const AuditTab = {
 
     const loaderCard = document.createElement('div');
     loaderCard.id = 'inline-loader-card';
-    loaderCard.className = 'flex flex-col space-y-3.5 items-start max-w-2xl mr-auto w-full select-none p-5 bg-gray-800 border border-purple-500/30 rounded-2xl shadow animate-pulse';
+    loaderCard.className = 'flex flex-col space-y-3.5 items-start max-w-2xl mr-auto w-full select-none p-5 bg-elevated border border-purple-500/30 rounded shadow animate-pulse';
 
     loaderCard.innerHTML = `
       <div class="flex items-center space-x-2.5">
         <div class="relative w-7 h-7 flex items-center justify-center shrink-0">
           <div class="absolute inset-0 border-2 border-dashed border-purple-500/50 rounded-lg animate-[spin_4s_linear_infinite]"></div>
-          <div class="w-4 h-4 rounded bg-purple-500 text-white flex items-center justify-center border border-white/10">
+          <div class="w-4 h-4 rounded bg-purple-600 text-white flex items-center justify-center border border-white/10">
             <svg class="w-2.5 h-2.5 text-white animate-spin" fill="none" viewBox="0 0 24 24">
               <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
               <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
@@ -1729,16 +1730,16 @@ const AuditTab = {
           </div>
         </div>
         <div>
-          <h4 class="text-xs font-black text-white uppercase tracking-wider">Firewall Shadow Detector</h4>
-          <p class="text-[9px] text-gray-400">Executing deep rule-dependency mapping...</p>
+          <h4 class="text-xs font-black text-primary uppercase tracking-wider">Firewall Shadow Detector</h4>
+          <p class="text-[9px] text-secondary">Executing deep rule-dependency mapping...</p>
         </div>
       </div>
-      <div class="w-full bg-gray-950 rounded-full h-2.5 border border-gray-700 overflow-hidden relative">
-        <div id="inline-loader-progress-bar" class="bg-purple-500 h-full w-[0%] transition-all duration-300"></div>
+      <div class="w-full bg-[var(--input-bg)] rounded-full h-2.5 border border-border-subtle overflow-hidden relative">
+        <div id="inline-loader-progress-bar" class="bg-purple-600 h-full w-[0%] transition-all duration-300"></div>
       </div>
-      <div class="flex justify-between w-full text-[10px] font-bold text-gray-500">
+      <div class="flex justify-between w-full text-[10px] font-bold text-zinc-500">
         <span id="inline-loader-log-text">Analyzing rule sequence ordering...</span>
-        <span id="inline-loader-percentage" class="text-purple-400 font-mono">0%</span>
+        <span id="inline-loader-percentage" class="text-purple-600 font-mono">0%</span>
       </div>
     `;
 
@@ -1839,18 +1840,18 @@ const AuditTab = {
   appendInlineErrorCard(errorMessage, retryCallback) {
     const container = this.els.chatMessagesContainer;
     const card = document.createElement('div');
-    card.className = 'flex flex-col space-y-3 p-5 rounded-2xl bg-red-950/40 border border-red-500/30 text-xs text-red-200 w-full max-w-2xl animate-apple-reveal';
+    card.className = 'flex flex-col space-y-3 p-5 rounded bg-red-950/40 border border-red-500/30 text-xs text-red-200 w-full max-w-2xl animate-apple-reveal';
 
     card.innerHTML = `
       <div class="flex items-start space-x-3">
         <span class="text-base select-none">💥</span>
         <div class="flex-1 space-y-1">
-          <h4 class="font-bold uppercase tracking-wider text-red-400">Analysis Pipeline Failed</h4>
+          <h4 class="font-bold uppercase tracking-wider text-red-600">Analysis Pipeline Failed</h4>
           <p class="leading-relaxed font-medium">${errorMessage}</p>
         </div>
       </div>
       <div class="flex justify-end pt-2 border-t border-red-500/10">
-        <button id="btn-inline-retry" class="px-4 py-2 bg-red-500 hover:bg-red-600 active:scale-95 text-white font-bold rounded-xl text-[10px] uppercase tracking-wide transition flex items-center space-x-1.5 select-none shadow">
+        <button id="btn-inline-retry" class="px-4 py-2 bg-red-600 hover:bg-red-700 active:scale-95 text-white font-bold rounded text-[10px] uppercase tracking-wide transition flex items-center space-x-1.5 select-none">
           <span>🔄</span> <span>Retry Analysis</span>
         </button>
       </div>
@@ -1888,7 +1889,7 @@ const AuditTab = {
         <span>•</span>
         <span>${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
       </div>
-      <div class="bg-indigo-600 text-white text-xs px-3 py-2 rounded-md leading-relaxed max-w-[65%]">
+      <div class="bg-indigo-600 text-white text-xs px-3 py-2 rounded-md leading-relaxed max-w-[65%] shadow-sm">
         ${messageText || 'Analyze attached configuration.'}
       </div>
       ${attachmentHtml}
@@ -2007,13 +2008,13 @@ const AuditTab = {
 
     wrapper.innerHTML = `
       <div class="flex items-center space-x-2 text-[10px] text-zinc-500 font-semibold select-none">
-        ${UI_Icons.render('terminal', 'text-purple-400 w-3.5 h-3.5')}
+        ${UI_Icons.render('terminal', 'text-purple-500 w-3.5 h-3.5')}
         <span>Mik</span>
         <span>•</span>
         <span>${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
       </div>
-      <div class="chat-bubble-assistant text-xs text-zinc-300 bg-transparent border-l-2 border-indigo-500/50 pl-3 leading-relaxed max-w-full w-full">
-        <div class="prose prose-invert max-w-none text-zinc-300">${explanationHtml}</div>
+      <div class="chat-bubble-assistant text-xs text-[var(--text-secondary)] bg-transparent border-l-2 border-indigo-500/50 pl-3 leading-relaxed max-w-full w-full">
+        <div class="prose prose-invert max-w-none text-[var(--text-secondary)]">${explanationHtml}</div>
         ${vlanHtml}
         ${actionButtonsHtml}
       </div>
@@ -2143,18 +2144,18 @@ const AuditTab = {
     const unifiedFixScriptText = result.unifiedFixScript || '';
 
     const unifiedScriptHtml = `
-      <div class="relative group/code my-2 border border-border rounded overflow-hidden bg-app select-text w-full">
-        <div class="flex items-center justify-between px-3 py-1.5 bg-surface border-b border-border select-none">
-          <div class="flex items-center space-x-1.5 text-zinc-400 font-sans text-[10px] font-semibold">
-            ${UI_Icons.render('terminal', 'w-3 h-3 text-purple-400')}
+      <div class="relative group/code my-2 border border-[var(--code-border)] rounded overflow-hidden bg-[var(--code-bg)] select-text w-full">
+        <div class="flex items-center justify-between px-3 py-1.5 bg-surface border-b border-[var(--code-border)] select-none">
+          <div class="flex items-center space-x-1.5 text-zinc-500 font-sans text-[10px] font-semibold">
+            ${UI_Icons.render('terminal', 'w-3 h-3 text-purple-600')}
             <span>Unified Fix Script (Copy All)</span>
           </div>
-          <button onclick="copySnippetText('${uniqueId}', this)" class="text-zinc-400 hover:text-white transition flex items-center focus:outline-none p-1 rounded hover:bg-white/5">
+          <button onclick="copySnippetText('${uniqueId}', this)" class="text-zinc-500 hover:text-zinc-700 transition flex items-center focus:outline-none p-1 rounded hover:bg-white/5">
             <i data-lucide="copy" class="w-3.5 h-3.5 copy-icon"></i>
-            <i data-lucide="check" class="w-3.5 h-3.5 check-icon hidden text-emerald-400"></i>
+            <i data-lucide="check" class="w-3.5 h-3.5 check-icon hidden text-emerald-600"></i>
           </button>
         </div>
-        <pre id="${uniqueId}" class="p-3 text-zinc-300 overflow-x-auto leading-relaxed select-all font-mono text-[11px] bg-app">${unifiedFixScriptText.trim()}</pre>
+        <pre id="${uniqueId}" class="p-3 text-[var(--code-text)] overflow-x-auto leading-relaxed select-all font-mono text-[11px] bg-[var(--code-bg)]">${unifiedFixScriptText.trim()}</pre>
       </div>
     `;
 
@@ -2311,28 +2312,28 @@ const AuditTab = {
         cardsHtml += `
           <div class="p-3 rounded border border-border bg-surface flex flex-col space-y-2 select-text">
             <div class="flex items-center justify-between pb-1.5 border-b border-border select-none">
-              <span class="px-1.5 py-0.5 text-[9px] bg-red-500/15 text-red-400 font-bold uppercase rounded">Shadowed Rule #${idx + 1}</span>
+              <span class="px-1.5 py-0.5 text-[9px] bg-red-500/15 text-red-600 font-bold uppercase rounded">Shadowed Rule #${idx + 1}</span>
               <span class="text-[9px] text-zinc-500 font-bold">Rule Sequence Conflict</span>
             </div>
 
             <div class="space-y-1.5">
               <div class="flex flex-col space-y-0.5">
-                <span class="text-[9px] uppercase font-bold tracking-wider text-red-400 select-none">The Shadowed Rule (Will never be hit)</span>
-                <div class="p-2 rounded bg-app border border-border text-red-300 font-mono text-[10px] leading-normal break-all select-all">
+                <span class="text-[9px] uppercase font-bold tracking-wider text-red-600 select-none">The Shadowed Rule (Will never be hit)</span>
+                <div class="p-2 rounded bg-app border border-border text-red-700 font-mono text-[10px] leading-normal break-all select-all">
                   ${rule.shadowedRule}
                 </div>
               </div>
 
               <div class="flex flex-col space-y-0.5">
-                <span class="text-[9px] uppercase font-bold tracking-wider text-amber-400 select-none">Rule Causing the Shadow (Precedes & blocks)</span>
-                <div class="p-2 rounded bg-app border border-border text-amber-300 font-mono text-[10px] leading-normal break-all select-all">
+                <span class="text-[9px] uppercase font-bold tracking-wider text-amber-600 select-none">Rule Causing the Shadow (Precedes & blocks)</span>
+                <div class="p-2 rounded bg-app border border-border text-amber-700 font-mono text-[10px] leading-normal break-all select-all">
                   ${rule.causingRule}
                 </div>
               </div>
 
               <div class="flex flex-col space-y-0.5 pt-0.5">
-                <span class="text-[9px] uppercase font-bold tracking-wider text-purple-400 select-none">Recommended Rule Alignment</span>
-                <div class="p-2 rounded bg-purple-950/10 border border-purple-500/20 text-purple-200 font-semibold text-xs leading-relaxed select-all">
+                <span class="text-[9px] uppercase font-bold tracking-wider text-purple-600 select-none">Recommended Rule Alignment</span>
+                <div class="p-2 rounded bg-purple-950/10 border border-purple-500/20 text-purple-700 font-semibold text-xs leading-relaxed select-all">
                   ${rule.fix}
                 </div>
               </div>
@@ -2492,7 +2493,7 @@ const AuditTab = {
     const mode = this.state.diffMode;
 
     if (typeof Diff === 'undefined') {
-      tbody.innerHTML = `<tr><td class="p-4 text-red-400">Error: Diff library is not loaded.</td></tr>`;
+      tbody.innerHTML = `<tr><td class="p-4 text-red-600">Error: Diff library is not loaded.</td></tr>`;
       return;
     }
 
@@ -2550,10 +2551,10 @@ const AuditTab = {
         const right = rightSide[i];
 
         const tr = document.createElement('tr');
-        tr.className = 'border-b border-gray-900/60 hover:bg-gray-900/40 text-gray-300';
+        tr.className = 'border-b border-border-subtle hover:bg-elevated text-[var(--text-secondary)]';
 
         const tdLeft = document.createElement('td');
-        tdLeft.className = 'w-1/2 p-2 whitespace-pre-wrap break-all select-text font-mono text-xs border-r border-gray-900';
+        tdLeft.className = 'w-1/2 p-2 whitespace-pre-wrap break-all select-text font-mono text-xs border-r border-border-subtle';
 
         const tdRight = document.createElement('td');
         tdRight.className = 'w-1/2 p-2 whitespace-pre-wrap break-all select-text font-mono text-xs';
@@ -2561,18 +2562,18 @@ const AuditTab = {
         if (left && right && left.type === 'equal') {
           tdLeft.textContent = left.text;
           tdRight.textContent = right.text;
-          tdLeft.className += ' text-gray-500';
-          tdRight.className += ' text-gray-500';
+          tdLeft.className += ' text-zinc-500';
+          tdRight.className += ' text-zinc-500';
         } else {
           if (left) {
-            tdLeft.className += ' bg-red-950/20 text-red-400 font-medium';
+            tdLeft.className += ' bg-red-950/20 text-red-600 font-medium';
             tdLeft.textContent = left.text;
           } else {
             tdLeft.textContent = '';
           }
 
           if (right) {
-            tdRight.className += ' bg-emerald-950/20 text-emerald-400 font-medium';
+            tdRight.className += ' bg-emerald-950/20 text-emerald-600 font-medium';
             tdRight.textContent = right.text;
           } else {
             tdRight.textContent = '';
@@ -2590,18 +2591,18 @@ const AuditTab = {
 
       lines.forEach((line) => {
         const tr = document.createElement('tr');
-        tr.className = 'border-b border-gray-900 hover:bg-gray-900/40';
+        tr.className = 'border-b border-border-subtle hover:bg-elevated';
         const td = document.createElement('td');
         td.className = 'p-2 whitespace-pre-wrap break-all select-text font-mono text-xs';
 
         if (!line.added && !line.removed) {
-          tr.className += ' text-gray-500';
+          tr.className += ' text-zinc-500';
           td.textContent = `  ${line.text}`;
         } else if (line.removed) {
-          td.className += ' bg-red-950/20 text-red-400 font-medium';
+          td.className += ' bg-red-950/20 text-red-600 font-medium';
           td.textContent = `- ${line.text}`;
         } else if (line.added) {
-          td.className += ' bg-emerald-950/20 text-emerald-400 font-medium';
+          td.className += ' bg-emerald-950/20 text-emerald-600 font-medium';
           td.textContent = `+ ${line.text}`;
         }
 
@@ -2656,7 +2657,7 @@ const AuditTab = {
 
     lines.forEach(line => {
       const item = document.createElement('div');
-      item.className = 'p-3 bg-gray-900 border border-gray-800 rounded-xl flex items-center justify-between space-x-3 hover:border-gray-700 transition duration-200';
+      item.className = 'p-3 bg-surface border border-border-subtle rounded-xl flex items-center justify-between space-x-3 hover:border-indigo-500/50 transition duration-200';
 
       const left = document.createElement('div');
       left.className = 'flex items-start space-x-3 select-none flex-1 overflow-hidden';
@@ -2666,16 +2667,16 @@ const AuditTab = {
       checkbox.className = 'mt-1 h-4 w-4 rounded shrink-0 cursor-pointer accent-purple-500';
 
       const text = document.createElement('code');
-      text.className = 'text-xs text-gray-200 font-mono select-text break-all leading-normal';
+      text.className = 'text-xs text-primary font-mono select-text break-all leading-normal';
       text.textContent = line;
 
       checkbox.addEventListener('change', () => {
         if (checkbox.checked) {
           text.className += ' line-through opacity-40';
-          item.className = 'p-3 bg-gray-950/40 border border-gray-900 rounded-xl flex items-center justify-between space-x-3 opacity-60 transition';
+          item.className = 'p-3 bg-elevated border border-border-subtle rounded-xl flex items-center justify-between space-x-3 opacity-60 transition';
         } else {
-          text.className = 'text-xs text-gray-200 font-mono select-text break-all leading-normal';
-          item.className = 'p-3 bg-gray-900 border border-gray-800 rounded-xl flex items-center justify-between space-x-3 hover:border-gray-700 transition';
+          text.className = 'text-xs text-primary font-mono select-text break-all leading-normal';
+          item.className = 'p-3 bg-surface border border-border-subtle rounded-xl flex items-center justify-between space-x-3 hover:border-indigo-500/50 transition';
         }
       });
 
@@ -2707,15 +2708,15 @@ const AuditTab = {
   // Toggle checklist modes
   switchCommandMode(mode) {
     this.state.commandMode = mode;
-    this.els.commandViewModeChecklist.className = 'px-3 py-1.5 text-xs font-bold rounded text-slate-400 hover:text-white transition';
-    this.els.commandViewModeRaw.className = 'px-3 py-1.5 text-xs font-bold rounded text-slate-400 hover:text-white transition';
+    this.els.commandViewModeChecklist.className = 'px-3 py-1.5 text-xs font-bold rounded text-slate-500 hover:text-slate-700 transition';
+    this.els.commandViewModeRaw.className = 'px-3 py-1.5 text-xs font-bold rounded text-slate-500 hover:text-slate-700 transition';
 
     if (mode === 'checklist') {
-      this.els.commandViewModeChecklist.className = 'px-3 py-1.5 text-xs font-bold rounded bg-slate-700 text-emerald-400 border border-emerald-500/30 transition';
+      this.els.commandViewModeChecklist.className = 'px-3 py-1.5 text-xs font-bold rounded bg-slate-700 text-emerald-600 border border-emerald-500/30 transition';
       this.els.commandsChecklistContainer.classList.remove('hidden');
       this.els.commandsRawContainer.classList.add('hidden');
     } else {
-      this.els.commandViewModeRaw.className = 'px-3 py-1.5 text-xs font-bold rounded bg-slate-700 text-emerald-400 border border-emerald-500/30 transition';
+      this.els.commandViewModeRaw.className = 'px-3 py-1.5 text-xs font-bold rounded bg-slate-700 text-emerald-600 border border-emerald-500/30 transition';
       this.els.commandsChecklistContainer.classList.add('hidden');
       this.els.commandsRawContainer.classList.remove('hidden');
     }

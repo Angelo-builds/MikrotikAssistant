@@ -21,14 +21,14 @@ const Router = {
       const parent = btn;
       const icon = btn.querySelector('i');
       if (btn.dataset.tab === tab) {
-        parent.className = 'nav-item tab-btn w-full flex items-center space-x-3 px-3 py-2 rounded-md bg-elevated text-indigo-400 font-semibold text-xs transition';
+        parent.className = 'nav-item tab-btn w-full flex items-center space-x-3 px-3 py-2 rounded-md bg-elevated text-indigo-600 font-semibold text-xs transition';
         if (icon) {
-          icon.className = icon.className.replace('text-zinc-400', 'text-indigo-400');
+          icon.className = icon.className.replace('text-zinc-500', 'text-indigo-600');
         }
       } else {
-        parent.className = 'nav-item tab-btn w-full flex items-center space-x-3 px-3 py-2 rounded-md hover:bg-elevated text-zinc-400 text-xs font-medium transition';
+        parent.className = 'nav-item tab-btn w-full flex items-center space-x-3 px-3 py-2 rounded-md hover:bg-elevated text-zinc-500 text-xs font-medium transition';
         if (icon) {
-          icon.className = icon.className.replace('text-indigo-400', 'text-zinc-400');
+          icon.className = icon.className.replace('text-indigo-600', 'text-zinc-500');
         }
       }
     });
@@ -71,14 +71,14 @@ const Router = {
           <div class="border border-border rounded-md bg-surface overflow-hidden">
             <button class="section-toggle w-full px-3 py-1.5 bg-surface-elevated flex items-center justify-between hover:bg-white/5 transition text-left focus:outline-none" data-section="theme">
               <span class="text-xs font-bold text-primary flex items-center uppercase tracking-wider">
-                ${UI_Icons.render('sun', 'mr-1.5 w-3.5 h-3.5 text-purple-500')}
+                ${UI_Icons.render('sun', 'mr-1.5 w-3.5 h-3.5 text-purple-600')}
                 Theme Preferences
               </span>
               <span class="chevron-theme text-zinc-500">
                 ${UI_Icons.render('chevron-down', 'w-3.5 h-3.5')}
               </span>
             </button>
-            <div id="section-content-theme" class="p-3 space-y-3 border-t border-border text-xs text-zinc-300">
+            <div id="section-content-theme" class="p-3 space-y-3 border-t border-border text-xs text-[var(--text-secondary)]">
               <div>
                 <label class="block text-[9px] font-bold text-zinc-500 uppercase mb-1">App Theme</label>
                 <select id="pref-theme" class="w-full h-7 bg-app border border-border rounded px-2.5 text-xs text-primary focus:outline-none focus:border-purple-500 transition-colors">
@@ -94,14 +94,14 @@ const Router = {
           <div class="border border-border rounded-md bg-surface overflow-hidden">
             <button class="section-toggle w-full px-3 py-1.5 bg-surface-elevated flex items-center justify-between hover:bg-white/5 transition text-left focus:outline-none" data-section="ai">
               <span class="text-xs font-bold text-primary flex items-center uppercase tracking-wider">
-                ${UI_Icons.render('activity', 'mr-1.5 w-3.5 h-3.5 text-purple-500')}
+                ${UI_Icons.render('activity', 'mr-1.5 w-3.5 h-3.5 text-purple-600')}
                 AI Provider Settings
               </span>
               <span class="chevron-ai text-zinc-500">
                 ${UI_Icons.render('chevron-down', 'w-3.5 h-3.5')}
               </span>
             </button>
-            <div id="section-content-ai" class="p-3 space-y-3 border-t border-border text-xs text-zinc-300">
+            <div id="section-content-ai" class="p-3 space-y-3 border-t border-border text-xs text-[var(--text-secondary)]">
               <div>
                 <label class="block text-[9px] font-bold text-zinc-500 uppercase mb-1">LLM Provider</label>
                 <select id="pref-provider" class="w-full h-7 bg-app border border-border rounded px-2.5 text-xs text-primary focus:outline-none focus:border-purple-500 transition-colors">
@@ -118,11 +118,11 @@ const Router = {
                     <span>Use Backend Env</span>
                   </label>
                 </div>
-                <input type="password" id="pref-apikey" autocomplete="current-password" class="w-full h-7 bg-app border border-border rounded px-2.5 text-xs text-primary placeholder-zinc-600 focus:outline-none focus:border-purple-500 transition-colors" value="${AppState.sessionApiKey || ''}">
+                <input type="password" id="pref-apikey" autocomplete="current-password" class="w-full h-7 bg-app border border-border rounded px-2.5 text-xs text-primary placeholder-zinc-500 focus:outline-none focus:border-purple-500 transition-colors" value="${AppState.sessionApiKey || ''}">
               </div>
               <div>
                 <label class="block text-[9px] font-bold text-zinc-500 uppercase mb-1">Model</label>
-                <input type="text" id="pref-model" class="w-full h-7 bg-app border border-border rounded px-2.5 text-xs text-primary placeholder-zinc-600 focus:outline-none focus:border-purple-500 transition-colors" value="${AppState.preferences.model || ''}">
+                <input type="text" id="pref-model" class="w-full h-7 bg-app border border-border rounded px-2.5 text-xs text-primary placeholder-zinc-500 focus:outline-none focus:border-purple-500 transition-colors" value="${AppState.preferences.model || ''}">
               </div>
             </div>
           </div>
@@ -131,14 +131,14 @@ const Router = {
           <div class="border border-border rounded-md bg-surface overflow-hidden">
             <button class="section-toggle w-full px-3 py-1.5 bg-surface-elevated flex items-center justify-between hover:bg-white/5 transition text-left focus:outline-none" data-section="privacy">
               <span class="text-xs font-bold text-primary flex items-center uppercase tracking-wider">
-                ${UI_Icons.render('shield-check', 'mr-1.5 w-3.5 h-3.5 text-purple-500')}
+                ${UI_Icons.render('shield-check', 'mr-1.5 w-3.5 h-3.5 text-purple-600')}
                 Privacy Shield Controls
               </span>
               <span class="chevron-privacy text-zinc-500">
                 ${UI_Icons.render('chevron-right', 'w-3.5 h-3.5')}
               </span>
             </button>
-            <div id="section-content-privacy" class="p-3 space-y-2 border-t border-border text-xs text-zinc-300 hidden">
+            <div id="section-content-privacy" class="p-3 space-y-2 border-t border-border text-xs text-[var(--text-secondary)] hidden">
               <div class="space-y-2">
                 <label class="flex items-center space-x-2.5 cursor-pointer select-none">
                   <input type="checkbox" id="mask-ips" ${AppState.preferences.privacyShields?.maskIPs ? 'checked' : ''} class="w-3.5 h-3.5 text-purple-600 bg-app border-border rounded focus:ring-purple-500 focus:ring-1 focus:ring-offset-0">
@@ -160,14 +160,14 @@ const Router = {
           <div class="border border-border rounded-md bg-surface overflow-hidden">
             <button class="section-toggle w-full px-3 py-1.5 bg-surface-elevated flex items-center justify-between hover:bg-white/5 transition text-left focus:outline-none" data-section="data">
               <span class="text-xs font-bold text-primary flex items-center uppercase tracking-wider">
-                ${UI_Icons.render('database', 'mr-1.5 w-3.5 h-3.5 text-purple-500')}
+                ${UI_Icons.render('database', 'mr-1.5 w-3.5 h-3.5 text-purple-600')}
                 📦 Export & Import
               </span>
               <span class="chevron-data text-zinc-500">
                 ${UI_Icons.render('chevron-right', 'w-3.5 h-3.5')}
               </span>
             </button>
-            <div id="section-content-data" class="p-3 space-y-3 border-t border-border text-xs text-zinc-300 hidden">
+            <div id="section-content-data" class="p-3 space-y-3 border-t border-border text-xs text-[var(--text-secondary)] hidden">
               <div class="grid grid-cols-2 gap-3 mb-2">
                 <button id="btn-export-all" class="btn-secondary text-[11px] h-8 flex items-center justify-center">
                   ${UI_Icons.render('download', 'w-3 h-3 mr-1')} Export All Data
