@@ -47,32 +47,43 @@ const AppState = {
   },
 
   initTheme() {
-    // Determine initial theme with high priority
-    let savedTheme = localStorage.getItem('mikrotik-assistant-theme');
-    if (!savedTheme) {
-      // OS Fallback
-      if (window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches) {
-        savedTheme = 'light';
-      } else {
-        savedTheme = 'dark';
-      }
-    }
+    let savedTheme = localStorage.getItem('mikrotik-assistant-theme') || 'system';
     this.setTheme(savedTheme);
+
+    // Watch system changes
+    if (window.matchMedia) {
+      window.matchMedia('(prefers-color-scheme: light)').addEventListener('change', () => {
+        if (this.theme === 'system') {
+          this.applyThemeToDOM();
+        }
+      });
+    }
   },
 
   setTheme(theme) {
     this.theme = theme;
     localStorage.setItem('mikrotik-assistant-theme', theme);
-
-    // Apply changes on documentElement
-    if (theme === 'light') {
-      document.documentElement.classList.add('light');
-      document.documentElement.classList.remove('dark');
-    } else {
-      document.documentElement.classList.add('dark');
-      document.documentElement.classList.remove('light');
-    }
+    this.applyThemeToDOM();
     this.save();
+  },
+
+  applyThemeToDOM() {
+    let resolvedTheme = this.theme;
+    if (this.theme === 'system') {
+      if (window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches) {
+        resolvedTheme = 'light';
+      } else {
+        resolvedTheme = 'dark';
+      }
+    }
+
+    document.documentElement.setAttribute('data-theme', resolvedTheme);
+
+    // Update Monaco editor dynamically if defined
+    if (typeof monaco !== 'undefined' && monaco.editor) {
+      const monacoTheme = resolvedTheme === 'light' ? 'vs' : 'mikrotik-dark';
+      monaco.editor.setTheme(monacoTheme);
+    }
   },
 
   toggleTheme() {

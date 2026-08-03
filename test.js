@@ -3,14 +3,20 @@ const { computeLineDiff, renderMarkdown, extractRouterOsCommands, debounce } = r
 
 // Mock localStorage, window and document for AppState environment in Node.js
 global.window = {
-  matchMedia: () => ({ matches: false })
+  matchMedia: () => ({
+    matches: false,
+    addEventListener: () => {},
+    removeEventListener: () => {}
+  })
 };
 global.document = {
   documentElement: {
     classList: {
       add() {},
       remove() {}
-    }
+    },
+    setAttribute() {},
+    removeAttribute() {}
   },
   createElement() {
     return {

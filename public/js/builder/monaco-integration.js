@@ -48,10 +48,20 @@ const MonacoIntegration = {
           });
         }
 
+        let resolvedTheme = AppState.theme;
+        if (resolvedTheme === 'system') {
+          if (window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches) {
+            resolvedTheme = 'light';
+          } else {
+            resolvedTheme = 'dark';
+          }
+        }
+        const initialTheme = resolvedTheme === 'light' ? 'vs' : 'mikrotik-dark';
+
         this.editor = monaco.editor.create(containerElement, {
           value: initialContent,
           language: 'routeros',
-          theme: 'mikrotik-dark',
+          theme: initialTheme,
           automaticLayout: true,
           minimap: { enabled: false },
           fontSize: 13,

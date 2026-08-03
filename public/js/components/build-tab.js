@@ -68,6 +68,9 @@ const BuildTab = {
             <span class="text-[10px] text-zinc-500 bg-elevated px-2 py-0.5 rounded">${this.blocks.filter(b => b.enabled).length} active</span>
           </div>
           <div class="flex items-center space-x-1">
+            <button id="btn-new-project" class="btn-secondary text-xs" title="New Project">
+              <i data-lucide="file-plus" class="w-3.5 h-3.5 mr-1"></i> New Project
+            </button>
             <button id="btn-import-export" class="icon-btn" title="Import .rsc">
               <i data-lucide="upload" class="w-3.5 h-3.5"></i>
             </button>
@@ -257,6 +260,7 @@ const BuildTab = {
       closeModal();
       this.renderBlocks();
       this.updatePreview();
+      if (typeof BuilderEngine !== 'undefined') BuilderEngine.triggerAutoSave();
     });
   },
 
@@ -282,6 +286,7 @@ const BuildTab = {
     });
     this.renderBlocks();
     this.updatePreview();
+    if (typeof BuilderEngine !== 'undefined') BuilderEngine.triggerAutoSave();
   },
 
   renderBlocks() {
@@ -326,6 +331,7 @@ const BuildTab = {
         this.blocks[index].enabled = e.currentTarget.checked;
         this.renderBlocks();
         this.updatePreview();
+        if (typeof BuilderEngine !== 'undefined') BuilderEngine.triggerAutoSave();
       });
     });
 
@@ -347,6 +353,7 @@ const BuildTab = {
         this.blocks.splice(index + 1, 0, duplicate);
         this.renderBlocks();
         this.updatePreview();
+        if (typeof BuilderEngine !== 'undefined') BuilderEngine.triggerAutoSave();
       });
     });
 
@@ -357,6 +364,7 @@ const BuildTab = {
         this.blocks.splice(index, 1);
         this.renderBlocks();
         this.updatePreview();
+        if (typeof BuilderEngine !== 'undefined') BuilderEngine.triggerAutoSave();
       });
     });
 
@@ -410,6 +418,7 @@ const BuildTab = {
           BuilderEngine.setVariable(newName, value);
           this.renderVariables();
           this.updatePreview();
+          if (typeof BuilderEngine !== 'undefined') BuilderEngine.triggerAutoSave();
         }
       });
     });
@@ -421,6 +430,7 @@ const BuildTab = {
         BuilderEngine.setVariable(name, value);
         this.renderDerivedVariables();
         this.updatePreview();
+        if (typeof BuilderEngine !== 'undefined') BuilderEngine.triggerAutoSave();
       });
     });
 
@@ -430,6 +440,7 @@ const BuildTab = {
         BuilderEngine.removeVariable(name);
         this.renderVariables();
         this.updatePreview();
+        if (typeof BuilderEngine !== 'undefined') BuilderEngine.triggerAutoSave();
       });
     });
 
@@ -481,6 +492,7 @@ const BuildTab = {
     BuilderEngine.setVariable(name.toUpperCase(), value);
     this.renderVariables();
     this.updatePreview();
+    if (typeof BuilderEngine !== 'undefined') BuilderEngine.triggerAutoSave();
   },
 
   getBlockIcon(category) {
@@ -551,6 +563,7 @@ const BuildTab = {
           this.renderBlocks();
           this.updatePreview();
           modal.remove();
+          if (typeof BuilderEngine !== 'undefined') BuilderEngine.triggerAutoSave();
         }
       });
     });
@@ -569,6 +582,7 @@ const BuildTab = {
         this.renderBlocks();
         this.updatePreview();
         modal.remove();
+        if (typeof BuilderEngine !== 'undefined') BuilderEngine.triggerAutoSave();
       }
     });
 
@@ -628,6 +642,7 @@ const BuildTab = {
         });
         this.renderBlocks();
         this.updatePreview();
+        if (typeof BuilderEngine !== 'undefined') BuilderEngine.triggerAutoSave();
         alert('Block generated successfully!');
       } else {
         alert('Failed to generate block');
@@ -650,9 +665,14 @@ const BuildTab = {
       block.enabled = preset.enabledBlocks.includes(block.id);
     });
 
+    BuilderEngine.projectName = `Preset: ${preset.name}`;
+    BuilderEngine.currentProjectId = `project-${Date.now()}`;
+    BuilderEngine.createdAt = new Date().toISOString();
+
     this.renderVariables();
     this.renderBlocks();
     this.updatePreview();
+    if (typeof BuilderEngine !== 'undefined') BuilderEngine.autoSaveProject();
 
     alert(`Preset "${preset.name}" loaded successfully!`);
   },
@@ -661,10 +681,14 @@ const BuildTab = {
     BuilderEngine.state.variables = project.variables || {};
     BuilderEngine.computeAllDerived();
     BuilderEngine.state.blocks = project.blocks || [];
+    BuilderEngine.currentProjectId = project.id || `project-${Date.now()}`;
+    BuilderEngine.projectName = project.name || `Project ${new Date().toLocaleDateString()}`;
+    BuilderEngine.createdAt = project.createdAt || new Date().toISOString();
 
     this.renderVariables();
     this.renderBlocks();
     this.updatePreview();
+    if (typeof BuilderEngine !== 'undefined') BuilderEngine.autoSaveProject();
   },
 
   async saveToLibrary() {
@@ -699,6 +723,7 @@ const BuildTab = {
 
     this.renderBlocks();
     this.updatePreview();
+    if (typeof BuilderEngine !== 'undefined') BuilderEngine.triggerAutoSave();
     alert('Configuration imported from Audit as a new block!');
   },
 
@@ -738,6 +763,7 @@ const BuildTab = {
           this.renderVariables();
           this.updatePreview();
           closeModal();
+          if (typeof BuilderEngine !== 'undefined') BuilderEngine.triggerAutoSave();
           alert(`Imported ${result.blocks.length} blocks and ${Object.keys(result.variables).length} variables!`);
         } else {
           alert('Parse error: ' + result.error);
@@ -883,6 +909,42 @@ const BuildTab = {
 
     const btnAddVar = document.getElementById('btn-add-variable');
     if (btnAddVar) btnAddVar.addEventListener('click', () => this.addVariable());
+
+    const btnNewProject = document.getElementById('btn-new-project');
+    if (btnNewProject) {
+      btnNewProject.addEventListener('click', async () => {
+        if (typeof PromptModal !== 'undefined') {
+          const confirmNew = await PromptModal.show({
+            title: 'New Project',
+            message: 'Are you sure you want to start a new project? Make sure your current project is saved.',
+            confirmText: 'Create New',
+            cancelText: 'Cancel'
+          });
+          if (!confirmNew) return;
+
+          const name = await PromptModal.show({
+            title: 'Project Name',
+            message: 'Enter a name for the new project:',
+            placeholder: 'e.g., Client ABC - Basic Setup',
+            defaultValue: `Untitled ${new Date().toLocaleDateString()}`,
+            confirmText: 'Create',
+            cancelText: 'Cancel'
+          });
+          if (name === null) return;
+
+          BuilderEngine.state.variables = { ...BuilderEngine.defaultVariables };
+          BuilderEngine.state.blocks = [];
+          BuilderEngine.currentProjectId = `project-${Date.now()}`;
+          BuilderEngine.projectName = name;
+          BuilderEngine.createdAt = new Date().toISOString();
+
+          this.renderVariables();
+          this.renderBlocks();
+          this.updatePreview();
+          BuilderEngine.autoSaveProject();
+        }
+      });
+    }
 
     const btnAddBlock = document.getElementById('btn-add-block');
     if (btnAddBlock) btnAddBlock.addEventListener('click', () => this.addBlock());

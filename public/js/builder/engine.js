@@ -110,6 +110,7 @@ const BuilderEngine = {
   setVariable(name, value) {
     this.state.variables[name] = value;
     this.computeAllDerived();
+    this.triggerAutoSave();
   },
 
   getAllVariables() {
@@ -120,6 +121,7 @@ const BuilderEngine = {
     if (typeof AppState !== 'undefined' && AppState.save) {
       AppState.save();
     }
+    this.triggerAutoSave();
   },
 
   removeVariable(name) {
@@ -143,6 +145,87 @@ const BuilderEngine = {
     });
 
     this.save();
+  },
+
+  // Auto-Save features
+  get currentProjectId() {
+    return this.state.currentProjectId || null;
+  },
+  set currentProjectId(val) {
+    this.state.currentProjectId = val;
+  },
+  get projectName() {
+    return this.state.projectName || null;
+  },
+  set projectName(val) {
+    this.state.projectName = val;
+  },
+  get createdAt() {
+    return this.state.createdAt || null;
+  },
+  set createdAt(val) {
+    this.state.createdAt = val;
+  },
+
+  autoSaveProject() {
+    const projects = this.getSavedProjects();
+    const currentProject = {
+      id: this.currentProjectId || `project-${Date.now()}`,
+      name: this.projectName || `Untitled ${new Date().toLocaleDateString()}`,
+      variables: this.variables,
+      blocks: this.blocks,
+      lastModified: new Date().toISOString(),
+      createdAt: this.createdAt || new Date().toISOString()
+    };
+
+    // Update or add project
+    const index = projects.findIndex(p => p.id === currentProject.id);
+    if (index !== -1) {
+      projects[index] = currentProject;
+    } else {
+      projects.push(currentProject);
+    }
+
+    localStorage.setItem('builder-projects', JSON.stringify(projects));
+    this.currentProjectId = currentProject.id;
+    this.createdAt = currentProject.createdAt;
+
+    // Dispatch custom event to notify sidebar
+    window.dispatchEvent(new CustomEvent('builder-project-saved'));
+  },
+
+  getSavedProjects() {
+    const data = localStorage.getItem('builder-projects');
+    return data ? JSON.parse(data) : [];
+  },
+
+  loadProject(projectId) {
+    const projects = this.getSavedProjects();
+    const project = projects.find(p => p.id === projectId);
+    if (project) {
+      this.variables = project.variables || {};
+      this.blocks = project.blocks || [];
+      this.currentProjectId = project.id;
+      this.projectName = project.name;
+      this.createdAt = project.createdAt;
+
+      this.computeAllDerived();
+
+      if (typeof BuildTab !== 'undefined' && BuildTab.renderVariables) {
+        BuildTab.renderVariables();
+        BuildTab.renderBlocks();
+        BuildTab.updatePreview();
+      }
+    }
+  },
+
+  triggerAutoSave() {
+    if (this._autoSaveTimeout) {
+      clearTimeout(this._autoSaveTimeout);
+    }
+    this._autoSaveTimeout = setTimeout(() => {
+      this.autoSaveProject();
+    }, 2000);
   },
 
   // Evaluate a condition string against current variables
