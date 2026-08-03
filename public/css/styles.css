@@ -561,3 +561,41 @@ body {
   background: var(--border-subtle, #3f3f46);
   border-radius: 2px;
 }
+
+/* History panel animations */
+#history-panel {
+  transition: max-height 200ms ease, opacity 200ms ease;
+  overflow: hidden;
+}
+
+#history-panel.collapsed {
+  max-height: 0 !important;
+  opacity: 0 !important;
+  padding-top: 0 !important;
+  padding-bottom: 0 !important;
+  pointer-events: none;
+}
+
+#history-chevron.rotated {
+  transform: rotate(-180deg);
+}
+
+/* Block template cards */
+.block-template {
+  transition: all 150ms ease;
+}
+
+.block-template:hover {
+  border-color: var(--accent-primary, #6366f1);
+  transform: translateY(-1px);
+}
+
+/* Navigation items */
+.nav-item {
+  transition: all 150ms ease;
+}
+
+.nav-item.active {
+  background: var(--bg-elevated, #27272a);
+  color: var(--accent-primary, #818cf8);
+}

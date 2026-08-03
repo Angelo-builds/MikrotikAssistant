@@ -21,14 +21,14 @@ const Router = {
       const parent = btn;
       const icon = btn.querySelector('i');
       if (btn.dataset.tab === tab) {
-        parent.className = 'tab-btn w-full text-left h-8 px-2.5 rounded-md bg-purple-600/10 text-purple-400 border-l-2 border-purple-500 text-xs font-semibold flex items-center transition-all';
+        parent.className = 'nav-item tab-btn w-full flex items-center space-x-3 px-3 py-2 rounded-md bg-elevated text-indigo-400 font-semibold text-xs transition';
         if (icon) {
-          icon.className = icon.className.replace('text-zinc-400', 'text-purple-400');
+          icon.className = icon.className.replace('text-zinc-400', 'text-indigo-400');
         }
       } else {
-        parent.className = 'tab-btn w-full text-left h-8 px-2.5 rounded-md hover:bg-white/5 text-xs font-medium text-secondary flex items-center transition-colors border-l-2 border-transparent';
+        parent.className = 'nav-item tab-btn w-full flex items-center space-x-3 px-3 py-2 rounded-md hover:bg-elevated text-zinc-400 text-xs font-medium transition';
         if (icon) {
-          icon.className = icon.className.replace('text-purple-400', 'text-zinc-400');
+          icon.className = icon.className.replace('text-indigo-400', 'text-zinc-400');
         }
       }
     });

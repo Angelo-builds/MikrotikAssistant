@@ -19,7 +19,7 @@ def test_ui_fixes():
         sidebar = page.locator("#sidebar")
         toggle_sidebar_btn = page.locator("#sidebar-toggle")
 
-        # Initially, sidebar should not be collapsed (width 200px)
+        # Initially, sidebar should not be collapsed
         expect(sidebar).not_to_have_class(re.compile(r"sidebar-collapsed"))
         print("Initial sidebar class matches: expanded")
 
@@ -34,27 +34,47 @@ def test_ui_fixes():
         print("localStorage 'sidebar-collapsed' value:", collapsed_storage_val)
         assert collapsed_storage_val == "true"
 
-        # --- TEST 2: Right Panel Session History Closed by Default ---
-        right_panel = page.locator("#sidebar-control-center")
-        toggle_right_btn = page.locator("#right-panel-toggle")
+        # Toggle back to expanded so we can see the history panel
+        toggle_sidebar_btn.click()
+        page.wait_for_timeout(300)
 
-        # Initially, right panel should be closed (width 0, class overflow-hidden etc)
-        expect(right_panel).not_to_have_class(re.compile(r"opacity-100"))
-        print("Initial right panel closed successfully!")
+        # --- TEST 2: Left Sidebar History Collapsible State ---
+        history_panel = page.locator("#history-panel")
+        toggle_history_btn = page.locator("#btn-toggle-history")
 
-        # Click to open right panel
-        toggle_right_btn.click()
-        page.wait_for_timeout(300) # wait for animation
-        expect(right_panel).to_have_class(re.compile(r"opacity-100"))
-        print("After click, right panel opened successfully!")
+        # Initially, history panel should not be collapsed (default first load)
+        expect(history_panel).not_to_have_class(re.compile(r"collapsed"))
+        print("History panel initially expanded successfully!")
 
-        # Check localStorage has saved 'right-panel-open' as true
-        panel_storage_val = page.evaluate("localStorage.getItem('right-panel-open')")
-        print("localStorage 'right-panel-open' value:", panel_storage_val)
-        assert panel_storage_val == "true"
+        # Click to collapse history
+        toggle_history_btn.click()
+        page.wait_for_timeout(200)
+        expect(history_panel).to_have_class(re.compile(r"collapsed"))
+        print("After click, history panel collapsed successfully!")
 
-        # Click to collapse sidebar and take a screenshot of current state
-        # (sidebar collapsed, right panel open)
+        # Check localStorage has saved 'history-panel-collapsed' as true
+        history_panel_storage_val = page.evaluate("localStorage.getItem('history-panel-collapsed')")
+        print("localStorage 'history-panel-collapsed' value:", history_panel_storage_val)
+        assert history_panel_storage_val == "true"
+
+        # --- TEST 3: New Session Replacement ---
+        btn_new_session = page.locator("#btn-new-session")
+        btn_new_session.click()
+        page.wait_for_timeout(200)
+
+        # PromptModal should have been rendered on page
+        prompt_modal = page.locator("text=Start New Session")
+        expect(prompt_modal).to_be_visible()
+        print("New Session replacement prompt modal is verified visible!")
+
+        # Click Cancel to dismiss the prompt modal
+        btn_cancel = page.locator("button:has-text('Cancel')")
+        btn_cancel.click()
+        page.wait_for_timeout(200)
+        expect(prompt_modal).not_to_be_visible()
+        print("Modal cancelled and dismissed successfully!")
+
+        # Save a screenshot of current state
         page.screenshot(path="/home/jules/verification/ui_fixes_screenshot.png")
         print("Screenshot saved to /home/jules/verification/ui_fixes_screenshot.png")
 

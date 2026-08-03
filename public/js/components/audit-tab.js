@@ -205,7 +205,7 @@ const AuditTab = {
         <div class="flex-1 flex flex-col h-full min-w-0 relative">
 
           <!-- SUBHEADER -->
-          <div class="flex items-center justify-between px-4 py-2 border-b border-border bg-surface shrink-0 select-none">
+          <div class="flex flex-wrap items-center justify-between px-4 py-2 border-b border-border bg-surface shrink-0 gap-2 select-none">
             <div class="flex items-center space-x-2">
               ${UI_Icons.render('terminal', 'text-purple-500 w-3.5 h-3.5')}
               <span class="text-xs font-bold text-purple-400">Mik local audit</span>
@@ -216,12 +216,20 @@ const AuditTab = {
               <span id="privacy-count-badge" class="text-[10px] bg-purple-950/20 border border-purple-500/20 text-purple-300 px-1.5 py-0.5 rounded font-semibold">
                 Privacy Guard: 6/6 Active
               </span>
-              <!-- Toggle control center right panel toggle right next to privacy badge -->
-              <button id="right-panel-toggle" class="text-zinc-400 hover:text-white p-1 rounded hover:bg-white/5 transition" title="Toggle Control Center">
-                ${UI_Icons.render(this.state.isSidebarOpen ? 'panel-right-close' : 'panel-right-open', 'w-3.5 h-3.5')}
-              </button>
             </div>
             <div class="flex items-center space-x-2">
+              <select id="select-ros-version" class="bg-surface border border-border rounded px-2 py-0.5 text-[10px] text-white focus:outline-none" title="RouterOS Version">
+                <option value="auto" selected>ROS: Auto</option>
+                <option value="v7">ROS: v7</option>
+                <option value="v6">ROS: v6</option>
+              </select>
+              <select id="select-hardware" class="bg-surface border border-border rounded px-2 py-0.5 text-[10px] text-white focus:outline-none" title="Hardware Model">
+                <option value="auto" selected>HW: Auto</option>
+                <option value="RB5009">RB5009</option>
+                <option value="hEX S">hEX S</option>
+                <option value="CCR2004">CCR2004</option>
+                <option value="CHR">CHR</option>
+              </select>
               <select id="setting-language-audit" class="bg-surface border border-border rounded px-2 py-0.5 text-[10px] text-white focus:outline-none">
                 <option value="auto" ${this.state.language === 'auto' ? 'selected' : ''}>Auto-Detect</option>
                 <option value="en" ${this.state.language === 'en' ? 'selected' : ''}>English</option>
@@ -402,6 +410,9 @@ const AuditTab = {
                 <button id="btn-attach-file-upload" class="w-7 h-7 rounded bg-app hover:bg-white/5 border border-border text-zinc-300 transition duration-150 flex items-center justify-center focus:outline-none" title="Upload Config File">
                   ${UI_Icons.render('upload', 'w-3.5 h-3.5')}
                 </button>
+                <button id="btn-toggle-wiki" class="w-7 h-7 rounded transition duration-150 flex items-center justify-center focus:outline-none ${window.forceWikiContext ? 'bg-purple-900/40 text-purple-400 border border-purple-500/30' : 'bg-app hover:bg-white/5 border border-border text-zinc-300'}" title="Toggle Wiki Context Support">
+                  ${UI_Icons.render('book-open', 'w-3.5 h-3.5')}
+                </button>
                 <input type="file" id="file-input" class="hidden" accept=".rsc,.txt,.log">
               </div>
 
@@ -440,190 +451,6 @@ const AuditTab = {
             </div>
 
           </div>
-        </div>
-
-        <!-- RIGHT SIDE: COLLAPSIBLE CONTROL CENTER SIDEBAR -->
-        <div id="sidebar-control-center" class="w-0 overflow-hidden border-l-0 opacity-0 border-l border-border bg-surface flex flex-col h-full transition-all duration-150 shrink-0 select-none">
-
-          <!-- SIDEBAR TABS HEADER -->
-          <div class="grid grid-cols-4 border-b border-border text-center text-xs bg-surface-elevated/45 p-1 shrink-0">
-            <button id="sidebar-tab-history" class="py-1 px-1 rounded hover:bg-white/5 transition flex items-center justify-center text-zinc-400" title="Audit History">
-              ${UI_Icons.render('history', 'w-3.5 h-3.5')}
-            </button>
-            <button id="sidebar-tab-queues" class="py-1 px-1 rounded hover:bg-white/5 transition flex items-center justify-center text-zinc-400" title="Queue Generator">
-              ${UI_Icons.render('activity', 'w-3.5 h-3.5')}
-            </button>
-            <button id="sidebar-tab-context" class="py-1 px-1 rounded hover:bg-white/5 transition flex items-center justify-center text-zinc-400" title="Context Selector">
-              ${UI_Icons.render('cpu', 'w-3.5 h-3.5')}
-            </button>
-            <button id="sidebar-tab-preferences" class="py-1 px-1 rounded hover:bg-white/5 transition flex items-center justify-center text-zinc-400" title="Privacy Settings">
-              ${UI_Icons.render('shield', 'w-3.5 h-3.5')}
-            </button>
-          </div>
-
-          <!-- SIDEBAR TAB CONTENTS CONTAINER -->
-          <div class="flex-1 overflow-y-auto p-3 min-h-0">
-
-            <!-- HISTORY TAB -->
-            <div id="sidebar-section-history" class="flex flex-col h-full min-h-0">
-              <div class="flex items-center justify-between mb-2 shrink-0">
-                <h3 class="text-[10px] font-bold uppercase tracking-wider text-zinc-400" id="ui-label-history-title">${t.historyTitle.replace(/📜|📈|⚙️|🛡️/g, '')}</h3>
-                <button id="btn-clear-history" title="Wipe All" class="text-zinc-500 hover:text-red-500 transition p-1 hover:bg-red-500/10 rounded-md inline-flex items-center justify-center h-6 w-6">
-                  ${UI_Icons.render('trash-2', 'w-3.5 h-3.5')}
-                </button>
-              </div>
-              <div class="relative w-full shrink-0">
-                <div class="absolute inset-y-0 left-0 pl-2 flex items-center pointer-events-none text-zinc-500">
-                  ${UI_Icons.render('search', 'w-3 h-3')}
-                </div>
-                <input
-                  id="search-history"
-                  type="text"
-                  title="Search saved audits"
-                  class="w-full bg-app border border-border rounded-md pl-7 pr-2 py-1 text-[11px] focus:outline-none focus:border-purple-500 text-white"
-                >
-              </div>
-              <div id="history-items-container" class="flex-1 overflow-y-auto space-y-1.5 mt-2 pr-1 min-h-0">
-                <div id="ui-history-empty" class="text-center py-6 text-zinc-500 text-[10px] font-medium">${t.historyEmpty}</div>
-              </div>
-            </div>
-
-            <!-- QUEUE GENERATOR TAB -->
-            <div id="sidebar-section-queues" class="hidden space-y-3">
-              <h3 id="ui-queue-header" class="text-[10px] font-bold uppercase tracking-wider text-zinc-400 flex items-center gap-1.5 border-b border-border pb-1.5 select-none">
-                ${UI_Icons.render('activity', 'w-3.5 h-3.5 text-purple-400')}
-                <span>${t.queueHeader.replace(/🚀/g, '').trim()}</span>
-              </h3>
-              <div class="space-y-2">
-                <div>
-                  <label id="ui-label-queue-name" class="block text-[9px] font-bold uppercase text-zinc-500 mb-0.5">${t.queueTargetName}</label>
-                  <input id="queue-target-name" type="text" placeholder="Guest-WiFi" class="w-full bg-app border border-border rounded px-2 py-1 text-xs text-white focus:outline-none focus:border-purple-500">
-                </div>
-                <div>
-                  <label id="ui-label-queue-ip" class="block text-[9px] font-bold uppercase text-zinc-500 mb-0.5">${t.queueTargetIp}</label>
-                  <input id="queue-target-ip" type="text" placeholder="192.168.20.0/24" class="w-full bg-app border border-border rounded px-2 py-1 text-xs text-white focus:outline-none focus:border-purple-500">
-                </div>
-                <div class="grid grid-cols-2 gap-2">
-                  <div>
-                    <label id="ui-label-queue-upload" class="block text-[9px] font-bold uppercase text-zinc-500 mb-0.5">${t.queueMaxUpload}</label>
-                    <input id="queue-max-upload" type="number" placeholder="10" class="w-full bg-app border border-border rounded px-2 py-1 text-xs text-white focus:outline-none focus:border-purple-500 font-mono">
-                  </div>
-                  <div>
-                    <label id="ui-label-queue-download" class="block text-[9px] font-bold uppercase text-zinc-500 mb-0.5">${t.queueMaxDownload}</label>
-                    <input id="queue-max-download" type="number" placeholder="10" class="w-full bg-app border border-border rounded px-2 py-1 text-xs text-white focus:outline-none focus:border-purple-500 font-mono">
-                  </div>
-                </div>
-                <div>
-                  <label id="ui-label-queue-priority" class="block text-[9px] font-bold uppercase text-zinc-500 mb-0.5">${t.queuePriority}</label>
-                  <select id="queue-priority" class="w-full bg-app border border-border rounded px-2 py-1 text-xs text-white focus:outline-none focus:border-purple-500 font-mono">
-                    <option value="1">1 (Highest)</option>
-                    <option value="4">4 (Normal)</option>
-                    <option value="8" selected>8 (Lowest)</option>
-                  </select>
-                </div>
-                <button id="btn-queue-generate" class="w-full btn-primary h-7 font-bold text-xs shadow-lg mt-2">${t.queueGenerateBtn}</button>
-
-                <!-- QUEUE READY OUTPUT -->
-                <div id="queue-code-output-container" class="hidden space-y-2 border-t border-border pt-2">
-                  <span id="ui-queue-output-title" class="block text-[9px] font-bold uppercase text-zinc-500">${t.queueOutputTitle}</span>
-                  <div class="p-2 rounded bg-app border border-border text-[10px] font-mono select-all text-zinc-300 break-all" id="queue-code-block"></div>
-                  <button id="btn-queue-copy" class="w-full btn-secondary h-7 font-bold text-xs flex items-center justify-center space-x-1 mt-1">
-                    ${UI_Icons.render('copy', 'w-3 h-3 mr-1')}
-                    <span id="ui-label-queue-copy-btn">${t.queueCopyBtn.replace(/📋/g, '')}</span>
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            <!-- CONTEXT SELECTOR TAB -->
-            <div id="sidebar-section-context" class="hidden space-y-3">
-              <h3 class="text-[10px] font-bold uppercase tracking-wider text-zinc-400 border-b border-border pb-1.5 select-none flex items-center gap-1.5">
-                ${UI_Icons.render('cpu', 'w-3.5 h-3.5 text-purple-400')}
-                <span>RouterOS Context</span>
-              </h3>
-              <div class="space-y-2">
-                <div>
-                  <label class="block text-[9px] font-bold uppercase text-zinc-500 mb-0.5">RouterOS Version</label>
-                  <select id="select-ros-version" class="w-full bg-app border border-border rounded px-2 py-1 text-xs text-white focus:outline-none focus:border-purple-500">
-                    <option value="auto" selected>Auto-Detect / Infer</option>
-                    <option value="v7">v7 (Latest release)</option>
-                    <option value="v6">v6 (Legacy release)</option>
-                  </select>
-                </div>
-                <div>
-                  <label class="block text-[9px] font-bold uppercase text-zinc-500 mb-0.5">Hardware Model / Arch</label>
-                  <select id="select-hardware" class="w-full bg-app border border-border rounded px-2 py-1 text-xs text-white focus:outline-none focus:border-purple-500">
-                    <option value="auto" selected>Auto-Detect / Infer</option>
-                    <option value="RB5009">RB5009 (ARM64 / WiFiWave2)</option>
-                    <option value="hEX S">hEX S (MMIPS / HW Offload)</option>
-                    <option value="CCR2004">CCR2004 (ARM64 / High-Perf)</option>
-                    <option value="CHR">CHR (Cloud Hosted Router / x86)</option>
-                  </select>
-                </div>
-              </div>
-            </div>
-
-            <!-- PRIVACY SHIELDS TAB -->
-            <div id="sidebar-section-preferences" class="hidden space-y-3">
-              <h3 class="text-[10px] font-bold uppercase tracking-wider text-zinc-400 border-b border-border pb-1.5 select-none flex items-center gap-1.5">
-                ${UI_Icons.render('shield', 'w-3.5 h-3.5 text-purple-400')}
-                <span>Client Privacy Shields</span>
-              </h3>
-              <div class="space-y-2.5">
-
-                <div class="flex items-start justify-between">
-                  <div>
-                    <label id="ui-mask-ips-title" class="block text-[11px] font-bold text-white">${t.settingsMaskIpsTitle || 'Mask IP Addresses'}</label>
-                    <span id="ui-mask-ips-desc" class="text-[9px] text-zinc-500 leading-normal">${t.settingsMaskIpsDesc || 'Scans IPv4/6; maps to placeholders'}</span>
-                  </div>
-                  <input type="checkbox" id="mask-ips" class="accent-purple-500 mt-1 h-3.5 w-3.5" checked>
-                </div>
-
-                <div class="flex items-start justify-between">
-                  <div>
-                    <label id="ui-mask-macs-title" class="block text-[11px] font-bold text-white">${t.settingsMaskMacsTitle || 'Mask hardware identifiers'}</label>
-                    <span id="ui-mask-macs-desc" class="text-[9px] text-zinc-500 leading-normal">${t.settingsMaskMacsDesc || 'Hides physical hex hardware interfaces'}</span>
-                  </div>
-                  <input type="checkbox" id="mask-macs" class="accent-purple-500 mt-1 h-3.5 w-3.5" checked>
-                </div>
-
-                <div class="flex items-start justify-between">
-                  <div>
-                    <label id="ui-mask-secrets-title" class="block text-[11px] font-bold text-white">${t.settingsMaskSecretsTitle || 'Mask Keys & Secrets'}</label>
-                    <span id="ui-mask-secrets-desc" class="text-[9px] text-zinc-500 leading-normal">${t.settingsMaskSecretsDesc || 'Hides security-profiles, passwords, pre-shared keys'}</span>
-                  </div>
-                  <input type="checkbox" id="mask-secrets" class="accent-purple-500 mt-1 h-3.5 w-3.5" checked>
-                </div>
-
-                <div class="flex items-start justify-between">
-                  <div>
-                    <label id="ui-mask-interfaces-title" class="block text-[11px] font-bold text-white">${t.settingsMaskInterfacesTitle || 'Mask Custom Interfaces'}</label>
-                    <span id="ui-mask-interfaces-desc" class="text-[9px] text-zinc-500 leading-normal">${t.settingsMaskInterfacesDesc || 'Keeps standard names, masks custom'}</span>
-                  </div>
-                  <input type="checkbox" id="mask-interfaces" class="accent-purple-500 mt-1 h-3.5 w-3.5" checked>
-                </div>
-
-                <div class="flex items-start justify-between">
-                  <div>
-                    <label id="ui-mask-domains-title" class="block text-[11px] font-bold text-white">${t.settingsMaskDomainsTitle || 'Mask Domain Names'}</label>
-                    <span id="ui-mask-domains-desc" class="text-[9px] text-zinc-500 leading-normal">${t.settingsMaskDomainsDesc || 'Hides external server addresses & DDNS urls'}</span>
-                  </div>
-                  <input type="checkbox" id="mask-domains" class="accent-purple-500 mt-1 h-3.5 w-3.5" checked>
-                </div>
-
-                <div class="flex items-start justify-between">
-                  <div>
-                    <label id="ui-mask-identity-title" class="block text-[11px] font-bold text-white">${t.settingsMaskIdentityTitle || 'Mask Router system identity'}</label>
-                    <span id="ui-mask-identity-desc" class="text-[9px] text-zinc-500 leading-normal">${t.settingsMaskIdentityDesc || 'Redacts custom system labels or hardware handles'}</span>
-                  </div>
-                  <input type="checkbox" id="mask-identity" class="accent-purple-500 mt-1 h-3.5 w-3.5" checked>
-                </div>
-
-              </div>
-            </div>
-
-          </div>
-
         </div>
 
       </div>
@@ -697,8 +524,6 @@ const AuditTab = {
     // Trigger stateful view syncs on render
     this.updateLLMStatusBadge();
     this.updatePrivacyShieldCountLabel();
-    this.renderHistoryList();
-    this.syncSidebarState();
 
     if (typeof lucide !== 'undefined') {
       lucide.createIcons();
@@ -713,32 +538,6 @@ const AuditTab = {
       loadingSpinner: document.getElementById('loading-spinner'),
       submitIcon: document.getElementById('submit-icon'),
       stopIcon: document.getElementById('stop-icon'),
-
-      rightPanelToggle: document.getElementById('right-panel-toggle'),
-      sidebarControlCenter: document.getElementById('sidebar-control-center'),
-
-      sidebarTabHistory: document.getElementById('sidebar-tab-history'),
-      sidebarTabContext: document.getElementById('sidebar-tab-context'),
-      sidebarTabPreferences: document.getElementById('sidebar-tab-preferences'),
-      sidebarTabQueues: document.getElementById('sidebar-tab-queues'),
-      sidebarSectionHistory: document.getElementById('sidebar-section-history'),
-      sidebarSectionContext: document.getElementById('sidebar-section-context'),
-      sidebarSectionPreferences: document.getElementById('sidebar-section-preferences'),
-      sidebarSectionQueues: document.getElementById('sidebar-section-queues'),
-
-      queueTargetName: document.getElementById('queue-target-name'),
-      queueTargetIp: document.getElementById('queue-target-ip'),
-      queueMaxUpload: document.getElementById('queue-max-upload'),
-      queueMaxDownload: document.getElementById('queue-max-download'),
-      queuePriority: document.getElementById('queue-priority'),
-      btnQueueGenerate: document.getElementById('btn-queue-generate'),
-      queueCodeOutputContainer: document.getElementById('queue-code-output-container'),
-      queueCodeBlock: document.getElementById('queue-code-block'),
-      btnQueueCopy: document.getElementById('btn-queue-copy'),
-
-      btnClearHistory: document.getElementById('btn-clear-history'),
-      searchHistory: document.getElementById('search-history'),
-      historyItemsContainer: document.getElementById('history-items-container'),
 
       fileInfoBar: document.getElementById('file-info-bar'),
       fileNameLabel: document.getElementById('file-name-label'),
@@ -801,18 +600,18 @@ const AuditTab = {
 
   // Wires all DOM event listeners
   setupEventListeners() {
-    // 1. Sidebar Control Center Tabs
-    if (this.els.sidebarTabHistory) this.els.sidebarTabHistory.addEventListener('click', () => this.handleSidebarTabSwitch('history'));
-    if (this.els.sidebarTabQueues) this.els.sidebarTabQueues.addEventListener('click', () => this.handleSidebarTabSwitch('queues'));
-    if (this.els.sidebarTabContext) this.els.sidebarTabContext.addEventListener('click', () => this.handleSidebarTabSwitch('context'));
-    if (this.els.sidebarTabPreferences) this.els.sidebarTabPreferences.addEventListener('click', () => this.handleSidebarTabSwitch('preferences'));
-
-    // 2. Sidebar Toggle Button
-    if (this.els.rightPanelToggle) {
-      this.els.rightPanelToggle.addEventListener('click', () => {
-        this.state.isSidebarOpen = !this.state.isSidebarOpen;
-        localStorage.setItem('right-panel-open', this.state.isSidebarOpen);
-        this.syncSidebarState();
+    // 1. Wiki context toggle button
+    const btnToggleWiki = document.getElementById('btn-toggle-wiki');
+    if (btnToggleWiki) {
+      btnToggleWiki.addEventListener('click', () => {
+        window.forceWikiContext = !window.forceWikiContext;
+        if (window.forceWikiContext) {
+          btnToggleWiki.className = 'w-7 h-7 rounded bg-purple-900/40 text-purple-400 border border-purple-500/30 transition duration-150 flex items-center justify-center focus:outline-none';
+          this.showToast('Wiki Context Enforced for next analysis!', 'success');
+        } else {
+          btnToggleWiki.className = 'w-7 h-7 rounded bg-app hover:bg-white/5 border border-border text-zinc-300 transition duration-150 flex items-center justify-center focus:outline-none';
+          this.showToast('Wiki Context back to automatic detection.', 'info');
+        }
       });
     }
 
@@ -821,14 +620,6 @@ const AuditTab = {
       this.els.settingLanguageAudit.addEventListener('change', (e) => {
         this.handleLanguageChange(e.target.value);
       });
-    }
-
-    // 4. Queue Generator
-    if (this.els.btnQueueGenerate) {
-      this.els.btnQueueGenerate.addEventListener('click', () => this.handleQueueGeneration());
-    }
-    if (this.els.btnQueueCopy) {
-      this.els.btnQueueCopy.addEventListener('click', () => this.handleQueueCopy());
     }
 
     // 5. Drag and Drop Overlay & File Inputs
@@ -954,86 +745,8 @@ const AuditTab = {
       this.els.commandViewModeRaw.addEventListener('click', () => this.switchCommandMode('raw'));
     }
 
-    // 12. History Section Search & Clean
-    if (this.els.searchHistory) {
-      this.els.searchHistory.addEventListener('input', (e) => {
-        this.searchHistory(e.target.value);
-      });
-    }
-    if (this.els.btnClearHistory) {
-      this.els.btnClearHistory.addEventListener('click', () => this.clearHistoryAll());
-    }
-
     // Wire global/window hooks to match back snippets button events
     window.copySnippetText = (id, btn) => this.copySnippetText(id, btn);
-  },
-
-  // Switch sidebar Control Center tabs
-  handleSidebarTabSwitch(tabId) {
-    this.state.activeSidebarTab = tabId;
-
-    // Reset visual tabs active/inactive styles
-    const tabs = [this.els.sidebarTabHistory, this.els.sidebarTabQueues, this.els.sidebarTabContext, this.els.sidebarTabPreferences];
-    tabs.forEach(el => {
-      if (el) {
-        el.className = 'py-1 px-1 rounded hover:bg-white/5 transition flex items-center justify-center text-zinc-400';
-      }
-    });
-
-    // Hide all sections
-    this.els.sidebarSectionHistory.classList.add('hidden');
-    this.els.sidebarSectionQueues.classList.add('hidden');
-    this.els.sidebarSectionContext.classList.add('hidden');
-    this.els.sidebarSectionPreferences.classList.add('hidden');
-
-    let activeBtn = this.els.sidebarTabHistory;
-    let activeSection = this.els.sidebarSectionHistory;
-
-    if (tabId === 'history') {
-      activeBtn = this.els.sidebarTabHistory;
-      activeSection = this.els.sidebarSectionHistory;
-    } else if (tabId === 'queues') {
-      activeBtn = this.els.sidebarTabQueues;
-      activeSection = this.els.sidebarSectionQueues;
-    } else if (tabId === 'context') {
-      activeBtn = this.els.sidebarTabContext;
-      activeSection = this.els.sidebarSectionContext;
-    } else if (tabId === 'preferences') {
-      activeBtn = this.els.sidebarTabPreferences;
-      activeSection = this.els.sidebarSectionPreferences;
-    }
-
-    if (activeBtn) {
-      activeBtn.className = 'py-1 px-1 rounded text-purple-400 bg-surface border border-border transition flex items-center justify-center';
-    }
-    if (activeSection) {
-      activeSection.classList.remove('hidden');
-    }
-  },
-
-  // Slide-out Control Center sidebar collapsible toggler
-  syncSidebarState() {
-    const el = this.els.sidebarControlCenter;
-    const toggle = this.els.rightPanelToggle;
-    if (!el) return;
-
-    if (this.state.isSidebarOpen) {
-      el.classList.remove('w-0', 'border-l-0', 'opacity-0');
-      el.classList.add('w-[240px]', 'border-l', 'opacity-100');
-      if (toggle) {
-        toggle.innerHTML = UI_Icons.render('panel-right-close', 'w-3.5 h-3.5');
-      }
-    } else {
-      el.classList.remove('w-[240px]', 'border-l', 'opacity-100');
-      el.classList.add('w-0', 'border-l-0', 'opacity-0');
-      if (toggle) {
-        toggle.innerHTML = UI_Icons.render('panel-right-open', 'w-3.5 h-3.5');
-      }
-    }
-
-    if (typeof lucide !== 'undefined') {
-      lucide.createIcons();
-    }
   },
 
   // Dynamic localization change
@@ -1046,50 +759,6 @@ const AuditTab = {
     // Dynamic UI reload: re-render layout wrapper to preserve chat history if loaded, or do quick full re-render
     const mainContent = document.getElementById('main-content');
     this.render(mainContent);
-  },
-
-  // Simple Queue command generator logic
-  handleQueueGeneration() {
-    const name = this.els.queueTargetName.value.trim();
-    const target = this.els.queueTargetIp.value.trim();
-    const upload = this.els.queueMaxUpload.value.trim();
-    const download = this.els.queueMaxDownload.value.trim();
-    const priority = this.els.queuePriority.value;
-
-    const t = this.getT();
-
-    if (!name || !target || !upload || !download) {
-      this.showToast(t.queueValidationErr, 'error');
-      return;
-    }
-
-    const cmd = `/queue simple add name="${name}" target="${target}" max-limit="${upload}M/${download}M" priority=${priority}`;
-    if (this.els.queueCodeBlock) {
-      this.els.queueCodeBlock.textContent = cmd;
-    }
-    if (this.els.queueCodeOutputContainer) {
-      this.els.queueCodeOutputContainer.classList.remove('hidden');
-    }
-    this.showToast(t.toastQueueGenerated, 'success');
-  },
-
-  // Copy Simple Queue terminal block
-  handleQueueCopy() {
-    const cmd = this.els.queueCodeBlock ? this.els.queueCodeBlock.textContent : '';
-    if (!cmd) return;
-
-    const t = this.getT();
-    navigator.clipboard.writeText(cmd).then(() => {
-      const btnLabel = document.getElementById('ui-label-queue-copy-btn');
-      const origText = btnLabel ? btnLabel.textContent : 'Copy to Terminal';
-
-      if (btnLabel) btnLabel.textContent = t.copiedText;
-      this.showToast(t.copiedText, 'success');
-
-      setTimeout(() => {
-        if (btnLabel) btnLabel.textContent = origText;
-      }, 1500);
-    });
   },
 
   // Setup Drag and Drop event monitors
@@ -1385,10 +1054,14 @@ const AuditTab = {
             if (command === '/audit') {
               window.isOrchestratorMode = true;
             } else if (command === '/queue') {
-              this.handleSidebarTabSwitch('queues');
-              this.state.isSidebarOpen = true;
-              this.syncSidebarState();
-              setTimeout(() => this.els.queueTargetName.focus(), 150);
+              AppState.setCurrentTab('build');
+              Router.renderCurrentTab();
+              Router.updateActiveTab('build');
+              setTimeout(() => {
+                if (typeof BuildTab !== 'undefined' && BuildTab.addBlock) {
+                  BuildTab.addBlock();
+                }
+              }, 150);
             }
           });
         }
@@ -1533,82 +1206,6 @@ const AuditTab = {
       toast.classList.add('translate-y-2', 'opacity-0');
       setTimeout(() => toast.remove(), 300);
     }, 3500);
-  },
-
-  // Renders chat history items
-  renderHistoryList(filterQuery = '') {
-    const container = this.els.historyItemsContainer;
-    if (!container) return;
-
-    const t = this.getT();
-    container.innerHTML = '';
-
-    const query = filterQuery.toLowerCase().trim();
-    const filtered = this.state.history.filter(item => {
-      const titleMatch = item.title.toLowerCase().includes(query);
-      const msgMatch = item.messages && item.messages.some(m => m.chatMessage && m.chatMessage.toLowerCase().includes(query));
-      return titleMatch || msgMatch;
-    });
-
-    if (this.state.history.length === 0) {
-      container.innerHTML = `<div id="ui-history-empty" class="text-center py-8 text-gray-500 text-xs font-medium">${t.historyEmpty}</div>`;
-      return;
-    }
-    if (filtered.length === 0) {
-      container.innerHTML = `<div class="text-center py-8 text-gray-500 text-xs font-medium">No matches found.</div>`;
-      return;
-    }
-
-    filtered.forEach(item => {
-      const card = document.createElement('div');
-      card.className = 'group relative p-2.5 bg-gray-900 border border-gray-700/60 rounded-xl cursor-pointer hover:border-purple-500/40 hover:shadow-lg transition duration-200 active:scale-95 flex flex-col';
-
-      const dBtn = document.createElement('button');
-      dBtn.className = 'absolute top-2.5 right-2.5 text-gray-500 hover:text-red-400 opacity-0 group-hover:opacity-100 transition p-1 hover:bg-red-500/10 rounded';
-      dBtn.innerHTML = `
-        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-        </svg>
-      `;
-      dBtn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        this.deleteHistoryItem(item.id);
-      });
-
-      const firstMsg = item.messages && item.messages[0] ? item.messages[0].chatMessage : '';
-
-      card.innerHTML = `
-        <div class="flex items-center justify-between pr-6 mb-1">
-          <span class="text-xs font-bold text-white truncate max-w-[140px]">${item.title}</span>
-          <span class="text-[9px] text-gray-500 font-mono">${item.timestamp}</span>
-        </div>
-        <p class="text-[10px] text-gray-400 line-clamp-1 leading-relaxed">${firstMsg || '(No description)'}</p>
-      `;
-      card.appendChild(dBtn);
-      card.addEventListener('click', () => this.restoreConversation(item));
-      container.appendChild(card);
-    });
-  },
-
-  searchHistory(query) {
-    this.renderHistoryList(query);
-  },
-
-  deleteHistoryItem(id) {
-    this.state.history = this.state.history.filter(h => h.id !== id);
-    localStorage.setItem('mikrotik_chatbot_history', JSON.stringify(this.state.history));
-    if (this.state.currentChatId === id) {
-      this.resetChatSession();
-    }
-    this.renderHistoryList();
-  },
-
-  clearHistoryAll() {
-    this.state.history = [];
-    localStorage.removeItem('mikrotik_chatbot_history');
-    this.resetChatSession();
-    this.renderHistoryList();
-    this.showToast('All conversation history cleared!', 'success');
   },
 
   resetChatSession() {

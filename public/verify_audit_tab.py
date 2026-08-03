@@ -21,10 +21,10 @@ def test_audit_tab():
         print("Capturing Welcome screen...")
         page.screenshot(path="/home/jules/verification/welcome_screen.png")
 
-        # Verify title is present
-        welcome_title = page.locator("#ui-label-welcome-title")
-        expect(welcome_title).to_be_visible()
-        print("Welcome title visible:", welcome_title.inner_text())
+        # Verify welcome panel is present
+        welcome_panel = page.locator("#panel-welcome")
+        expect(welcome_panel).to_be_visible()
+        print("Welcome panel visible!")
 
         # 2. Click the "🛡️ Audit Firewall Security" scenario card
         print("Clicking Scenario Firewall card...")

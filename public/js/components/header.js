@@ -27,8 +27,24 @@ const Header = {
       Router.updateActiveTab('build');
     });
 
-    document.getElementById('btn-new-session').addEventListener('click', () => {
-      alert('New session initialized!');
+    document.getElementById('btn-new-session').addEventListener('click', async () => {
+      if (typeof PromptModal !== 'undefined') {
+        const confirmed = await PromptModal.show({
+          title: 'Start New Session',
+          message: 'This will clear your current chat history. Unsaved work will be lost.',
+          confirmText: 'New Session',
+          cancelText: 'Cancel',
+          type: 'warning'
+        });
+
+        if (confirmed) {
+          location.reload();
+        }
+      } else {
+        if (confirm('Start a new session? Unsaved work will be lost.')) {
+          location.reload();
+        }
+      }
     });
 
     if (typeof lucide !== 'undefined') {
