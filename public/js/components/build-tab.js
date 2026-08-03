@@ -47,7 +47,16 @@ const BuildTab = {
 
   render(container) {
     if (!this.blocks || this.blocks.length === 0) {
-      BuilderEngine.loadDefaultBlocks();
+      // Load sensible defaults from DefaultBlocks array
+      if (typeof DefaultBlocks !== 'undefined') {
+        this.blocks = [
+          DefaultBlocks.find(b => b.id === 'bridge-lan'),
+          DefaultBlocks.find(b => b.id === 'firewall-base'),
+          DefaultBlocks.find(b => b.id === 'nat')
+        ].filter(Boolean);
+      } else {
+        BuilderEngine.loadDefaultBlocks();
+      }
     }
 
     container.innerHTML = `
@@ -99,6 +108,12 @@ const BuildTab = {
                 <i data-lucide="chevron-down" class="w-3 h-3"></i>
               </button>
               <div id="derived-variables-list" class="hidden mt-1 space-y-1 max-h-32 overflow-y-auto"></div>
+            </div>
+            <div class="px-2 py-1.5 border-t border-border-subtle select-none">
+              <button id="btn-variable-help" class="w-full flex items-center justify-between text-[10px] text-zinc-500 hover:text-zinc-300 focus:outline-none">
+                <span>How to use variables</span>
+                <i data-lucide="help-circle" class="w-3 h-3"></i>
+              </button>
             </div>
           </aside>
 
@@ -468,25 +483,98 @@ const BuildTab = {
     this.updatePreview();
   },
 
-  async addBlock() {
-    const name = await PromptModal.show({
-      title: 'Add Configuration Block',
-      message: 'Enter a name for this block:',
-      placeholder: 'e.g., Custom Firewall Rules',
-      confirmText: 'Add Block',
-      cancelText: 'Cancel'
-    });
-    if (!name) return;
+  getBlockIcon(category) {
+    const icons = {
+      'security': 'shield',
+      'network': 'network',
+      'services': 'server',
+      'routing': 'route',
+      'qos': 'gauge',
+      'wan': 'cloud',
+      'custom': 'file-code'
+    };
+    return icons[category] || 'file-code';
+  },
 
-    this.blocks.push({
-      id: `manual-block-${Date.now()}`,
-      name: name,
-      category: 'manual',
-      enabled: true,
-      content: `# ${name}\n# Enter your RouterOS commands here`
+  async addBlock() {
+    const modal = document.createElement('div');
+    modal.className = 'fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4';
+    modal.innerHTML = `
+      <div class="bg-surface border border-border-subtle rounded-lg shadow-2xl max-w-2xl w-full max-h-[80vh] overflow-auto">
+        <div class="p-4 border-b border-border-subtle">
+          <h3 class="text-sm font-semibold text-zinc-100">Add Configuration Block</h3>
+          <p class="text-xs text-zinc-500 mt-1">Choose a template or create a custom block</p>
+        </div>
+
+        <div class="p-4">
+          <!-- Template Grid -->
+          <div class="grid grid-cols-2 gap-3 mb-4">
+            ${DefaultBlocks.map(block => `
+              <button class="block-template bg-elevated border border-border-subtle rounded-lg p-3 text-left hover:border-indigo-500/50 transition focus:outline-none" data-block-id="${block.id}">
+                <div class="flex items-center space-x-2 mb-2">
+                  <i data-lucide="${this.getBlockIcon(block.category)}" class="w-4 h-4 text-indigo-400"></i>
+                  <span class="text-xs font-medium text-zinc-200">${block.name}</span>
+                </div>
+                <div class="text-[10px] text-zinc-500 line-clamp-2">${block.content.substring(0, 80).replace(/\n/g, ' ')}...</div>
+              </button>
+            `).join('')}
+          </div>
+
+          <div class="border-t border-border-subtle pt-4">
+            <p class="text-xs text-zinc-400 mb-2">Or create custom block:</p>
+            <input type="text" id="custom-block-name" placeholder="Enter block name..."
+              class="w-full bg-elevated border border-border-subtle rounded px-3 py-2 text-sm text-zinc-100 placeholder-zinc-500 focus:outline-none focus:border-indigo-500/50 mb-2">
+            <button id="btn-create-custom" class="w-full px-3 py-2 text-xs bg-zinc-800 hover:bg-zinc-700 text-zinc-200 rounded transition focus:outline-none">
+              Create Empty Block
+            </button>
+          </div>
+        </div>
+
+        <div class="p-4 border-t border-border-subtle flex justify-end">
+          <button class="btn-cancel px-3 py-1.5 text-xs text-zinc-400 hover:text-zinc-200 focus:outline-none">Cancel</button>
+        </div>
+      </div>
+    `;
+
+    document.body.appendChild(modal);
+
+    // Event listeners
+    modal.querySelector('.btn-cancel').addEventListener('click', () => modal.remove());
+
+    // Template selection
+    modal.querySelectorAll('.block-template').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const blockId = btn.dataset.blockId;
+        const template = DefaultBlocks.find(b => b.id === blockId);
+        if (template) {
+          this.blocks.push(JSON.parse(JSON.stringify(template)));
+          this.renderBlocks();
+          this.updatePreview();
+          modal.remove();
+        }
+      });
     });
-    this.renderBlocks();
-    this.updatePreview();
+
+    // Custom block
+    modal.querySelector('#btn-create-custom').addEventListener('click', () => {
+      const name = modal.querySelector('#custom-block-name').value.trim();
+      if (name) {
+        this.blocks.push({
+          id: `custom-${Date.now()}`,
+          name,
+          category: 'custom',
+          enabled: true,
+          content: '# Add your RouterOS commands here\n# Use {{VARIABLE_NAME}} for dynamic values\n'
+        });
+        this.renderBlocks();
+        this.updatePreview();
+        modal.remove();
+      }
+    });
+
+    if (typeof lucide !== 'undefined') {
+      lucide.createIcons();
+    }
   },
 
   async generateBlockWithAI() {
@@ -828,6 +916,21 @@ const BuildTab = {
           navigator.clipboard.writeText(preview.textContent).then(() => {
             alert('Configuration copied to clipboard!');
           });
+        }
+      });
+    }
+
+    const varHelpBtn = document.getElementById('btn-variable-help');
+    if (varHelpBtn) {
+      varHelpBtn.addEventListener('click', () => {
+        if (typeof PromptModal !== 'undefined') {
+          PromptModal.show({
+            title: 'Using Variables',
+            message: 'Use {{VARIABLE_NAME}} syntax in your blocks. Example:\n\n/ip address add address={{LAN_GATEWAY}}/24\n\nVariables are automatically replaced when you export.',
+            confirmText: 'Got it'
+          });
+        } else {
+          alert('Using Variables:\n\nUse {{VARIABLE_NAME}} syntax in your blocks.\n\nVariables are automatically replaced when you export.');
         }
       });
     }
