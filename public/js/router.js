@@ -67,6 +67,29 @@ const Router = {
         </h2>
 
         <div class="space-y-2">
+          <!-- Section Theme (Expanded by default) -->
+          <div class="border border-border rounded-md bg-surface overflow-hidden">
+            <button class="section-toggle w-full px-3 py-1.5 bg-surface-elevated flex items-center justify-between hover:bg-white/5 transition text-left focus:outline-none" data-section="theme">
+              <span class="text-xs font-bold text-primary flex items-center uppercase tracking-wider">
+                ${UI_Icons.render('sun', 'mr-1.5 w-3.5 h-3.5 text-purple-500')}
+                Theme Preferences
+              </span>
+              <span class="chevron-theme text-zinc-500">
+                ${UI_Icons.render('chevron-down', 'w-3.5 h-3.5')}
+              </span>
+            </button>
+            <div id="section-content-theme" class="p-3 space-y-3 border-t border-border text-xs text-zinc-300">
+              <div>
+                <label class="block text-[9px] font-bold text-zinc-500 uppercase mb-1">App Theme</label>
+                <select id="pref-theme" class="w-full h-7 bg-app border border-border rounded px-2.5 text-xs text-primary focus:outline-none focus:border-purple-500 transition-colors">
+                  <option value="dark" ${AppState.theme === 'dark' ? 'selected' : ''}>Dark (Default)</option>
+                  <option value="light" ${AppState.theme === 'light' ? 'selected' : ''}>Light</option>
+                  <option value="system" ${AppState.theme === 'system' ? 'selected' : ''}>System Preference</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
           <!-- Section 1: AI Provider (Expanded by default) -->
           <div class="border border-border rounded-md bg-surface overflow-hidden">
             <button class="section-toggle w-full px-3 py-1.5 bg-surface-elevated flex items-center justify-between hover:bg-white/5 transition text-left focus:outline-none" data-section="ai">
@@ -132,6 +155,34 @@ const Router = {
               </div>
             </div>
           </div>
+
+          <!-- Section 3: Data Management (Collapsed by default) -->
+          <div class="border border-border rounded-md bg-surface overflow-hidden">
+            <button class="section-toggle w-full px-3 py-1.5 bg-surface-elevated flex items-center justify-between hover:bg-white/5 transition text-left focus:outline-none" data-section="data">
+              <span class="text-xs font-bold text-primary flex items-center uppercase tracking-wider">
+                ${UI_Icons.render('database', 'mr-1.5 w-3.5 h-3.5 text-purple-500')}
+                📦 Export & Import
+              </span>
+              <span class="chevron-data text-zinc-500">
+                ${UI_Icons.render('chevron-right', 'w-3.5 h-3.5')}
+              </span>
+            </button>
+            <div id="section-content-data" class="p-3 space-y-3 border-t border-border text-xs text-zinc-300 hidden">
+              <div class="grid grid-cols-2 gap-3 mb-2">
+                <button id="btn-export-all" class="btn-secondary text-[11px] h-8 flex items-center justify-center">
+                  ${UI_Icons.render('download', 'w-3 h-3 mr-1')} Export All Data
+                </button>
+                <button id="btn-export-custom" class="btn-secondary text-[11px] h-8 flex items-center justify-center">
+                  ${UI_Icons.render('settings', 'w-3 h-3 mr-1')} Custom Export
+                </button>
+                <button id="btn-import" class="btn-primary text-[11px] h-8 flex items-center justify-center col-span-2">
+                  ${UI_Icons.render('upload', 'w-3 h-3 mr-1')} Import Data
+                </button>
+              </div>
+              <input type="file" id="import-file-input" class="hidden" accept=".json">
+              <p class="text-[10px] text-zinc-500">Export includes chat history, build projects, and custom blocks. Max recommended size: 10MB.</p>
+            </div>
+          </div>
         </div>
 
         <!-- Save Button sticky footer/bottom bar -->
@@ -141,6 +192,16 @@ const Router = {
             ${UI_Icons.render('lock', 'w-3 h-3 mr-1.5')}
             Save Preferences
           </button>
+        </div>
+
+        <!-- GitHub Link Section -->
+        <div class="pt-3 border-t border-border-subtle">
+          <a href="https://github.com/Angelo-builds/MikrotikAssistant"
+             target="_blank"
+             class="flex items-center justify-center space-x-2 text-xs text-zinc-500 hover:text-indigo-400 transition py-2">
+            ${UI_Icons.render('github', 'w-4 h-4')}
+            <span>View on GitHub</span>
+          </a>
         </div>
       </div>
     `;
@@ -187,6 +248,133 @@ const Router = {
 
     useBackendCheckbox.addEventListener('change', updateApiKeyInputState);
     updateApiKeyInputState();
+
+    const themeSelect = document.getElementById('pref-theme');
+    if (themeSelect) {
+      themeSelect.addEventListener('change', (e) => {
+        AppState.setTheme(e.target.value);
+        if (typeof showGlobalToast === 'function') {
+          showGlobalToast(`Theme updated to ${e.target.value}!`, 'success');
+        }
+      });
+    }
+
+    // Data management setup
+    const btnExportAll = document.getElementById('btn-export-all');
+    if (btnExportAll) {
+      btnExportAll.addEventListener('click', async () => {
+        if (typeof ExportImport !== 'undefined') {
+          await ExportImport.exportData({
+            includeChats: true,
+            includeBuilds: true,
+            includeBlocks: true,
+            includePreferences: true
+          });
+        }
+      });
+    }
+
+    const btnExportCustom = document.getElementById('btn-export-custom');
+    if (btnExportCustom) {
+      btnExportCustom.addEventListener('click', async () => {
+        if (typeof ExportImport !== 'undefined') {
+          const chats = await ExportImport.getChatHistory();
+          const builds = await ExportImport.getBuildProjects();
+          const blocks = await ExportImport.getCustomBlocks();
+
+          const modalHtml = `
+            <div class="space-y-3 font-sans text-xs text-secondary select-none">
+              <p class="text-xs text-zinc-400 mb-3">Select the data you want to include in your export:</p>
+              <div class="space-y-2">
+                <label class="flex items-center space-x-2.5 cursor-pointer">
+                  <input type="checkbox" id="custom-export-chats" checked class="w-3.5 h-3.5 text-purple-600 bg-app border-border rounded focus:ring-purple-500">
+                  <span class="text-xs text-primary font-medium">Chat History (${chats.length} sessions)</span>
+                </label>
+                <label class="flex items-center space-x-2.5 cursor-pointer">
+                  <input type="checkbox" id="custom-export-builds" checked class="w-3.5 h-3.5 text-purple-600 bg-app border-border rounded focus:ring-purple-500">
+                  <span class="text-xs text-primary font-medium">Build Projects (${builds.length} projects)</span>
+                </label>
+                <label class="flex items-center space-x-2.5 cursor-pointer">
+                  <input type="checkbox" id="custom-export-blocks" checked class="w-3.5 h-3.5 text-purple-600 bg-app border-border rounded focus:ring-purple-500">
+                  <span class="text-xs text-primary font-medium">Custom Blocks / Library (${blocks.length} blocks)</span>
+                </label>
+                <label class="flex items-center space-x-2.5 cursor-pointer">
+                  <input type="checkbox" id="custom-export-prefs" class="w-3.5 h-3.5 text-purple-600 bg-app border-border rounded focus:ring-purple-500">
+                  <span class="text-xs text-primary font-medium">Preferences</span>
+                </label>
+              </div>
+            </div>
+          `;
+
+          const footerHtml = `
+            <button class="btn-cancel bg-transparent text-primary border border-border hover:bg-white/5 px-4 py-2 rounded-md text-xs font-medium">Cancel</button>
+            <button class="btn-confirm bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-md text-xs font-medium">Export Selected</button>
+          `;
+
+          const modalContainer = document.createElement('div');
+          modalContainer.className = 'fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-8 animate-apple-reveal';
+          modalContainer.innerHTML = `
+            <div class="bg-surface border border-border rounded-lg max-w-md w-full overflow-hidden flex flex-col shadow-2xl">
+              <div class="flex items-center justify-between p-4 border-b border-border bg-surface-elevated">
+                <h3 class="text-sm font-semibold text-zinc-100">Custom Export</h3>
+                <button class="btn-close text-secondary hover:text-zinc-100 text-xl">✕</button>
+              </div>
+              <div class="p-6 flex-1">
+                ${modalHtml}
+              </div>
+              <div class="p-4 border-t border-border bg-surface-elevated/30 flex justify-end space-x-2">
+                ${footerHtml}
+              </div>
+            </div>
+          `;
+          document.body.appendChild(modalContainer);
+
+          const closeModal = () => modalContainer.remove();
+          modalContainer.querySelector('.btn-close').addEventListener('click', closeModal);
+          modalContainer.querySelector('.btn-cancel').addEventListener('click', closeModal);
+          modalContainer.querySelector('.btn-confirm').addEventListener('click', async () => {
+            const includeChats = modalContainer.querySelector('#custom-export-chats').checked;
+            const includeBuilds = modalContainer.querySelector('#custom-export-builds').checked;
+            const includeBlocks = modalContainer.querySelector('#custom-export-blocks').checked;
+            const includePreferences = modalContainer.querySelector('#custom-export-prefs').checked;
+
+            closeModal();
+            await ExportImport.exportData({
+              includeChats,
+              includeBuilds,
+              includeBlocks,
+              includePreferences
+            });
+          });
+        }
+      });
+    }
+
+    const btnImport = document.getElementById('btn-import');
+    const importFileInput = document.getElementById('import-file-input');
+    if (btnImport && importFileInput) {
+      btnImport.addEventListener('click', () => {
+        importFileInput.click();
+      });
+
+      importFileInput.addEventListener('change', async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        if (typeof ExportImport !== 'undefined') {
+          try {
+            await ExportImport.importData(file);
+            location.reload();
+          } catch (err) {
+            if (typeof showGlobalToast === 'function') {
+              showGlobalToast(`Import failed: ${err.message}`, 'error');
+            } else {
+              alert(`Import failed: ${err.message}`);
+            }
+          }
+        }
+      });
+    }
 
     document.getElementById('btn-save-prefs').addEventListener('click', () => {
       this.executeSave();
