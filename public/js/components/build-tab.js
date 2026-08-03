@@ -90,13 +90,13 @@ const BuildTab = {
 
               <!-- Dropdown Menu (Hidden by default) -->
               <div id="more-actions-dropdown" class="hidden absolute right-0 top-full mt-1 w-48 bg-surface border border-border-subtle rounded-md shadow-lg z-50 py-1">
-                <button id="btn-import-export" class="w-full text-left px-3 py-2 text-xs text-zinc-300 hover:bg-elevated flex items-center">
+            <button id="btn-import-export" class="w-full text-left px-3 py-2 text-xs text-zinc-500 hover:text-zinc-700 hover:bg-elevated flex items-center">
                   <i data-lucide="upload" class="w-3 h-3 mr-2"></i> Import .rsc
                 </button>
-                <button id="btn-validate" class="w-full text-left px-3 py-2 text-xs text-zinc-300 hover:bg-elevated flex items-center">
+            <button id="btn-validate" class="w-full text-left px-3 py-2 text-xs text-zinc-500 hover:text-zinc-700 hover:bg-elevated flex items-center">
                   <i data-lucide="check-circle" class="w-3 h-3 mr-2"></i> Validate Config
                 </button>
-                <button id="btn-compare" class="w-full text-left px-3 py-2 text-xs text-zinc-300 hover:bg-elevated flex items-center">
+            <button id="btn-compare" class="w-full text-left px-3 py-2 text-xs text-zinc-500 hover:text-zinc-700 hover:bg-elevated flex items-center">
                   <i data-lucide="git-compare" class="w-3 h-3 mr-2"></i> Compare Configs
                 </button>
                 <div class="border-t border-border-subtle my-1"></div>
@@ -124,7 +124,7 @@ const BuildTab = {
             </div>
             <div class="flex-1 overflow-y-auto p-2 space-y-1.5" id="variables-list"></div>
             <div class="border-t border-border-subtle p-2">
-              <button id="btn-toggle-derived" class="w-full flex items-center justify-between text-[10px] text-zinc-400 hover:text-zinc-200 px-2 py-1">
+              <button id="btn-toggle-derived" class="w-full flex items-center justify-between text-[10px] text-zinc-500 hover:text-zinc-700 px-2 py-1">
                 <span>Derived Variables</span>
                 <i data-lucide="chevron-down" class="w-3 h-3"></i>
               </button>
@@ -164,15 +164,15 @@ const BuildTab = {
           <aside class="w-[320px] flex flex-col bg-elevated border border-border-subtle rounded-lg overflow-hidden">
             <div class="p-3 border-b border-border-subtle flex items-center justify-between">
               <h3 class="text-xs font-semibold text-zinc-200 flex items-center">
-                <i data-lucide="eye" class="w-3 h-3 mr-1.5 text-purple-400"></i>
+                <i data-lucide="eye" class="w-3 h-3 mr-1.5 text-purple-600"></i>
                 Live Preview
               </h3>
               <button id="btn-copy-preview" class="icon-btn-sm" title="Copy">
-                <i data-lucide="copy" class="w-3 h-3"></i>
+                <i data-lucide="copy" class="w-3 h-3 text-secondary"></i>
               </button>
             </div>
-            <div class="flex-1 overflow-auto p-3 bg-app">
-              <pre id="preview-content" class="text-[11px] font-mono text-emerald-400 whitespace-pre-wrap leading-relaxed"></pre>
+            <div class="flex-1 overflow-auto p-3 bg-[var(--code-bg)]">
+              <pre id="preview-content" class="text-[11px] font-mono text-[var(--code-text)] whitespace-pre-wrap leading-relaxed"></pre>
             </div>
           </aside>
         </div>
@@ -339,29 +339,29 @@ const BuildTab = {
     container.innerHTML = this.blocks.map((block, index) => {
       const isExpanded = !!block.expanded;
       return `
-      <div id="block-${block.id}" class="block-card transition-all ${block.enabled ? '' : 'opacity-50'} ${isExpanded ? 'expanded' : ''}" draggable="true" data-index="${index}" ${block.isConditional ? 'data-conditional="true"' : ''} data-category="${block.category || 'general'}">
+      <div id="block-${block.id}" class="block-card bg-surface border border-border-subtle transition-all ${block.enabled ? '' : 'opacity-50'} ${isExpanded ? 'expanded' : ''}" draggable="true" data-index="${index}" ${block.isConditional ? 'data-conditional="true"' : ''} data-category="${block.category || 'general'}">
         <div class="block-card-header">
           <div class="flex items-center space-x-2 flex-1 min-w-0 card-header-toggle" data-index="${index}">
             <div class="drag-handle text-zinc-500 hover:text-purple-400 cursor-grab active:cursor-grabbing select-none mr-1.5">⋮⋮</div>
-            <input type="checkbox" ${block.enabled ? 'checked' : ''} class="block-toggle w-3.5 h-3.5 rounded border-border-subtle bg-elevated text-indigo-500 focus:ring-indigo-500/50" data-index="${index}">
-            <span class="text-xs font-medium text-zinc-200 truncate">${block.name}</span>
+            <input type="checkbox" ${block.enabled ? 'checked' : ''} class="block-toggle w-3.5 h-3.5 rounded border-border-subtle bg-elevated text-indigo-600 focus:ring-indigo-500/50" data-index="${index}">
+            <span class="text-xs font-medium text-primary truncate">${block.name}</span>
             <span class="text-[9px] text-zinc-500 bg-surface px-1.5 py-0.5 rounded font-mono uppercase">${block.category || 'general'}</span>
-            ${block.isConditional ? '<span class="text-[9px] text-yellow-500 bg-yellow-900/10 px-1.5 py-0.5 rounded font-mono">IF</span>' : ''}
+            ${block.isConditional ? '<span class="text-[9px] text-yellow-600 bg-yellow-900/10 px-1.5 py-0.5 rounded font-mono">IF</span>' : ''}
           </div>
           <div class="block-card-actions flex items-center space-x-1">
             <button class="icon-btn-sm btn-edit-block" data-index="${index}" title="Edit">
-              <i data-lucide="pencil" class="w-3 h-3"></i>
+              <i data-lucide="pencil" class="w-3 h-3 text-secondary"></i>
             </button>
             <button class="icon-btn-sm btn-duplicate-block" data-index="${index}" title="Duplicate">
-              <i data-lucide="copy" class="w-3 h-3"></i>
+              <i data-lucide="copy" class="w-3 h-3 text-secondary"></i>
             </button>
             <button class="icon-btn-sm btn-remove-block" data-index="${index}" title="Remove">
-              <i data-lucide="trash-2" class="w-3 h-3"></i>
+              <i data-lucide="trash-2" class="w-3 h-3 text-secondary"></i>
             </button>
           </div>
         </div>
         <div class="block-card-preview">
-          <pre class="text-[10px] font-mono text-zinc-400 bg-surface rounded p-2 overflow-x-auto whitespace-pre-wrap">${this.escapeHtml(block.content)}</pre>
+          <pre class="text-[10px] font-mono text-zinc-500 bg-surface rounded p-2 overflow-x-auto whitespace-pre-wrap">${this.escapeHtml(block.content)}</pre>
         </div>
       </div>
       `;
@@ -439,12 +439,12 @@ const BuildTab = {
         <h4 class="text-[9px] font-bold text-zinc-500 uppercase tracking-wider mb-1.5 select-none">Manual Inputs</h4>
         <div class="space-y-1.5">
           ${Object.entries(BuilderEngine.variables).map(([name, value]) => `
-            <div id="var-${name}" class="bg-surface border border-border rounded p-2 transition-all">
+            <div id="var-${name}" class="bg-surface border border-[var(--border-subtle)] rounded p-2 transition-all">
               <div class="flex items-center justify-between mb-1 select-none">
-                <input type="text" value="${this.escapeHtml(name)}" class="variable-name bg-transparent text-[10px] font-mono text-purple-400 w-full focus:outline-none font-bold" data-old-name="${this.escapeHtml(name)}">
-                <button class="btn-remove-var text-zinc-500 hover:text-red-500 ml-1.5 h-4 w-4 flex items-center justify-center rounded hover:bg-white/5" data-name="${this.escapeHtml(name)}">✕</button>
+                <input type="text" value="${this.escapeHtml(name)}" class="variable-name bg-transparent text-[10px] font-mono text-purple-600 w-full focus:outline-none font-bold" data-old-name="${this.escapeHtml(name)}">
+                <button class="btn-remove-var text-zinc-500 hover:text-red-600 ml-1.5 h-4 w-4 flex items-center justify-center rounded hover:bg-white/5" data-name="${this.escapeHtml(name)}">✕</button>
               </div>
-              <input type="text" value="${this.escapeHtml(value)}" class="variable-value w-full h-7 bg-app border border-border rounded px-2 py-1 text-[11px] font-mono text-primary focus:outline-none" data-name="${this.escapeHtml(name)}" placeholder="Value...">
+              <input type="text" value="${this.escapeHtml(value)}" class="variable-value w-full h-7 bg-[var(--input-bg)] border border-[var(--input-border)] text-[var(--input-text)] placeholder-[var(--input-placeholder)] rounded px-2 py-1 text-[11px] font-mono focus:outline-none" data-name="${this.escapeHtml(name)}" placeholder="Value...">
             </div>
           `).join('')}
         </div>
@@ -502,8 +502,8 @@ const BuildTab = {
 
     container.innerHTML = Object.entries(derived).map(([name, value]) => `
       <div class="flex items-center justify-between bg-app px-2 py-1 rounded border border-border select-none">
-        <span class="font-mono text-purple-400 text-[10px] font-semibold">{{${name}}}</span>
-        <span class="text-zinc-400 text-[10px] font-mono">${this.escapeHtml(value)}</span>
+        <span class="font-mono text-purple-600 text-[10px] font-semibold">{{${name}}}</span>
+        <span class="text-zinc-500 text-[10px] font-mono">${this.escapeHtml(value)}</span>
       </div>
     `).join('');
   },
@@ -567,8 +567,8 @@ const BuildTab = {
             ${DefaultBlocks.map(block => `
               <button class="block-template bg-elevated border border-border-subtle rounded-lg p-3 text-left hover:border-indigo-500/50 transition focus:outline-none" data-block-id="${block.id}">
                 <div class="flex items-center space-x-2 mb-2">
-                  <i data-lucide="${this.getBlockIcon(block.category)}" class="w-4 h-4 text-indigo-400"></i>
-                  <span class="text-xs font-medium text-zinc-200">${block.name}</span>
+                  <i data-lucide="${this.getBlockIcon(block.category)}" class="w-4 h-4 text-indigo-600"></i>
+                  <span class="text-xs font-medium text-primary">${block.name}</span>
                 </div>
                 <div class="text-[10px] text-zinc-500 line-clamp-2">${block.content.substring(0, 80).replace(/\n/g, ' ')}...</div>
               </button>
@@ -576,9 +576,9 @@ const BuildTab = {
           </div>
 
           <div class="border-t border-border-subtle pt-4">
-            <p class="text-xs text-zinc-400 mb-2">Or create custom block:</p>
+            <p class="text-xs text-zinc-500 mb-2">Or create custom block:</p>
             <input type="text" id="custom-block-name" placeholder="Enter block name..."
-              class="w-full bg-elevated border border-border-subtle rounded px-3 py-2 text-sm text-zinc-100 placeholder-zinc-500 focus:outline-none focus:border-indigo-500/50 mb-2">
+              class="w-full bg-[var(--input-bg)] border border-[var(--input-border)] text-[var(--input-text)] placeholder-[var(--input-placeholder)] rounded px-3 py-2 text-sm focus:outline-none focus:border-indigo-500/50 mb-2">
             <button id="btn-create-custom" class="w-full px-3 py-2 text-xs bg-zinc-800 hover:bg-zinc-700 text-zinc-200 rounded transition focus:outline-none">
               Create Empty Block
             </button>
@@ -771,7 +771,7 @@ const BuildTab = {
   },
 
   async importExport() {
-    const textareaHtml = `<textarea id="import-textarea" placeholder="Paste your MikroTik .rsc export here..." class="w-full h-64 bg-surface border border-border rounded p-3 text-xs font-mono text-zinc-100 focus:border-purple-500 focus:outline-none"></textarea>`;
+    const textareaHtml = `<textarea id="import-textarea" placeholder="Paste your MikroTik .rsc export here..." class="w-full h-64 bg-surface border border-[var(--border-subtle)] rounded p-3 text-xs font-mono text-[var(--input-text)] focus:border-purple-500 focus:outline-none"></textarea>`;
     const footerHtml = `
       <button class="btn-cancel bg-transparent text-primary border border-border hover:bg-white/5 px-4 py-2 rounded-md text-xs font-medium">Cancel</button>
       <button class="btn-parse bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-md text-xs font-medium">Parse & Import</button>
@@ -911,11 +911,11 @@ const BuildTab = {
       <div class="space-y-4">
         <div>
           <label class="block text-[11px] text-text-muted mb-1 font-semibold">First Configuration</label>
-          <textarea id="compare-textarea-1" placeholder="Paste first configuration..." class="w-full h-48 bg-surface border border-border rounded p-3 text-xs font-mono text-zinc-100 focus:border-purple-500 focus:outline-none"></textarea>
+          <textarea id="compare-textarea-1" placeholder="Paste first configuration..." class="w-full h-48 bg-surface border border-[var(--border-subtle)] rounded p-3 text-xs font-mono text-[var(--input-text)] focus:border-purple-500 focus:outline-none"></textarea>
         </div>
         <div>
           <label class="block text-[11px] text-text-muted mb-1 font-semibold">Second Configuration</label>
-          <textarea id="compare-textarea-2" placeholder="Paste second configuration..." class="w-full h-48 bg-surface border border-border rounded p-3 text-xs font-mono text-zinc-100 focus:border-purple-500 focus:outline-none"></textarea>
+          <textarea id="compare-textarea-2" placeholder="Paste second configuration..." class="w-full h-48 bg-surface border border-[var(--border-subtle)] rounded p-3 text-xs font-mono text-[var(--input-text)] focus:border-purple-500 focus:outline-none"></textarea>
         </div>
         <div id="diff-result" class="mt-4 font-mono text-xs"></div>
       </div>

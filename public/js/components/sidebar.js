@@ -26,28 +26,28 @@ const Sidebar = {
         <!-- App Header -->
         <div class="p-4 border-b border-border-subtle flex items-center justify-between">
           <div class="flex items-center space-x-2 nav-text">
-            <i data-lucide="cpu" class="w-5 h-5 text-indigo-400 shrink-0"></i>
+            <i data-lucide="cpu" class="w-5 h-5 text-indigo-600 shrink-0"></i>
             <div class="flex flex-col">
-              <span class="text-sm font-semibold text-zinc-100 leading-tight">MikrotikAssistant</span>
+              <span class="text-sm font-semibold text-primary leading-tight">MikrotikAssistant</span>
               <span class="text-[10px] text-zinc-500 leading-none">Privacy-First RouterOS Tool</span>
             </div>
           </div>
-          <button id="sidebar-toggle" title="${this.isCollapsed ? 'Expand Sidebar' : 'Collapse Sidebar'}" class="w-6 h-6 rounded hover:bg-white/5 flex items-center justify-center text-zinc-400 transition-colors shrink-0">
+          <button id="sidebar-toggle" title="${this.isCollapsed ? 'Expand Sidebar' : 'Collapse Sidebar'}" class="w-6 h-6 rounded hover:bg-white/5 flex items-center justify-center text-zinc-500 transition-colors shrink-0">
             <i data-lucide="${this.isCollapsed ? 'chevron-right' : 'chevron-left'}" class="w-3.5 h-3.5"></i>
           </button>
         </div>
 
         <!-- Main Navigation -->
         <nav class="sidebar-nav p-3 space-y-1 select-none">
-          <button data-tab="audit" title="Audit" class="nav-item tab-btn w-full flex items-center space-x-3 px-3 py-2 rounded-md hover:bg-elevated transition ${currentTab === 'audit' ? 'bg-elevated text-indigo-400 font-semibold' : 'text-zinc-400'}">
+          <button data-tab="audit" title="Audit" class="nav-item tab-btn w-full flex items-center space-x-3 px-3 py-2 rounded-md hover:bg-elevated transition ${currentTab === 'audit' ? 'bg-elevated text-indigo-600 font-semibold' : 'text-zinc-500'}">
             <i data-lucide="activity" class="w-4 h-4 shrink-0"></i>
             <span class="text-xs font-medium nav-text">Audit</span>
           </button>
-          <button data-tab="build" title="Build" class="nav-item tab-btn w-full flex items-center space-x-3 px-3 py-2 rounded-md hover:bg-elevated transition ${currentTab === 'build' ? 'bg-elevated text-indigo-400 font-semibold' : 'text-zinc-400'}">
+          <button data-tab="build" title="Build" class="nav-item tab-btn w-full flex items-center space-x-3 px-3 py-2 rounded-md hover:bg-elevated transition ${currentTab === 'build' ? 'bg-elevated text-indigo-600 font-semibold' : 'text-zinc-500'}">
             <i data-lucide="wrench" class="w-4 h-4 shrink-0"></i>
             <span class="text-xs font-medium nav-text">Build</span>
           </button>
-          <button data-tab="lib" title="Library" class="nav-item tab-btn w-full flex items-center space-x-3 px-3 py-2 rounded-md hover:bg-elevated transition ${currentTab === 'lib' ? 'bg-elevated text-indigo-400 font-semibold' : 'text-zinc-400'}">
+          <button data-tab="lib" title="Library" class="nav-item tab-btn w-full flex items-center space-x-3 px-3 py-2 rounded-md hover:bg-elevated transition ${currentTab === 'lib' ? 'bg-elevated text-indigo-600 font-semibold' : 'text-zinc-500'}">
             <i data-lucide="library" class="w-4 h-4 shrink-0"></i>
             <span class="text-xs font-medium nav-text">Library</span>
           </button>
@@ -106,7 +106,7 @@ const Sidebar = {
 
         <!-- Preferences (at bottom) -->
         <div class="sidebar-preferences p-3 border-t border-border-subtle">
-          <button data-tab="prefs" title="Preferences" class="nav-item tab-btn w-full flex items-center space-x-3 px-3 py-2 rounded-md hover:bg-elevated transition ${currentTab === 'prefs' ? 'bg-elevated text-indigo-400 font-semibold' : 'text-zinc-400'}">
+          <button data-tab="prefs" title="Preferences" class="nav-item tab-btn w-full flex items-center space-x-3 px-3 py-2 rounded-md hover:bg-elevated transition ${currentTab === 'prefs' ? 'bg-elevated text-indigo-600 font-semibold' : 'text-zinc-500'}">
             <i data-lucide="settings" class="w-4 h-4 shrink-0"></i>
             <span class="text-xs font-medium nav-text">Preferences</span>
           </button>
@@ -162,12 +162,12 @@ const Sidebar = {
       const date = proj.lastModified ? new Date(proj.lastModified).toLocaleDateString() : '';
       return `
         <div class="project-item group relative p-2 bg-transparent hover:bg-elevated border border-transparent hover:border-border-subtle rounded cursor-pointer transition flex flex-col min-w-0" data-id="${proj.id}">
-          <button class="btn-delete-project absolute top-1.5 right-1.5 text-zinc-600 hover:text-red-400 opacity-0 group-hover:opacity-100 transition p-1 rounded hover:bg-red-950/20" data-id="${proj.id}">
+          <button class="btn-delete-project absolute top-1.5 right-1.5 text-zinc-600 hover:text-red-600 opacity-0 group-hover:opacity-100 transition p-1 rounded hover:bg-red-950/20" data-id="${proj.id}">
             <i data-lucide="trash-2" class="w-3 h-3"></i>
           </button>
           <div class="flex items-center justify-between pr-4 mb-0.5">
-            <span class="text-[11px] font-semibold text-zinc-200 truncate pr-1">${proj.name}</span>
-            <span class="text-[9px] text-zinc-500 font-mono shrink-0">${date}</span>
+            <span class="text-[11px] font-semibold text-primary truncate pr-1">${proj.name}</span>
+            <span class="text-[9px] text-secondary font-mono shrink-0">${date}</span>
           </div>
           <p class="text-[10px] text-zinc-500 line-clamp-1 leading-normal pr-4">${proj.blocks ? proj.blocks.length : 0} blocks</p>
         </div>
@@ -196,12 +196,12 @@ const Sidebar = {
       const firstMsg = item.messages && item.messages[0] ? item.messages[0].chatMessage : '';
       return `
         <div class="history-item group relative p-2 bg-transparent hover:bg-elevated border border-transparent hover:border-border-subtle rounded cursor-pointer transition flex flex-col min-w-0" data-id="${item.id}">
-          <button class="btn-delete-history-item absolute top-1.5 right-1.5 text-zinc-600 hover:text-red-400 opacity-0 group-hover:opacity-100 transition p-1 rounded hover:bg-red-950/20" data-id="${item.id}">
+          <button class="btn-delete-history-item absolute top-1.5 right-1.5 text-zinc-600 hover:text-red-600 opacity-0 group-hover:opacity-100 transition p-1 rounded hover:bg-red-950/20" data-id="${item.id}">
             <i data-lucide="x" class="w-3 h-3"></i>
           </button>
           <div class="flex items-center justify-between pr-4 mb-0.5">
-            <span class="text-[11px] font-semibold text-zinc-200 truncate pr-1">${item.title}</span>
-            <span class="text-[9px] text-zinc-500 font-mono shrink-0">${item.timestamp}</span>
+            <span class="text-[11px] font-semibold text-primary truncate pr-1">${item.title}</span>
+            <span class="text-[9px] text-secondary font-mono shrink-0">${item.timestamp}</span>
           </div>
           <p class="text-[10px] text-zinc-500 line-clamp-1 leading-normal pr-4">${firstMsg || '(No context)'}</p>
         </div>

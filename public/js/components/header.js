@@ -3,14 +3,14 @@ const Header = {
     container.innerHTML = `
       <header id="app-header" class="bg-surface border-b border-border h-12 px-4 flex items-center justify-between select-none">
         <div class="flex items-center space-x-2">
-          ${UI_Icons.render('terminal', 'text-purple-500 w-4 h-4')}
+          ${UI_Icons.render('terminal', 'text-purple-600 w-4 h-4')}
           <h1 class="text-xs font-bold text-primary">Mik the Winbox Wizard</h1>
           <span id="privacy-badge" title="Privacy Shield Active" class="text-green-700 bg-green-100 border border-green-300 dark:text-green-400 dark:bg-green-950/40 dark:border-green-500/20 px-1.5 py-0.5 rounded text-[10px] inline-flex items-center justify-center">
             ${UI_Icons.render('shield', 'w-3 h-3')}
           </span>
         </div>
         <div class="flex items-center space-x-2">
-          <button id="btn-jump-to-build" title="Builder" class="btn-secondary w-7 h-7 p-0 flex items-center justify-center hover:bg-white/5 text-zinc-300 rounded-md transition active:scale-95">
+          <button id="btn-jump-to-build" title="Builder" class="btn-secondary w-7 h-7 p-0 flex items-center justify-center hover:bg-white/5 text-secondary rounded-md transition active:scale-95">
             ${UI_Icons.render('hammer', 'w-3.5 h-3.5')}
           </button>
           <button id="btn-new-session" class="bg-purple-600 hover:bg-purple-700 text-white h-7 px-2.5 rounded-md text-xs font-medium flex items-center justify-center space-x-1 transition active:scale-95">
