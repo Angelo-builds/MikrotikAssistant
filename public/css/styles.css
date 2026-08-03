@@ -110,7 +110,7 @@ body {
 .variable-value:focus {
   border-color: rgb(147, 51, 234);
   outline: none;
-  background-color: rgb(17, 24, 39);
+  background-color: var(--input-bg) !important;
 }
 
 /* Preview area */

@@ -218,19 +218,19 @@ const AuditTab = {
               </span>
             </div>
             <div class="flex items-center space-x-2">
-              <select id="select-ros-version" class="bg-surface border border-border rounded px-2 py-0.5 text-[10px] text-white focus:outline-none" title="RouterOS Version">
+              <select id="select-ros-version" class="bg-surface border border-border rounded px-2 py-0.5 text-[10px] text-primary focus:outline-none" title="RouterOS Version">
                 <option value="auto" selected>ROS: Auto</option>
                 <option value="v7">ROS: v7</option>
                 <option value="v6">ROS: v6</option>
               </select>
-              <select id="select-hardware" class="bg-surface border border-border rounded px-2 py-0.5 text-[10px] text-white focus:outline-none" title="Hardware Model">
+              <select id="select-hardware" class="bg-surface border border-border rounded px-2 py-0.5 text-[10px] text-primary focus:outline-none" title="Hardware Model">
                 <option value="auto" selected>HW: Auto</option>
                 <option value="RB5009">RB5009</option>
                 <option value="hEX S">hEX S</option>
                 <option value="CCR2004">CCR2004</option>
                 <option value="CHR">CHR</option>
               </select>
-              <select id="setting-language-audit" class="bg-surface border border-border rounded px-2 py-0.5 text-[10px] text-white focus:outline-none">
+              <select id="setting-language-audit" class="bg-surface border border-border rounded px-2 py-0.5 text-[10px] text-primary focus:outline-none">
                 <option value="auto" ${this.state.language === 'auto' ? 'selected' : ''}>Auto-Detect</option>
                 <option value="en" ${this.state.language === 'en' ? 'selected' : ''}>English</option>
                 <option value="it" ${this.state.language === 'it' ? 'selected' : ''}>Italiano</option>

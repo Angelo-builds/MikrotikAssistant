@@ -67,26 +67,44 @@ const BuildTab = {
             <h2 class="text-sm font-semibold text-zinc-100">Configuration Builder</h2>
             <span class="text-[10px] text-zinc-500 bg-elevated px-2 py-0.5 rounded">${this.blocks.filter(b => b.enabled).length} active</span>
           </div>
+
           <div class="flex items-center space-x-1">
-            <button id="btn-new-project" class="btn-secondary text-xs" title="New Project">
-              <i data-lucide="file-plus" class="w-3.5 h-3.5 mr-1"></i> New Project
+            <!-- Primary Actions (Always Visible) -->
+            <button id="btn-generate-ai" class="btn-secondary text-xs" title="AI Generate Block">
+              <i data-lucide="sparkles" class="w-3 h-3 mr-1"></i> AI
             </button>
-            <button id="btn-import-export" class="icon-btn" title="Import .rsc">
-              <i data-lucide="upload" class="w-3.5 h-3.5"></i>
-            </button>
-            <button id="btn-validate" class="icon-btn" title="Validate">
-              <i data-lucide="check-circle" class="w-3.5 h-3.5"></i>
-            </button>
-            <button id="btn-compare" class="icon-btn" title="Compare">
-              <i data-lucide="git-compare" class="w-3.5 h-3.5"></i>
-            </button>
-            <div class="w-px h-4 bg-border-subtle mx-1"></div>
-            <button id="btn-save-library" class="btn-secondary text-xs">
+            <button id="btn-save-library" class="btn-secondary text-xs" title="Save to Library">
               <i data-lucide="save" class="w-3 h-3 mr-1"></i> Save
             </button>
-            <button id="btn-export-rsc" class="btn-primary text-xs">
-              <i data-lucide="download" class="w-3 h-3 mr-1"></i> Export .rsc
+            <button id="btn-export-rsc" class="btn-primary text-xs" title="Export .rsc">
+              <i data-lucide="download" class="w-3 h-3 mr-1"></i> Export
             </button>
+
+            <div class="w-px h-4 bg-border-subtle mx-1"></div>
+
+            <!-- Secondary Actions (Dropdown) -->
+            <div class="relative">
+              <button id="btn-more-actions" class="icon-btn animate-none" title="More Actions">
+                <i data-lucide="more-vertical" class="w-4 h-4"></i>
+              </button>
+
+              <!-- Dropdown Menu (Hidden by default) -->
+              <div id="more-actions-dropdown" class="hidden absolute right-0 top-full mt-1 w-48 bg-surface border border-border-subtle rounded-md shadow-lg z-50 py-1">
+                <button id="btn-import-export" class="w-full text-left px-3 py-2 text-xs text-zinc-300 hover:bg-elevated flex items-center">
+                  <i data-lucide="upload" class="w-3 h-3 mr-2"></i> Import .rsc
+                </button>
+                <button id="btn-validate" class="w-full text-left px-3 py-2 text-xs text-zinc-300 hover:bg-elevated flex items-center">
+                  <i data-lucide="check-circle" class="w-3 h-3 mr-2"></i> Validate Config
+                </button>
+                <button id="btn-compare" class="w-full text-left px-3 py-2 text-xs text-zinc-300 hover:bg-elevated flex items-center">
+                  <i data-lucide="git-compare" class="w-3 h-3 mr-2"></i> Compare Configs
+                </button>
+                <div class="border-t border-border-subtle my-1"></div>
+                <button id="btn-clear-project" class="w-full text-left px-3 py-2 text-xs text-red-400 hover:bg-red-950/20 flex items-center">
+                  <i data-lucide="trash-2" class="w-3 h-3 mr-2"></i> Clear Project
+                </button>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -213,55 +231,80 @@ const BuildTab = {
       return;
     }
 
-    // Lazy load Monaco only when the user clicks "Edit"
-    if (typeof monaco === 'undefined') {
-      await this.loadMonaco();
+    const btn = document.querySelector(`.btn-edit-block[data-index="${index}"]`);
+    let originalIcon = '';
+    if (btn) {
+      originalIcon = btn.innerHTML;
+      btn.disabled = true;
+      btn.innerHTML = `<i data-lucide="loader-2" class="w-3 h-3 animate-spin"></i>`;
+      if (typeof lucide !== 'undefined') {
+        lucide.createIcons();
+      }
     }
 
-    const modal = document.createElement('div');
-    modal.className = 'fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-8';
-    modal.innerHTML = `
-      <div class="bg-surface border border-border rounded-lg max-w-5xl w-full max-h-[90vh] flex flex-col shadow-2xl font-sans">
-        <div class="flex items-center justify-between p-4 border-b border-border bg-surface-elevated">
-          <h3 class="text-sm font-semibold text-zinc-100">Edit Block: ${block.name}</h3>
-          <button class="btn-close text-secondary hover:text-zinc-100 text-xl">✕</button>
-        </div>
-        <div class="p-6 overflow-y-auto flex-1 flex flex-col">
-          <div id="monaco-container" class="flex-1 min-h-[500px]"></div>
-        </div>
-        <div class="flex justify-end space-x-2 p-4 border-t border-border bg-surface-elevated/30">
-          <button class="btn-cancel bg-transparent text-zinc-100 border border-border hover:bg-white/5 px-4 py-2 rounded-md text-xs font-medium">Cancel</button>
-          <button class="btn-save bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-md text-xs font-medium">Save Changes</button>
-        </div>
-      </div>
-    `;
+    try {
+      // Lazy load Monaco only when the user clicks "Edit"
+      if (typeof monaco === 'undefined') {
+        await this.loadMonaco();
+      }
 
-    document.body.appendChild(modal);
+      const modal = document.createElement('div');
+      modal.className = 'fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-8';
+      modal.innerHTML = `
+        <div class="bg-surface border border-border rounded-lg max-w-5xl w-full max-h-[90vh] flex flex-col shadow-2xl font-sans">
+          <div class="flex items-center justify-between p-4 border-b border-border bg-surface-elevated">
+            <h3 class="text-sm font-semibold text-zinc-100">Edit Block: ${block.name}</h3>
+            <button class="btn-close text-secondary hover:text-zinc-100 text-xl">✕</button>
+          </div>
+          <div class="p-6 overflow-y-auto flex-1 flex flex-col">
+            <div id="monaco-container" class="flex-1 min-h-[500px]"></div>
+          </div>
+          <div class="flex justify-end space-x-2 p-4 border-t border-border bg-surface-elevated/30">
+            <button class="btn-cancel bg-transparent text-zinc-100 border border-border hover:bg-white/5 px-4 py-2 rounded-md text-xs font-medium">Cancel</button>
+            <button class="btn-save bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-md text-xs font-medium">Save Changes</button>
+          </div>
+        </div>
+      `;
 
-    const closeModal = () => {
-      if (typeof MonacoIntegration !== 'undefined' && MonacoIntegration.dispose) MonacoIntegration.dispose();
-      modal.remove();
-    };
-    modal.querySelector('.btn-close').addEventListener('click', closeModal);
-    modal.querySelector('.btn-cancel').addEventListener('click', closeModal);
-    modal.addEventListener('click', (e) => { if (e.target === modal) closeModal(); });
-    document.addEventListener('keydown', function escHandler(e) {
-      if (e.key === 'Escape') { closeModal(); document.removeEventListener('keydown', escHandler); }
-    });
+      document.body.appendChild(modal);
 
-    const container = modal.querySelector('#monaco-container');
-    if (typeof MonacoIntegration !== 'undefined' && MonacoIntegration.init) {
-      await MonacoIntegration.init(container, block.content);
+      const closeModal = () => {
+        if (typeof MonacoIntegration !== 'undefined' && MonacoIntegration.dispose) MonacoIntegration.dispose();
+        modal.remove();
+      };
+      modal.querySelector('.btn-close').addEventListener('click', closeModal);
+      modal.querySelector('.btn-cancel').addEventListener('click', closeModal);
+      modal.addEventListener('click', (e) => { if (e.target === modal) closeModal(); });
+      document.addEventListener('keydown', function escHandler(e) {
+        if (e.key === 'Escape') { closeModal(); document.removeEventListener('keydown', escHandler); }
+      });
+
+      const container = modal.querySelector('#monaco-container');
+      if (typeof MonacoIntegration !== 'undefined' && MonacoIntegration.init) {
+        await MonacoIntegration.init(container, block.content);
+      }
+
+      modal.querySelector('.btn-save').addEventListener('click', () => {
+        const newContent = typeof MonacoIntegration !== 'undefined' && MonacoIntegration.getContent ? MonacoIntegration.getContent() : '';
+        this.blocks[index].content = newContent;
+        closeModal();
+        this.renderBlocks();
+        this.updatePreview();
+        if (typeof BuilderEngine !== 'undefined') BuilderEngine.triggerAutoSave();
+      });
+
+    } catch (error) {
+      console.error("Failed to load Monaco:", error);
+      alert("Failed to load editor. Please check your connection.");
+    } finally {
+      if (btn) {
+        btn.disabled = false;
+        btn.innerHTML = originalIcon;
+        if (typeof lucide !== 'undefined') {
+          lucide.createIcons();
+        }
+      }
     }
-
-    modal.querySelector('.btn-save').addEventListener('click', () => {
-      const newContent = typeof MonacoIntegration !== 'undefined' && MonacoIntegration.getContent ? MonacoIntegration.getContent() : '';
-      this.blocks[index].content = newContent;
-      closeModal();
-      this.renderBlocks();
-      this.updatePreview();
-      if (typeof BuilderEngine !== 'undefined') BuilderEngine.triggerAutoSave();
-    });
   },
 
   async addConditionalBlock() {
@@ -401,7 +444,7 @@ const BuildTab = {
                 <input type="text" value="${this.escapeHtml(name)}" class="variable-name bg-transparent text-[10px] font-mono text-purple-400 w-full focus:outline-none font-bold" data-old-name="${this.escapeHtml(name)}">
                 <button class="btn-remove-var text-zinc-500 hover:text-red-500 ml-1.5 h-4 w-4 flex items-center justify-center rounded hover:bg-white/5" data-name="${this.escapeHtml(name)}">✕</button>
               </div>
-              <input type="text" value="${this.escapeHtml(value)}" class="variable-value w-full h-7 bg-app border border-border rounded px-2 py-1 text-[11px] font-mono text-white focus:outline-none" data-name="${this.escapeHtml(name)}" placeholder="Value...">
+              <input type="text" value="${this.escapeHtml(value)}" class="variable-value w-full h-7 bg-app border border-border rounded px-2 py-1 text-[11px] font-mono text-primary focus:outline-none" data-name="${this.escapeHtml(name)}" placeholder="Value...">
             </div>
           `).join('')}
         </div>
@@ -789,35 +832,75 @@ const BuildTab = {
 
       let content = '<div class="space-y-4">';
 
-      if (result.errors && result.errors.length > 0) {
-        content += '<div><h4 class="font-bold text-red-400 mb-2 text-xs">Errors:</h4><div class="space-y-2">';
-        content += result.errors.map(err => `
-          <div class="text-xs text-red-300 bg-red-950/20 px-3 py-2 rounded border border-red-950/30 flex items-center justify-between">
-            <span>✕ ${err.message || err}</span>
-            ${err.target ? `<button class="text-[10px] underline hover:text-white px-2 py-0.5 rounded bg-red-500/10 border border-red-500/20 transition-all font-semibold uppercase tracking-wider" onclick="window.highlightTarget('${err.targetType}', '${err.target}')">Go to</button>` : ''}
+      // Group 1: Critical Errors
+      const errors = result.errors || [];
+      if (errors.length > 0) {
+        content += `
+          <div>
+            <h4 class="text-xs font-semibold text-red-400 mb-2 flex items-center">
+              <i data-lucide="alert-circle" class="w-3 h-3 mr-1"></i>
+              ${errors.length} Critical Error(s)
+            </h4>
+            <div class="space-y-1.5">
+              ${errors.map(err => {
+                const message = typeof err === 'object' && err.message ? err.message : String(err);
+                const target = typeof err === 'object' ? err.target : null;
+                const targetType = typeof err === 'object' ? err.targetType : null;
+                return `
+                  <div class="text-xs text-red-300 bg-red-900/20 border border-red-900/50 px-3 py-2 rounded flex items-start">
+                    <span class="mr-2">✕</span>
+                    <span class="flex-1 text-left">${message}</span>
+                    ${target ? `<button class="ml-auto text-[10px] underline hover:text-white whitespace-nowrap uppercase tracking-wider font-semibold" onclick="window.highlightTarget('${targetType}', '${target}')">Fix</button>` : ''}
+                  </div>
+                `;
+              }).join('')}
+            </div>
           </div>
-        `).join('');
-        content += '</div></div>';
+        `;
       }
 
-      if (result.warnings && result.warnings.length > 0) {
-        content += '<div><h4 class="font-bold text-yellow-400 mb-2 text-xs">Warnings:</h4><div class="space-y-2">';
-        content += result.warnings.map(err => `
-          <div class="text-xs text-yellow-300 bg-yellow-950/20 px-3 py-2 rounded border border-yellow-950/30 flex items-center justify-between">
-            <span>⚠ ${err.message || err}</span>
-            ${err.target ? `<button class="text-[10px] underline hover:text-white px-2 py-0.5 rounded bg-yellow-500/10 border border-yellow-500/20 transition-all font-semibold uppercase tracking-wider" onclick="window.highlightTarget('${err.targetType}', '${err.target}')">Go to</button>` : ''}
+      // Group 2: Warnings
+      const warnings = result.warnings || [];
+      if (warnings.length > 0) {
+        content += `
+          <div>
+            <h4 class="text-xs font-semibold text-amber-400 mb-2 flex items-center">
+              <i data-lucide="alert-triangle" class="w-3 h-3 mr-1"></i>
+              ${warnings.length} Warning(s)
+            </h4>
+            <div class="space-y-1.5">
+              ${warnings.map(err => {
+                const message = typeof err === 'object' && err.message ? err.message : String(err);
+                const target = typeof err === 'object' ? err.target : null;
+                const targetType = typeof err === 'object' ? err.targetType : null;
+                return `
+                  <div class="text-xs text-amber-300 bg-amber-900/20 border border-amber-900/50 px-3 py-2 rounded flex items-start">
+                    <span class="mr-2">⚠</span>
+                    <span class="flex-1 text-left">${message}</span>
+                    ${target ? `<button class="ml-auto text-[10px] underline hover:text-white whitespace-nowrap uppercase tracking-wider font-semibold" onclick="window.highlightTarget('${targetType}', '${target}')">Fix</button>` : ''}
+                  </div>
+                `;
+              }).join('')}
+            </div>
           </div>
-        `).join('');
-        content += '</div></div>';
+        `;
       }
 
-      if ((!result.errors || result.errors.length === 0) && (!result.warnings || result.warnings.length === 0)) {
-        content += '<div class="text-center py-8 text-emerald-400 font-medium">✓ Configuration is valid! No errors or warnings found.</div>';
+      if (errors.length === 0 && warnings.length === 0) {
+        content += `
+          <div class="text-center py-6">
+            <i data-lucide="check-circle" class="w-8 h-8 text-emerald-500 mx-auto mb-2"></i>
+            <div class="text-sm font-medium text-emerald-400">Configuration is valid!</div>
+            <div class="text-xs text-zinc-500 mt-1">No issues detected.</div>
+          </div>
+        `;
       }
-
       content += '</div>';
 
       createBuildTabModal('Validation Results', content);
+      if (typeof lucide !== 'undefined') {
+        lucide.createIcons();
+      }
     } catch (error) {
       alert('Validation failed: ' + error.message);
     }
@@ -910,21 +993,21 @@ const BuildTab = {
     const btnAddVar = document.getElementById('btn-add-variable');
     if (btnAddVar) btnAddVar.addEventListener('click', () => this.addVariable());
 
-    const btnNewProject = document.getElementById('btn-new-project');
-    if (btnNewProject) {
-      btnNewProject.addEventListener('click', async () => {
+    const btnClearProject = document.getElementById('btn-clear-project');
+    if (btnClearProject) {
+      btnClearProject.addEventListener('click', async () => {
         if (typeof PromptModal !== 'undefined') {
           const confirmNew = await PromptModal.show({
-            title: 'New Project',
-            message: 'Are you sure you want to start a new project? Make sure your current project is saved.',
-            confirmText: 'Create New',
+            title: 'Clear Project',
+            message: 'Are you sure you want to clear this project and start fresh? Make sure your current project is saved.',
+            confirmText: 'Clear Project',
             cancelText: 'Cancel'
           });
           if (!confirmNew) return;
 
           const name = await PromptModal.show({
             title: 'Project Name',
-            message: 'Enter a name for the new project:',
+            message: 'Enter a name for the cleared project:',
             placeholder: 'e.g., Client ABC - Basic Setup',
             defaultValue: `Untitled ${new Date().toLocaleDateString()}`,
             confirmText: 'Create',
@@ -943,6 +1026,31 @@ const BuildTab = {
           this.updatePreview();
           BuilderEngine.autoSaveProject();
         }
+      });
+    }
+
+    // More Actions Dropdown Toggle Logic
+    const moreBtn = document.getElementById('btn-more-actions');
+    const dropdown = document.getElementById('more-actions-dropdown');
+
+    if (moreBtn && dropdown) {
+      moreBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        dropdown.classList.toggle('hidden');
+      });
+
+      // Close dropdown when clicking outside
+      document.addEventListener('click', (e) => {
+        if (!moreBtn.contains(e.target) && !dropdown.contains(e.target)) {
+          dropdown.classList.add('hidden');
+        }
+      });
+
+      // Close dropdown when any action button inside it is clicked
+      dropdown.querySelectorAll('button').forEach(btn => {
+        btn.addEventListener('click', () => {
+          dropdown.classList.add('hidden');
+        });
       });
     }
 
