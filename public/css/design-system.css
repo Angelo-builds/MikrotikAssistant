@@ -23,17 +23,28 @@
   --border: #e4e4e7;
   --border-subtle: #e4e4e7;
   --border-strong: #d4d4d8;
-  --text-primary: #18181b;
-  --text-secondary: #52525b;
-  --text-muted: #a1a1aa;
   --accent-primary: #6366f1;
   --accent-primary-hover: #4f46e5;
   --accent-success: #10b981;
   --accent-warning: #f59e0b;
   --accent-error: #ef4444;
   --accent-info: #3b82f6;
-  --code-bg: #27272a;
-  --code-text: #fafafa;
+
+  /* Text must be dark enough for contrast */
+  --text-primary: #18181b;
+  --text-secondary: #52525b;
+  --text-muted: #71717a; /* Crucial for placeholders */
+
+  /* Inputs and Textboxes */
+  --input-bg: #ffffff;
+  --input-border: #d4d4d8;
+  --input-text: #18181b;
+  --input-placeholder: #a1a1aa; /* MUST be visible on white */
+
+  /* Code blocks in light mode */
+  --code-bg: #f4f4f5;
+  --code-text: #18181b;
+  --code-border: #d4d4d8;
 }
 
 /* Dark Mode (default) */
@@ -44,17 +55,67 @@
   --border: #27272a;
   --border-subtle: #3f3f46;
   --border-strong: #52525b;
-  --text-primary: #fafafa;
-  --text-secondary: #a1a1aa;
-  --text-muted: #71717a;
   --accent-primary: #6366f1;
   --accent-primary-hover: #4f46e5;
   --accent-success: #10b981;
   --accent-warning: #f59e0b;
   --accent-error: #ef4444;
   --accent-info: #3b82f6;
+
+  --text-primary: #fafafa;
+  --text-secondary: #a1a1aa;
+  --text-muted: #71717a;
+
+  --input-bg: #27272a;
+  --input-border: #3f3f46;
+  --input-text: #fafafa;
+  --input-placeholder: #71717a; /* MUST be visible on dark gray */
+
   --code-bg: #18181b;
   --code-text: #fafafa;
+  --code-border: #3f3f46;
+}
+
+/* Global Input Placeholder Fix */
+input::placeholder, textarea::placeholder {
+  color: var(--input-placeholder) !important;
+  opacity: 1 !important; /* Override browser defaults */
+}
+
+/* Ensure all text elements use variables, NOT hardcoded colors */
+.text-zinc-100, .text-zinc-200, .text-zinc-300 { color: var(--text-primary) !important; }
+.text-zinc-400 { color: var(--text-secondary) !important; }
+.text-zinc-500, .text-zinc-600 { color: var(--text-muted) !important; }
+
+/* Fix for pulsing icons in dark mode */
+.animate-pulse {
+  opacity: 0.8; /* Ensure it doesn't blend into the background */
+}
+
+/* Generic form elements theme assignment */
+input[type="text"], input[type="password"], textarea, select {
+  background-color: var(--input-bg) !important;
+  color: var(--input-text) !important;
+  border-color: var(--input-border) !important;
+}
+
+/* Code blocks theme-aware overrides */
+.code-block-container {
+  background-color: var(--code-bg) !important;
+  border-color: var(--code-border) !important;
+}
+.code-block-header {
+  background-color: var(--surface-elevated) !important;
+  border-bottom-color: var(--code-border) !important;
+}
+.code-block-content {
+  color: var(--code-text) !important;
+}
+.code-block-content code {
+  color: var(--code-text) !important;
+}
+.code-block-content code .command-line + .command-line {
+  border-top: 1px solid var(--code-border) !important;
 }
 
 /* Global resets and typography standards */
@@ -257,4 +318,45 @@ select:focus-visible {
   100% {
     background-position: -200% 0;
   }
+}
+
+/* Light mode overrides for semantic feedback colors (errors, warnings, success) */
+[data-theme="light"] .text-red-300,
+[data-theme="light"] .text-red-400 {
+  color: #b91c1c !important; /* red-700 */
+}
+[data-theme="light"] .text-amber-300,
+[data-theme="light"] .text-amber-400 {
+  color: #b45309 !important; /* amber-700 */
+}
+[data-theme="light"] .text-emerald-300,
+[data-theme="light"] .text-emerald-400 {
+  color: #047857 !important; /* emerald-700 */
+}
+
+[data-theme="light"] .bg-red-900\/20,
+[data-theme="light"] .bg-red-950\/20 {
+  background-color: rgba(254, 226, 226, 0.7) !important; /* light red bg */
+}
+[data-theme="light"] .bg-amber-900\/20,
+[data-theme="light"] .bg-amber-950\/20 {
+  background-color: rgba(254, 243, 199, 0.7) !important; /* light amber bg */
+}
+[data-theme="light"] .bg-emerald-900\/20,
+[data-theme="light"] .bg-emerald-950\/20,
+[data-theme="light"] .bg-emerald-950\/10 {
+  background-color: rgba(209, 250, 229, 0.7) !important; /* light emerald bg */
+}
+
+[data-theme="light"] .border-red-900\/50,
+[data-theme="light"] .border-red-950\/30 {
+  border-color: rgba(239, 68, 68, 0.3) !important;
+}
+[data-theme="light"] .border-amber-900\/50,
+[data-theme="light"] .border-amber-950\/30 {
+  border-color: rgba(245, 158, 11, 0.3) !important;
+}
+[data-theme="light"] .border-emerald-500,
+[data-theme="light"] .border-emerald-500\/20 {
+  border-color: rgba(16, 185, 129, 0.3) !important;
 }

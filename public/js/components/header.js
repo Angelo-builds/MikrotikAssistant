@@ -4,8 +4,8 @@ const Header = {
       <header id="app-header" class="bg-surface border-b border-border h-12 px-4 flex items-center justify-between select-none">
         <div class="flex items-center space-x-2">
           ${UI_Icons.render('terminal', 'text-purple-500 w-4 h-4')}
-          <h1 class="text-xs font-bold text-white">Mik the Winbox Wizard</h1>
-          <span id="privacy-badge" title="Privacy Shield Active" class="text-green-400 bg-green-950/40 border border-green-500/20 px-1.5 py-0.5 rounded text-[10px] inline-flex items-center justify-center">
+          <h1 class="text-xs font-bold text-primary">Mik the Winbox Wizard</h1>
+          <span id="privacy-badge" title="Privacy Shield Active" class="text-green-700 bg-green-100 border border-green-300 dark:text-green-400 dark:bg-green-950/40 dark:border-green-500/20 px-1.5 py-0.5 rounded text-[10px] inline-flex items-center justify-center">
             ${UI_Icons.render('shield', 'w-3 h-3')}
           </span>
         </div>
