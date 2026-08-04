@@ -6,9 +6,7 @@
 
 **Privacy-First MikroTik RouterOS Configuration Auditor & Builder**
 
-<p align="center">
-  <img src="docs/screenshots/hero-dark.png" alt="MikrotikAssistant Hero Dark" width="100%">
-</p>
+[![Product Screenshot](docs/screenshots/dashboard.png)](https://github.com/Angelo-builds/MikrotikAssistant)
 
 ## 🚀 Quick Start
 
@@ -58,43 +56,6 @@ docker run -p 3000:3000 mikrotik-assistant
 - Custom block creation
 - Export/Import JSON format
 - Project auto-save
-
-## 📸 Screen Showcase
-
-### 1. Hero / Main View
-The clean, modern Audit Tab landing page provides quick start action shortcuts, custom-designed icons, and a step-by-step visual audit flow guide.
-- **Dark Mode:** `docs/screenshots/hero-dark.png`
-- **Light Mode:** `docs/screenshots/hero-light.png`
-
-### 2. Active Chat & Privacy Shield
-Paste your exports safely. The fully client-side Privacy Shield scrubs and masks private variables before sending data to secure AI environments.
-- **Dark Mode:** `docs/screenshots/audit-chat-dark.png`
-- **Light Mode:** `docs/screenshots/audit-chat-light.png`
-
-### 3. Multi-Agent Orchestrator Response
-Parallel specialized RouterOS expert agents (Security, VLAN, Routing) analyze configurations to produce isolated vulnerability insights and unified fix scripts.
-- **Dark Mode:** `docs/screenshots/multi-agent-dark.png`
-- **Light Mode:** `docs/screenshots/multi-agent-light.png`
-
-### 4. Configuration Builder
-Interactive three-column modular builder combining localized variable inputs on the left, configuration block cards in the center, and live syntax preview on the right.
-- **Dark Mode:** `docs/screenshots/builder-dark.png`
-- **Light Mode:** `docs/screenshots/builder-light.png`
-
-### 5. Template Library
-Preset template configs (such as EOLO, WISP, Fiber DHCP, or Home Routers) and saved client projects with export and import workflows.
-- **Dark Mode:** `docs/screenshots/library-dark.png`
-- **Light Mode:** `docs/screenshots/library-light.png`
-
-### 6. Preferences & Advanced Controls
-Manage LLM models (OpenRouter, OpenAI, local Ollama), configure API keys/backend environments, toggle dark/light appearance, and control fine-grained mask settings.
-- **Dark Mode:** `docs/screenshots/preferences-dark.png`
-- **Light Mode:** `docs/screenshots/preferences-light.png`
-
-### 7. Collapsed Sidebar & Responsive Layout
-Demonstrates the fluid space-saving collapsed sidebar navigation (48px) and flexible mobile viewports.
-- **Collapsed Sidebar:** `docs/screenshots/sidebar-collapsed.png`
-- **Mobile Responsive (375x812):** `docs/screenshots/mobile-view.png`
 
 ## 📖 Documentation
 
