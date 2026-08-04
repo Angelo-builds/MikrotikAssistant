@@ -70,11 +70,59 @@ document.addEventListener('DOMContentLoaded', () => {
     }, 3500);
   };
 
-  // Global Escape key handler for modals
+  // Mobile drawer backdrop initialization
+  const backdrop = document.createElement('div');
+  backdrop.id = 'sidebar-mobile-backdrop';
+  backdrop.className = 'sidebar-mobile-backdrop';
+  document.body.appendChild(backdrop);
+
+  // Global event delegation to handle mobile sidebar toggle, backdrop close, and tab clicks
+  document.addEventListener('click', (e) => {
+    // 1. Mobile toggle click
+    const toggle = e.target.closest('#mobile-menu-toggle');
+    if (toggle) {
+      e.stopPropagation();
+      const sidebar = document.getElementById('sidebar');
+      if (sidebar && backdrop) {
+        const isOpen = sidebar.classList.toggle('mobile-open');
+        if (isOpen) {
+          backdrop.classList.add('visible');
+        } else {
+          backdrop.classList.remove('visible');
+        }
+      }
+      return;
+    }
+
+    // 2. Backdrop click
+    const isBackdrop = e.target.closest('#sidebar-mobile-backdrop');
+    if (isBackdrop) {
+      const sidebar = document.getElementById('sidebar');
+      if (sidebar) sidebar.classList.remove('mobile-open');
+      backdrop.classList.remove('visible');
+      return;
+    }
+
+    // 3. Sidebar tab btn click on mobile
+    const tabBtn = e.target.closest('#sidebar .tab-btn');
+    if (tabBtn && window.innerWidth <= 768) {
+      const sidebar = document.getElementById('sidebar');
+      if (sidebar) sidebar.classList.remove('mobile-open');
+      backdrop.classList.remove('visible');
+    }
+  });
+
+  // Global Escape key handler for modals and sidebar mobile drawer
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') {
       const modals = document.querySelectorAll('.fixed.inset-0.bg-black\\/80, .fixed.inset-0.bg-black\\\\/80, .fixed.inset-0.bg-black\\/85, .fixed.inset-0.bg-black\\/70');
       modals.forEach(modal => modal.remove());
+
+      const sidebar = document.getElementById('sidebar');
+      if (sidebar && sidebar.classList.contains('mobile-open')) {
+        sidebar.classList.remove('mobile-open');
+        backdrop.classList.remove('visible');
+      }
     }
   });
 });

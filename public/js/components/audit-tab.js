@@ -198,6 +198,11 @@ const AuditTab = {
 
     const t = this.getT();
 
+    // Calculate active shields
+    const privacyShields = AppState.preferences.privacyShields || {};
+    const activeCount = Object.values(privacyShields).filter(v => v === true).length;
+    const totalCount = Object.keys(privacyShields).length;
+
     container.innerHTML = `
       <div class="audit-container flex flex-row h-full min-h-0 w-full bg-app text-primary overflow-hidden relative font-sans text-xs">
 
@@ -206,16 +211,19 @@ const AuditTab = {
 
           <!-- SUBHEADER -->
           <div class="flex flex-wrap items-center justify-between px-4 py-2 border-b border-border bg-surface shrink-0 gap-2 select-none">
-            <div class="flex items-center space-x-2">
-              ${UI_Icons.render('terminal', 'text-purple-500 w-3.5 h-3.5')}
-              <span class="text-xs font-bold text-purple-400">Mik local audit</span>
-              <span id="llm-status-badge" class="flex items-center space-x-1 text-[10px]">
+            <div class="flex flex-wrap items-center gap-2 text-xs">
+              <div class="flex items-center space-x-1.5 px-2 py-1 bg-surface border border-border-subtle rounded">
+                ${UI_Icons.render('terminal', 'text-purple-500 w-3 h-3')}
+                <span class="font-medium text-primary">Mik local audit</span>
+              </div>
+              <div id="llm-status-badge" class="flex items-center space-x-1.5 px-2 py-1 bg-surface border border-border-subtle rounded text-[10px]">
                 <span id="llm-status-dot" class="w-1.5 h-1.5 bg-gray-500 rounded-full"></span>
                 <span id="llm-status-text" class="text-zinc-400 font-medium">LLM Offline</span>
-              </span>
-              <span id="privacy-count-badge" class="text-[10px] bg-purple-950/20 border border-purple-500/20 text-purple-300 px-1.5 py-0.5 rounded font-semibold">
-                Privacy Guard: 6/6 Active
-              </span>
+              </div>
+              <div id="privacy-count-badge" class="flex items-center space-x-1.5 px-2 py-1 bg-emerald-900/30 border border-emerald-700/50 rounded">
+                ${UI_Icons.render('shield-check', 'w-3 h-3 text-emerald-400')}
+                <span class="text-emerald-300">Privacy Guard: ${activeCount}/${totalCount} Active</span>
+              </div>
             </div>
             <div class="flex items-center space-x-2">
               <select id="select-ros-version" class="bg-surface border border-border rounded px-2 py-0.5 text-[10px] text-primary focus:outline-none" title="RouterOS Version">
@@ -292,36 +300,36 @@ const AuditTab = {
               </div>
 
               <!-- Compact Quick Actions (2x2 grid, small) -->
-              <div class="w-full max-w-2xl">
+              <div class="w-full max-w-2xl mt-4">
                 <div class="text-[10px] uppercase tracking-wider text-muted mb-3 text-center">${t.quickActions || 'Quick Actions'}</div>
-                <div class="grid grid-cols-2 gap-2">
-                  <button id="btn-scenario-firewall" class="quick-action bg-surface hover:border-indigo-500/50 border border-border-subtle rounded-md p-3 text-left transition-all" data-action="firewall">
-                    <div class="flex items-center space-x-2 mb-1">
+                <div class="quick-actions-grid grid grid-cols-1 md:grid-cols-2 gap-3 w-full">
+                  <button id="btn-scenario-firewall" class="quick-action bg-surface hover:border-indigo-500/50 border border-border-subtle rounded-md p-4 text-left transition-all focus:outline-none" data-action="firewall">
+                    <div class="flex items-center space-x-2 mb-2">
                       <i data-lucide="shield-check" class="w-4 h-4 text-indigo-600"></i>
                       <span class="text-xs font-semibold text-primary">${t.qaFirewallTitle || 'Audit Firewall'}</span>
                     </div>
-                    <div class="text-[10px] text-secondary line-clamp-2">${t.qaFirewallDesc || 'Security vulnerability check'}</div>
+                    <div class="text-xs text-secondary line-clamp-2 leading-relaxed">${t.qaFirewallDesc || 'Security vulnerability check and rule analysis'}</div>
                   </button>
-                  <button id="btn-scenario-vlan" class="quick-action bg-surface hover:border-indigo-500/50 border border-border-subtle rounded-md p-3 text-left transition-all" data-action="vlan">
-                    <div class="flex items-center space-x-2 mb-1">
+                  <button id="btn-scenario-vlan" class="quick-action bg-surface hover:border-indigo-500/50 border border-border-subtle rounded-md p-4 text-left transition-all focus:outline-none" data-action="vlan">
+                    <div class="flex items-center space-x-2 mb-2">
                       <i data-lucide="layers" class="w-4 h-4 text-emerald-600"></i>
                       <span class="text-xs font-semibold text-primary">${t.qaVlanTitle || 'VLAN Setup'}</span>
                     </div>
-                    <div class="text-[10px] text-secondary line-clamp-2">${t.qaVlanDesc || 'Generate VLAN config'}</div>
+                    <div class="text-xs text-secondary line-clamp-2 leading-relaxed">${t.qaVlanDesc || 'Generate VLAN configuration and isolated bridge layout'}</div>
                   </button>
-                  <button id="btn-scenario-pppoe" class="quick-action bg-surface hover:border-indigo-500/50 border border-border-subtle rounded-md p-3 text-left transition-all" data-action="routing">
-                    <div class="flex items-center space-x-2 mb-1">
+                  <button id="btn-scenario-pppoe" class="quick-action bg-surface hover:border-indigo-500/50 border border-border-subtle rounded-md p-4 text-left transition-all focus:outline-none" data-action="routing">
+                    <div class="flex items-center space-x-2 mb-2">
                       <i data-lucide="route" class="w-4 h-4 text-amber-600"></i>
                       <span class="text-xs font-semibold text-primary">${t.qaRoutingTitle || 'Fix Routing'}</span>
                     </div>
-                    <div class="text-[10px] text-secondary line-clamp-2">${t.qaRoutingDesc || 'PPPoE/WAN diagnostics'}</div>
+                    <div class="text-xs text-secondary line-clamp-2 leading-relaxed">${t.qaRoutingDesc || 'PPPoE WAN diagnostics and failover checks'}</div>
                   </button>
-                  <button id="btn-scenario-queues" class="quick-action bg-surface hover:border-indigo-500/50 border border-border-subtle rounded-md p-3 text-left transition-all" data-action="queue">
-                    <div class="flex items-center space-x-2 mb-1">
+                  <button id="btn-scenario-queues" class="quick-action bg-surface hover:border-indigo-500/50 border border-border-subtle rounded-md p-4 text-left transition-all focus:outline-none" data-action="queue">
+                    <div class="flex items-center space-x-2 mb-2">
                       <i data-lucide="gauge" class="w-4 h-4 text-purple-600"></i>
                       <span class="text-xs font-semibold text-primary">${t.qaQueueTitle || 'Bandwidth Queues'}</span>
                     </div>
-                    <div class="text-[10px] text-secondary line-clamp-2">${t.qaQueueDesc || 'Traffic shaping config'}</div>
+                    <div class="text-xs text-secondary line-clamp-2 leading-relaxed">${t.qaQueueDesc || 'Traffic shaping and priority queue limits'}</div>
                   </button>
                 </div>
               </div>
@@ -351,83 +359,81 @@ const AuditTab = {
               <button id="btn-remove-file" class="text-zinc-400 hover:text-red-400 transition p-1" title="Remove attachment">✕</button>
             </div>
 
-            <!-- TEXTAREA INPUT WRAPPER -->
-            <div class="relative">
-              <textarea
-                id="chat-message"
-                class="w-full bg-app border border-border rounded-md px-3 py-1.5 pr-10 resize-none focus:outline-none focus:border-purple-500 text-xs leading-relaxed placeholder-zinc-600 transition-colors h-8"
-                rows="1"
-                placeholder="Describe your issue, run slash commands (/), or paste RouterOS configs safely..."
-              ></textarea>
+            <!-- CHAT INPUT CONTAINER -->
+            <div class="chat-input-container flex items-end gap-2 p-2 bg-surface border border-border-subtle rounded-lg relative overflow-hidden">
+              <div class="relative flex-1 min-w-0">
+                <textarea
+                  id="chat-message"
+                  class="w-full bg-transparent border-none resize-none focus:outline-none text-xs leading-relaxed placeholder-zinc-600 transition-colors min-h-[32px] max-h-[120px]"
+                  rows="1"
+                  placeholder="Describe your issue, run slash commands (/), or paste RouterOS configs safely..."
+                ></textarea>
 
-              <!-- PALETTE: SLASH COMMANDS -->
-              <div id="slash-palette" class="hidden absolute bottom-full left-0 mb-1 w-64 bg-surface-elevated border border-border rounded shadow-2xl overflow-hidden select-none z-50">
-                <div class="px-2.5 py-1 bg-app border-b border-border text-[9px] font-bold uppercase tracking-wider text-purple-400">Slash Commands</div>
-                <div class="max-h-36 overflow-y-auto">
-                  <div class="slash-item flex items-center justify-between p-2 hover:bg-purple-600/10 cursor-pointer text-[11px] group" data-command="/audit">
-                    <span class="font-mono font-bold text-purple-400 group-hover:text-purple-300">/audit</span>
-                    <span class="text-zinc-500 text-[9px]">Multi-agent deep dive analysis</span>
+                <!-- PALETTE: SLASH COMMANDS -->
+                <div id="slash-palette" class="hidden absolute bottom-full left-0 mb-1 w-64 bg-surface-elevated border border-border rounded shadow-2xl overflow-hidden select-none z-50">
+                  <div class="px-2.5 py-1 bg-app border-b border-border text-[9px] font-bold uppercase tracking-wider text-purple-400">Slash Commands</div>
+                  <div class="max-h-36 overflow-y-auto">
+                    <div class="slash-item flex items-center justify-between p-2 hover:bg-purple-600/10 cursor-pointer text-[11px] group" data-command="/audit">
+                      <span class="font-mono font-bold text-purple-400 group-hover:text-purple-300">/audit</span>
+                      <span class="text-zinc-500 text-[9px]">Multi-agent deep dive analysis</span>
+                    </div>
+                    <div class="slash-item flex items-center justify-between p-2 hover:bg-purple-600/10 cursor-pointer text-[11px] group" data-command="/explain">
+                      <span class="font-mono font-bold text-purple-400 group-hover:text-purple-300">/explain</span>
+                      <span class="text-zinc-500 text-[9px]">Explain configuration in simple terms</span>
+                    </div>
+                    <div class="slash-item flex items-center justify-between p-2 hover:bg-purple-600/10 cursor-pointer text-[11px] group" data-command="/queue">
+                      <span class="font-mono font-bold text-purple-400 group-hover:text-purple-300">/queue</span>
+                      <span class="text-zinc-500 text-[9px]">Open bandwidth queue builder</span>
+                    </div>
                   </div>
-                  <div class="slash-item flex items-center justify-between p-2 hover:bg-purple-600/10 cursor-pointer text-[11px] group" data-command="/explain">
-                    <span class="font-mono font-bold text-purple-400 group-hover:text-purple-300">/explain</span>
-                    <span class="text-zinc-500 text-[9px]">Explain configuration in simple terms</span>
-                  </div>
-                  <div class="slash-item flex items-center justify-between p-2 hover:bg-purple-600/10 cursor-pointer text-[11px] group" data-command="/queue">
-                    <span class="font-mono font-bold text-purple-400 group-hover:text-purple-300">/queue</span>
-                    <span class="text-zinc-500 text-[9px]">Open bandwidth queue builder</span>
+                </div>
+
+                <!-- PALETTE: AT MODIFIERS -->
+                <div id="at-palette" class="hidden absolute bottom-full left-0 mb-1 w-64 bg-surface-elevated border border-border rounded shadow-2xl overflow-hidden select-none z-50">
+                  <div class="px-2.5 py-1 bg-app border-b border-border text-[9px] font-bold uppercase tracking-wider text-purple-400">Context Modifiers</div>
+                  <div class="max-h-36 overflow-y-auto">
+                    <div class="at-item flex items-center justify-between p-2 hover:bg-purple-600/10 cursor-pointer text-[11px] group" data-modifier="@strict">
+                      <span class="font-mono font-bold text-purple-400 group-hover:text-purple-300">@strict</span>
+                      <span class="text-zinc-500 text-[9px]">Output commands only, no talking</span>
+                    </div>
+                    <div class="at-item flex items-center justify-between p-2 hover:bg-purple-600/10 cursor-pointer text-[11px] group" data-modifier="@beginner">
+                      <span class="font-mono font-bold text-purple-400 group-hover:text-purple-300">@beginner</span>
+                      <span class="text-zinc-500 text-[9px]">Simple concepts for junior admins</span>
+                    </div>
+                    <div class="at-item flex items-center justify-between p-2 hover:bg-purple-600/10 cursor-pointer text-[11px] group" data-modifier="@wiki">
+                      <span class="font-mono font-bold text-purple-400 group-hover:text-purple-300">@wiki</span>
+                      <span class="text-zinc-500 text-[9px]">Enforce MikroTik wiki standards</span>
+                    </div>
                   </div>
                 </div>
               </div>
 
-              <!-- PALETTE: AT MODIFIERS -->
-              <div id="at-palette" class="hidden absolute bottom-full left-0 mb-1 w-64 bg-surface-elevated border border-border rounded shadow-2xl overflow-hidden select-none z-50">
-                <div class="px-2.5 py-1 bg-app border-b border-border text-[9px] font-bold uppercase tracking-wider text-purple-400">Context Modifiers</div>
-                <div class="max-h-36 overflow-y-auto">
-                  <div class="at-item flex items-center justify-between p-2 hover:bg-purple-600/10 cursor-pointer text-[11px] group" data-modifier="@strict">
-                    <span class="font-mono font-bold text-purple-400 group-hover:text-purple-300">@strict</span>
-                    <span class="text-zinc-500 text-[9px]">Output commands only, no talking</span>
-                  </div>
-                  <div class="at-item flex items-center justify-between p-2 hover:bg-purple-600/10 cursor-pointer text-[11px] group" data-modifier="@beginner">
-                    <span class="font-mono font-bold text-purple-400 group-hover:text-purple-300">@beginner</span>
-                    <span class="text-zinc-500 text-[9px]">Simple concepts for junior admins</span>
-                  </div>
-                  <div class="at-item flex items-center justify-between p-2 hover:bg-purple-600/10 cursor-pointer text-[11px] group" data-modifier="@wiki">
-                    <span class="font-mono font-bold text-purple-400 group-hover:text-purple-300">@wiki</span>
-                    <span class="text-zinc-500 text-[9px]">Enforce MikroTik wiki standards</span>
-                  </div>
-                </div>
-              </div>
-
-            </div>
-
-            <!-- ACTION BUTTONS ROW -->
-            <div class="flex items-center justify-between mt-2 select-none">
-              <div class="flex items-center space-x-1.5">
+              <div class="chat-input-actions flex items-center gap-1 select-none flex-shrink-0">
                 <!-- Toggle Attachment Drawer button -->
-                <button id="btn-toggle-drawer" class="w-7 h-7 rounded bg-app hover:bg-white/5 border border-border text-zinc-300 transition duration-150 flex items-center justify-center focus:outline-none" title="Paste Config Drawer">
+                <button id="btn-toggle-drawer" class="icon-btn w-7 h-7 rounded hover:bg-white/5 border border-border text-zinc-300 flex items-center justify-center focus:outline-none" title="Paste Config Drawer">
                   ${UI_Icons.render('paperclip', 'w-3.5 h-3.5')}
                 </button>
-                <button id="btn-attach-file-upload" class="w-7 h-7 rounded bg-app hover:bg-white/5 border border-border text-zinc-300 transition duration-150 flex items-center justify-center focus:outline-none" title="Upload Config File">
+                <button id="btn-attach-file-upload" class="icon-btn w-7 h-7 rounded hover:bg-white/5 border border-border text-zinc-300 flex items-center justify-center focus:outline-none" title="Upload Config File">
                   ${UI_Icons.render('upload', 'w-3.5 h-3.5')}
                 </button>
-                <button id="btn-toggle-wiki" class="w-7 h-7 rounded transition duration-150 flex items-center justify-center focus:outline-none ${window.forceWikiContext ? 'bg-purple-900/40 text-purple-400 border border-purple-500/30' : 'bg-app hover:bg-white/5 border border-border text-zinc-300'}" title="Toggle Wiki Context Support">
+                <button id="btn-toggle-wiki" class="icon-btn w-7 h-7 rounded flex items-center justify-center focus:outline-none ${window.forceWikiContext ? 'text-purple-400 border border-purple-500/30' : 'border border-border text-zinc-300'}" title="Toggle Wiki Context Support">
                   ${UI_Icons.render('book-open', 'w-3.5 h-3.5')}
                 </button>
                 <input type="file" id="file-input" class="hidden" accept=".rsc,.txt,.log">
-              </div>
 
-              <!-- Submit button: Compact w-7 h-7 with centered layouts to prevent shift -->
-              <button id="btn-submit" class="w-7 h-7 rounded bg-purple-600 hover:bg-purple-700 text-white transition-all duration-150 active:scale-95 flex items-center justify-center focus:outline-none" title="Submit Audit">
-                <!-- Send Icon -->
-                <span id="submit-icon">${UI_Icons.render('arrow-right', 'w-3.5 h-3.5')}</span>
-                <!-- Loading Spinner (initially hidden) -->
-                <svg id="loading-spinner" class="hidden w-3.5 h-3.5 text-white animate-spin" fill="none" viewBox="0 0 24 24">
-                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                  <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                </svg>
-                <!-- Stop/Abort Icon (initially hidden) -->
-                <span id="stop-icon" class="hidden">${UI_Icons.render('square', 'w-3 h-3 text-red-200')}</span>
-              </button>
+                <!-- Submit button -->
+                <button id="btn-submit" class="btn-primary icon-btn w-7 h-7 rounded bg-purple-600 hover:bg-purple-700 text-white flex items-center justify-center focus:outline-none animate-none" title="Submit Audit">
+                  <!-- Send Icon -->
+                  <span id="submit-icon">${UI_Icons.render('arrow-right', 'w-3.5 h-3.5')}</span>
+                  <!-- Loading Spinner (initially hidden) -->
+                  <svg id="loading-spinner" class="hidden w-3.5 h-3.5 text-white animate-spin" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  <!-- Stop/Abort Icon (initially hidden) -->
+                  <span id="stop-icon" class="hidden">${UI_Icons.render('square', 'w-3 h-3 text-red-200')}</span>
+                </button>
+              </div>
             </div>
 
             <!-- COLLAPSIBLE ATTACHMENTS DRAWER -->
@@ -547,6 +553,7 @@ const AuditTab = {
 
       attachmentDrawer: document.getElementById('attachment-drawer'),
       btnToggleDrawer: document.getElementById('btn-toggle-drawer'),
+      btnAttachFileUpload: document.getElementById('btn-attach-file-upload'),
       btnClearAttachment: document.getElementById('btn-clear-attachment'),
       btnFormatConfig: document.getElementById('btn-format-config'),
       btnAnalyzeShadows: document.getElementById('btn-analyze-shadows'),
@@ -1118,17 +1125,16 @@ const AuditTab = {
 
   // Sync privacy shields badge count
   updatePrivacyShieldCountLabel() {
-    let active = 0;
-    if (this.els.maskIPs && this.els.maskIPs.checked) active++;
-    if (this.els.maskMACs && this.els.maskMACs.checked) active++;
-    if (this.els.maskSecrets && this.els.maskSecrets.checked) active++;
-    if (this.els.maskInterfaces && this.els.maskInterfaces.checked) active++;
-    if (this.els.maskDomains && this.els.maskDomains.checked) active++;
-    if (this.els.maskIdentity && this.els.maskIdentity.checked) active++;
+    const shields = AppState.preferences.privacyShields || {};
+    const active = Object.values(shields).filter(v => v === true).length;
+    const total = Object.keys(shields).length;
 
     const badge = document.getElementById('privacy-count-badge');
     if (badge) {
-      badge.textContent = `🛡️ Privacy Guard: ${active}/6 Active`;
+      badge.innerHTML = `
+        ${UI_Icons.render('shield-check', 'w-3 h-3 text-emerald-400 mr-1.5')}
+        <span class="text-emerald-300">Privacy Guard: ${active}/${total} Active</span>
+      `;
     }
   },
 
