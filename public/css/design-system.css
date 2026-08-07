@@ -361,3 +361,118 @@ select:focus-visible {
 [data-theme="light"] .border-emerald-500\/20 {
   border-color: rgba(16, 185, 129, 0.3) !important;
 }
+
+/* Light Mode Contrast Overrides */
+[data-theme="light"] {
+  /* Enforce dark text color for placeholders to prevent white-on-white */
+  --input-placeholder: #71717a;
+}
+
+[data-theme="light"] input::placeholder,
+[data-theme="light"] textarea::placeholder,
+[data-theme="light"] .placeholder-zinc-600::placeholder,
+[data-theme="light"] .placeholder-zinc-500::placeholder {
+  color: #71717a !important;
+  opacity: 1 !important;
+}
+
+/* Fix unreadable Light Mode colors on white/light backgrounds */
+[data-theme="light"] .text-zinc-300,
+[data-theme="light"] .text-zinc-400 {
+  color: #3f3f46 !important; /* zinc-700 */
+}
+
+[data-theme="light"] .text-zinc-500 {
+  color: #52525b !important; /* zinc-600 */
+}
+
+[data-theme="light"] .text-purple-300,
+[data-theme="light"] .text-purple-400 {
+  color: #6d28d9 !important; /* purple-700 */
+}
+
+[data-theme="light"] .text-indigo-400 {
+  color: #4338ca !important; /* indigo-700 */
+}
+
+[data-theme="light"] .text-emerald-300 {
+  color: #047857 !important; /* emerald-700 */
+}
+
+[data-theme="light"] .bg-purple-950\/20 {
+  background-color: rgba(139, 92, 246, 0.15) !important;
+}
+
+[data-theme="light"] .border-purple-500\/20 {
+  border-color: rgba(139, 92, 246, 0.4) !important;
+}
+
+/* Handle markdown / prose contrast in Light Mode */
+[data-theme="light"] .prose-invert,
+[data-theme="light"] .prose {
+  color: #27272a !important; /* zinc-800 */
+}
+
+[data-theme="light"] .prose-invert p,
+[data-theme="light"] .prose p,
+[data-theme="light"] .prose-invert li,
+[data-theme="light"] .prose li {
+  color: #27272a !important; /* zinc-800 */
+}
+
+[data-theme="light"] .prose-invert h1,
+[data-theme="light"] .prose h1,
+[data-theme="light"] .prose-invert h2,
+[data-theme="light"] .prose h2,
+[data-theme="light"] .prose-invert h3,
+[data-theme="light"] .prose h3 {
+  color: #09090b !important; /* zinc-950 */
+}
+
+/* Code block highlight overrides inside markdown responses in light mode */
+[data-theme="light"] .code-block-container,
+[data-theme="light"] .code-block-bg,
+[data-theme="light"] .bg-\[var\(--code-bg\)\] {
+  background-color: #f4f4f5 !important;
+  border-color: #d4d4d8 !important;
+}
+
+[data-theme="light"] .code-block-content,
+[data-theme="light"] .code-block-content code,
+[data-theme="light"] .text-\[var\(--code-text\)\] {
+  color: #18181b !important; /* zinc-900 */
+}
+
+[data-theme="light"] .code-block-content code .command-line {
+  color: #18181b !important;
+}
+
+[data-theme="light"] .code-block-content code .command-line + .command-line {
+  border-top-color: #e4e4e7 !important;
+}
+
+/* Assistant chat bubbles and lines */
+[data-theme="light"] .chat-bubble-assistant {
+  color: #27272a !important;
+}
+
+[data-theme="light"] .chat-bubble-assistant p {
+  color: #27272a !important;
+}
+
+/* Fix pastel category badges on build tab / library */
+[data-theme="light"] .bg-surface .font-mono.uppercase {
+  background-color: #e4e4e7 !important;
+  color: #27272a !important;
+}
+
+/* Ensure progress/step description text is perfectly visible */
+[data-theme="light"] .progress-steps .step span,
+[data-theme="light"] .progress-steps .step i {
+  color: #52525b !important;
+}
+
+[data-theme="light"] .progress-steps .step.active span,
+[data-theme="light"] .progress-steps .step.active i {
+  color: #4f46e5 !important;
+}
